@@ -33,25 +33,59 @@ const ENTRY = [
 ];
 const EXCLUDE_MARKERS = ['귀행자'];
 const MAX_PAGES = 400;
-const UA =
-  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36';
+// Honest, identifiable user agent – this is the owner migrating their own site.
+const UA = 'gollshow-site-importer/1.0 (+https://github.com/gollshow/gollshow-site)';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-async function get(url, { binary = false, tries = 3 } = {}) {
-  let lastErr;
+async function plainGet(url, binary, tries = 2) {
+  let last = { ok: false, status: 0 };
   for (let i = 0; i < tries; i++) {
     try {
-      const res = await fetch(url, { headers: { 'user-agent': UA, accept: binary ? 'image/*,*/*' : 'text/html,*/*' }, redirect: 'follow' });
+      const res = await fetch(url, { headers: { 'user-agent': UA }, redirect: 'follow' });
       if (!res.ok) return { ok: false, status: res.status, url: res.url };
       const body = binary ? Buffer.from(await res.arrayBuffer()) : await res.text();
       return { ok: true, status: res.status, url: res.url, type: res.headers.get('content-type') || '', body };
     } catch (e) {
-      lastErr = e;
-      await sleep(800 * (i + 1));
+      last = { ok: false, status: 0, error: String(e) };
+      await sleep(1000 * (i + 1));
     }
   }
-  return { ok: false, status: 0, error: String(lastErr) };
+  return last;
+}
+
+/**
+ * 1) the live site, 2) the Internet Archive's public copy (Wayback Machine,
+ * latest snapshot, original bytes via the `id_` flag).
+ */
+const via = {};
+async function get(url, { binary = false, archive = true } = {}) {
+  const live = await plainGet(url, binary);
+  if (live.ok) {
+    via.live = (via.live || 0) + 1;
+    return { ...live, via: 'live' };
+  }
+  if (!archive) return { ok: false, status: live.status, attempts: [`live:${live.status}`] };
+  const wb = await plainGet(`https://web.archive.org/web/20271231235959id_/${url}`, binary, 3);
+  await sleep(400); // be gentle with archive.org
+  if (wb.ok) {
+    via.wayback = (via.wayback || 0) + 1;
+    return { ...wb, url, archivedAt: wb.url, via: 'wayback' };
+  }
+  return { ok: false, status: live.status, attempts: [`live:${live.status}`, `wayback:${wb.status}`] };
+}
+
+/** Every URL the Wayback Machine holds for a prefix (used for discovery). */
+async function waybackList(prefix, filter = 'statuscode:200') {
+  const q = `https://web.archive.org/cdx/search/cdx?url=${encodeURIComponent(prefix)}&matchType=prefix&output=json&fl=original,timestamp,mimetype,length&filter=${filter}&collapse=urlkey&limit=20000`;
+  const r = await plainGet(q, false, 3);
+  if (!r.ok) return [];
+  try {
+    const rows = JSON.parse(r.body);
+    return rows.slice(1).map(([original, timestamp, mimetype, length]) => ({ original, timestamp, mimetype, length: Number(length) || 0 }));
+  } catch {
+    return [];
+  }
 }
 
 function slugFor(u) {
@@ -127,6 +161,14 @@ async function main() {
   await fs.mkdir(path.join(OUT, 'images'), { recursive: true });
 
   const queue = [...ENTRY];
+  // Discover archived pages too (project pages are often only linked from covers).
+  const archived = [...(await waybackList('gollshow.com/')), ...(await waybackList('www.gollshow.com/'))];
+  for (const a of archived) {
+    if (!/html/.test(a.mimetype)) continue;
+    const n = normPage(a.original, 'https://gollshow.com/');
+    if (n && !queue.includes(n)) queue.push(n);
+  }
+  console.log(`wayback knows ${archived.length} URLs on gollshow.com`);
   const seen = new Set();
   const pages = [];
   const skipped = [];
@@ -141,7 +183,7 @@ async function main() {
     seen.add(url);
     const res = await get(url);
     if (!res.ok) {
-      errors.push({ url, status: res.status, error: res.error });
+      errors.push({ url, attempts: res.attempts });
       continue;
     }
     let html = res.body;
@@ -171,7 +213,7 @@ async function main() {
       if (!embeds.has(e)) embeds.set(e, new Set());
       embeds.get(e).add(slug);
     }
-    pages.push({ url, finalUrl: res.url, slug, links, assetCount: assets.length, embeds: emb });
+    pages.push({ url, finalUrl: res.url, via: res.via, archivedAt: res.archivedAt, slug, links, assetCount: assets.length, embeds: emb });
     for (const l of links) if (!seen.has(l) && !excludedLinks.has(l)) queue.push(l);
     await sleep(150);
   }
@@ -212,8 +254,8 @@ async function main() {
     let best = null;
     const tried = [];
     for (const c of candidates) {
-      const r = await get(c.u, { binary: true, tries: 2 });
-      tried.push({ url: c.u, status: r.status, bytes: r.ok ? r.body.length : 0 });
+      const r = await get(c.u, { binary: true, archive: !c.label.includes('synth') });
+      tried.push({ url: c.u, via: r.via, attempts: r.attempts, bytes: r.ok ? r.body.length : 0 });
       if (r.ok && /^image\//.test(r.type) && r.body.length > 1000) {
         if (!best || r.body.length > best.body.length) best = { ...c, body: r.body, type: r.type };
         // An original is by definition the largest – stop there.
@@ -234,8 +276,16 @@ async function main() {
     if (i % 10 === 0) console.log(`assets ${i}/${groups.size}`);
   }
 
+  // What the archive holds from the image CDN for this account (for the report).
+  const accountDirs = [...new Set([...groups.values()].map((v) => v[0].dir.split('/')[1]).filter(Boolean))];
+  const archivedAssets = [];
+  for (const d of accountDirs) archivedAssets.push(...(await waybackList(`cdn.myportfolio.com/${d}/`)));
+
   const manifest = {
     crawledAt: new Date().toISOString(),
+    via,
+    archivedPageUrls: archived.map((a) => a.original),
+    archivedAssets,
     pages,
     skipped,
     errors,
