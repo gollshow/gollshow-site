@@ -1,0 +1,110 @@
+---
+import T from './T.astro';
+import { UI, CATEGORY } from '../lib/i18n';
+import { getRooms, getSettings } from '../lib/works';
+import { withBase } from '../lib/media';
+
+interface Props { current?: string; bare?: boolean }
+const { current } = Astro.props;
+const s = await getSettings();
+const rooms = (await getRooms()).filter((r) => r.key !== 'music');
+const nav = [
+  { key: 'works', href: '/works/', t: UI.works },
+  { key: 'music', href: '/music/', t: UI.music },
+  { key: 'about', href: '/about/', t: UI.about },
+];
+---
+<header class="hd" data-header>
+  <div class="hd__in frame">
+    <a class="hd__mark" href={withBase('/')} aria-label="goll show — home">
+      <span class="hd__goll">goll</span><span class="hd__show">show</span>
+    </a>
+    <nav class="hd__nav" aria-label="Main">
+      <ul>
+        {nav.map((n) => (
+          <li><a class="label link" href={withBase(n.href)} aria-current={current === n.key ? 'page' : undefined}><T t={n.t} /></a></li>
+        ))}
+      </ul>
+    </nav>
+    <div class="hd__tools">
+      <button class="hd__lang label" type="button" data-lang-toggle aria-label="한국어 / English">
+        <span data-l="ko">KO</span><span class="hd__sep" aria-hidden="true">/</span><span data-l="en">EN</span>
+      </button>
+      <button class="hd__theme" type="button" data-theme-toggle aria-label="Theme">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="6.5" fill="none" stroke="currentColor" stroke-width="1.1" /><path d="M10 3.5a6.5 6.5 0 0 1 0 13z" fill="currentColor" /></svg>
+      </button>
+      <button class="hd__menu label" type="button" data-menu-open aria-expanded="false" aria-controls="menu"><T t={UI.menu} /></button>
+    </div>
+  </div>
+</header>
+
+<div class="menu" id="menu" data-menu hidden>
+  <div class="menu__in frame">
+    <div class="menu__top">
+      <a class="hd__mark" href={withBase('/')}><span class="hd__goll">goll</span><span class="hd__show">show</span></a>
+      <button class="label" type="button" data-menu-close><T t={UI.close} /></button>
+    </div>
+    <nav aria-label="Menu">
+      <ol class="menu__list">
+        <li><a href={withBase('/works/')}><span class="menu__no label">00</span><T t={UI.works} /></a></li>
+        {rooms.map((r, i) => (
+          <li class="menu__sub"><a href={withBase(r.path)}><span class="menu__no label">{String(i + 1).padStart(2, '0')}</span><T ko={r.ko} en={r.en} /></a></li>
+        ))}
+        <li><a href={withBase('/music/')}><span class="menu__no label">♪</span><T t={UI.music} /></a></li>
+        <li><a href={withBase('/about/')}><span class="menu__no label">—</span><T t={UI.about} /></a></li>
+      </ol>
+    </nav>
+    <div class="menu__foot cap">
+      {s.email && <a class="link link--always" href={`mailto:${s.email}`}>{s.email}</a>}
+      {s.instagram && <a class="link link--always" href={s.instagram} rel="me noopener" target="_blank">Instagram</a>}
+    </div>
+  </div>
+</div>
+
+<style>
+  .hd {
+    position: fixed; inset: 0 0 auto 0; z-index: 40;
+    height: var(--header-h);
+    transition: transform var(--d-mid) var(--ease-out), background-color var(--d-mid), box-shadow var(--d-mid);
+  }
+  .hd.is-scrolled { background: var(--veil); backdrop-filter: saturate(1.1) blur(14px); -webkit-backdrop-filter: saturate(1.1) blur(14px); box-shadow: 0 1px 0 var(--line); }
+  .hd.is-hidden { transform: translateY(-100%); }
+  .hd__in { height: 100%; display: flex; align-items: center; gap: 24px; }
+  .hd__mark { display: inline-flex; align-items: baseline; gap: 0.32em; font-family: var(--serif); line-height: 1; margin-right: auto; padding: 10px 0; }
+  .hd__goll { font-size: 1.375rem; font-weight: 400; letter-spacing: -0.01em; }
+  .hd__show { font-family: var(--sans); font-size: var(--t-label); font-weight: 500; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-2); }
+  .hd__nav ul { display: flex; gap: clamp(20px, 2.6vw, 40px); }
+  .hd__nav a { display: inline-block; padding: 12px 0 2px; }
+  .hd__tools { display: flex; align-items: center; gap: 14px; }
+  .hd__lang { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 4px; color: var(--ink-3); }
+  .hd__lang [data-l] { transition: color var(--d-fast); }
+  :global(html[data-lang='ko']) .hd__lang [data-l='ko'], :global(html[data-lang='en']) .hd__lang [data-l='en'] { color: var(--ink); }
+  .hd__sep { opacity: 0.5; }
+  .hd__theme { width: 44px; height: 44px; display: grid; place-items: center; margin-right: -12px; color: var(--ink); }
+  .hd__theme svg { width: 18px; height: 18px; transition: transform var(--d-mid) var(--ease-out); }
+  .hd__theme:hover svg { transform: rotate(180deg); }
+  .hd__menu { display: none; min-height: 44px; padding: 0 2px; }
+
+  @media (max-width: 760px) {
+    .hd__nav { display: none; }
+    .hd__menu { display: inline-flex; align-items: center; }
+    .hd__theme { margin-right: 0; }
+    .hd__tools { gap: 6px; }
+  }
+
+  .menu {
+    position: fixed; inset: 0; z-index: 60;
+    background: var(--paper);
+    overflow-y: auto;
+    animation: menu-in var(--d-mid) var(--ease-out);
+  }
+  @keyframes menu-in { from { opacity: 0; } }
+  .menu__in { min-height: 100%; display: flex; flex-direction: column; }
+  .menu__top { height: var(--header-h); display: flex; align-items: center; justify-content: space-between; }
+  .menu__top button { min-height: 44px; }
+  .menu__list { margin-top: clamp(24px, 6vh, 64px); }
+  .menu__list a { display: flex; align-items: baseline; gap: 18px; padding: 10px 0; font-family: var(--serif); font-weight: 300; font-size: clamp(1.75rem, 8vw, 2.75rem); line-height: 1.2; border-bottom: 1px solid var(--line); }
+  .menu__sub a { font-size: clamp(1.25rem, 5.6vw, 1.875rem); padding-left: 0; color: var(--ink-2); }
+  .menu__no { width: 2.2em; flex: none; color: var(--ink-3); }
+  .menu__foot { margin-top: auto; padding: 40px 0 calc(32px + env(safe-area-inset-bottom)); display: flex; gap: 24px; flex-wrap: wrap; }
+</style>

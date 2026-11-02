@@ -1,0 +1,104 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import Player from '../components/Player.astro';
+import Viewer from '../components/Viewer.astro';
+import { getSettings } from '../lib/works';
+import { withBase } from '../lib/media';
+
+interface Props {
+  title?: string; // page title (already bilingual-joined)
+  description?: string;
+  image?: string; // absolute or base-relative OG image path
+  imageAlt?: string;
+  jsonld?: object | object[];
+  kind?: 'website' | 'article' | 'profile';
+  bare?: boolean; // landing: header floats over the opening
+  current?: string; // nav key
+}
+const s = await getSettings();
+const siteTitle = s.site_title ?? 'goll show';
+const { title, description = [s.description, s.description_en].filter(Boolean).join(' — '), image = '/og/site.jpg', imageAlt = siteTitle, jsonld, kind = 'website', bare = false, current } = Astro.props;
+const fullTitle = title ? `${title} — ${siteTitle}` : `${siteTitle} — ${[s.name_en, s.roles_en].filter(Boolean).join(', ')}`;
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const ogImage = new URL(withBase(image)!, Astro.site).href;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const fonts = [
+  { family: 'Goll Serif', weight: 300, file: 'serif-300' },
+  { family: 'Goll Serif', weight: 400, file: 'serif-400' },
+  { family: 'Goll Sans', weight: 400, file: 'sans-400' },
+  { family: 'Goll Sans', weight: 500, file: 'sans-500' },
+];
+const fontCss = fonts
+  .map((f) => `@font-face{font-family:'${f.family}';font-style:normal;font-weight:${f.weight};font-display:swap;src:url('${base}/fonts/${f.file}.woff2') format('woff2')}`)
+  .join('');
+const ld = jsonld ? (Array.isArray(jsonld) ? jsonld : [jsonld]) : [];
+---
+<!doctype html>
+<html lang="ko" data-lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta name="theme-color" content="#f4f2ed" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0f0f0e" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" href={withBase('/favicon.svg')} type="image/svg+xml" />
+    <link rel="icon" href={withBase('/favicon-32.png')} sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href={withBase('/apple-touch-icon.png')} />
+    <link rel="sitemap" href={withBase('/sitemap-index.xml')} />
+    <meta property="og:type" content={kind} />
+    <meta property="og:site_name" content={siteTitle} />
+    <meta property="og:title" content={title ?? siteTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={imageAlt} />
+    <meta property="og:locale" content="ko_KR" />
+    <meta property="og:locale:alternate" content="en_US" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preload" href={`${base}/fonts/serif-300.woff2`} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={`${base}/fonts/sans-400.woff2`} as="font" type="font/woff2" crossorigin />
+    <style is:inline set:html={fontCss}></style>
+    <script is:inline>
+      (() => {
+        const d = document.documentElement;
+        const get = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
+        const apply = () => {
+          const lang = get('goll:lang') || ((navigator.language || 'ko').toLowerCase().startsWith('ko') ? 'ko' : 'en');
+          d.dataset.lang = lang;
+          d.lang = lang;
+          const theme = get('goll:theme');
+          if (theme === 'light' || theme === 'dark') d.dataset.theme = theme;
+          else delete d.dataset.theme;
+          d.classList.add('js');
+        };
+        apply();
+        if (!window.__gollPrefs) {
+          window.__gollPrefs = apply;
+          document.addEventListener('astro:after-swap', () => window.__gollPrefs());
+        }
+      })();
+    </script>
+    {ld.map((j) => <script type="application/ld+json" set:html={JSON.stringify(j)} />)}
+    <ClientRouter fallback="swap" />
+  </head>
+  <body class:list={[bare && 'is-bare']}>
+    <a class="skip" href="#main"><span class="t" lang="ko">본문으로 건너뛰기</span><span class="t" lang="en">Skip to content</span></a>
+    <Header current={current} bare={bare} />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer />
+    <Viewer />
+    <Player />
+    <script>
+      import '../scripts/site';
+    </script>
+  </body>
+</html>

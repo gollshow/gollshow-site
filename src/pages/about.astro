@@ -1,0 +1,76 @@
+---
+import Base from '../layouts/Base.astro';
+import Art from '../components/Art.astro';
+import T from '../components/T.astro';
+import Para from '../components/Para.astro';
+import Kong from '../components/Kong.astro';
+import { getAbout, getSettings } from '../lib/works';
+import { resolveImage } from '../lib/media';
+import { UI } from '../lib/i18n';
+import { personLd } from '../lib/seo';
+
+const s = await getSettings();
+const a = await getAbout();
+const portrait = resolveImage(a?.portrait);
+const handle = s.instagram?.match(/instagram\.com\/([^/?#]+)/)?.[1];
+---
+<Base title={`${a?.title ?? UI.about.ko} ${a?.title_en ?? UI.about.en}`} current="about" kind="profile" jsonld={personLd(s, Astro.site)}>
+  <article class="ab frame">
+    <header class="ab__head">
+      <p class="label muted" data-reveal><T ko={a?.title ?? UI.about.ko} en={a?.title_en ?? UI.about.en} /></p>
+      <h1 class="ab__name" data-reveal style="--i:1">goll{s.name_en && <span class="ab__real">{s.name_en}</span>}</h1>
+      {(s.roles || s.roles_en) && <p class="ab__roles lead" data-reveal style="--i:2"><T ko={s.roles} en={s.roles_en} /></p>}
+    </header>
+
+    <div class="ab__side" data-reveal style="--i:2">
+      {portrait ? <Art media={portrait} alt="goll" sizes="(min-width: 1024px) 28vw, 70vw" eager /> : <Kong class="ab__kong" />}
+    </div>
+
+    <div class="ab__body">
+      {(a?.bio || a?.bio_en) && <div data-reveal style="--i:3"><Para ko={a?.bio} en={a?.bio_en} class="prose ab__bio" /></div>}
+
+      {a?.cv && a.cv.length > 0 && (
+        <section class="ab__cv" aria-labelledby="cv-h">
+          <h2 id="cv-h" class="label muted"><T t={UI.cv} /></h2>
+          <dl>
+            {a.cv.map((c) => (
+              <div class="ab__cvrow" data-reveal>
+                <dt class="num">{c.year}</dt>
+                <dd><T ko={c.text ?? c.text_en} en={c.text_en} /></dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+      )}
+
+      <section class="ab__contact" aria-labelledby="ct-h" data-reveal>
+        <h2 id="ct-h" class="label muted"><T t={UI.contact} /></h2>
+        <ul>
+          {s.email && <li><a class="ab__big link" href={`mailto:${s.email}`}>{s.email}</a></li>}
+          {s.instagram && <li><a class="ab__big link" href={s.instagram} target="_blank" rel="me noopener">Instagram{handle && ` @${handle}`}</a></li>}
+          {s.links.map((l) => <li><a class="ab__big link" href={l.url} target="_blank" rel="me noopener">{l.label ?? l.url}</a></li>)}
+        </ul>
+      </section>
+    </div>
+  </article>
+</Base>
+<style>
+  .ab { padding-top: calc(var(--header-h) + clamp(56px, 12vh, 152px)); display: grid; gap: clamp(48px, 8vh, 96px); }
+  .ab__name { font-family: var(--serif); font-weight: 300; font-size: var(--t-h1); line-height: 1.05; letter-spacing: -0.015em; margin: 18px 0 20px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 24px; }
+  .ab__real { font-size: var(--t-h3); color: var(--ink-2); letter-spacing: 0; }
+  .ab__roles { color: var(--ink-2); }
+  .ab__side { max-width: 420px; }
+  .ab__kong { width: clamp(96px, 16vw, 180px); color: var(--ink); opacity: 0.9; }
+  .ab__body { display: grid; gap: clamp(56px, 9vh, 104px); }
+  .ab__cv h2, .ab__contact h2 { padding-bottom: 14px; margin-bottom: 8px; border-bottom: 1px solid var(--line); }
+  .ab__cvrow { display: grid; grid-template-columns: 6.5em 1fr; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--line); font-size: var(--t-cap); line-height: 1.6; }
+  .ab__cvrow dt { color: var(--ink-2); }
+  .ab__contact ul { display: grid; gap: 4px; padding-top: 10px; }
+  .ab__big { font-family: var(--serif); font-size: var(--t-lead); font-weight: 300; display: inline-block; padding: 6px 0; }
+  @media (min-width: 1024px) {
+    .ab { grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter); align-items: start; }
+    .ab__head { grid-column: 1 / span 8; }
+    .ab__side { grid-column: 10 / span 3; grid-row: 1 / span 2; justify-self: end; width: 100%; }
+    .ab__body { grid-column: 2 / span 7; }
+  }
+</style>

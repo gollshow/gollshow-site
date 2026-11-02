@@ -1,0 +1,148 @@
+---
+import Base from '../layouts/Base.astro';
+import Kong from '../components/Kong.astro';
+import T from '../components/T.astro';
+import Art from '../components/Art.astro';
+import Hang from '../components/Hang.astro';
+import RoomsList from '../components/RoomsList.astro';
+import kong from '../generated/kong.json';
+import { getWorks, getRooms, getSettings, pad } from '../lib/works';
+import { resolveImage, withBase } from '../lib/media';
+import { pic } from '../lib/pic';
+import { UI } from '../lib/i18n';
+import { personLd } from '../lib/seo';
+
+const s = await getSettings();
+const works = await getWorks();
+const rooms = await getRooms();
+const visual = (w: (typeof works)[number]) => w.data.category !== 'music' && w.cover;
+const featured = works.filter((w) => w.data.featured && visual(w));
+const hero = featured.length ? featured : works.filter(visual).slice(0, 6);
+
+type HeroItem = { media: NonNullable<ReturnType<typeof resolveImage>>; title?: string; title_en?: string; meta?: string; href?: string };
+const heroItems: HeroItem[] = hero.map((w) => ({
+  media: w.cover!,
+  title: w.data.title,
+  title_en: w.data.title_en,
+  meta: [w.data.year, w.data.medium].filter(Boolean).join(' · '),
+  href: withBase(w.href),
+}));
+const heroImage = resolveImage(s.hero_image);
+if (!heroItems.length && heroImage) heroItems.push({ media: heroImage });
+
+const heroData = await Promise.all(
+  heroItems.map(async (h) => {
+    const p = await pic(h.media, 1800);
+    return { src: p.large, w: p.w, h: p.h, title: h.title, title_en: h.title_en, meta: h.meta, href: h.href };
+  }),
+);
+const first = heroItems[0];
+const kongData = { d: kong.light, bbox: kong.bbox, focal: kong.focal, works: heroData };
+const roomsShown = rooms;
+---
+<Base bare jsonld={personLd(s, Astro.site)}>
+  <section class="op" data-kong aria-label="空">
+    <script type="application/json" data-kong-data set:html={JSON.stringify(kongData)} />
+    <div class="op__stage" data-kong-stage>
+      <Kong class="op__glyph" title="空" />
+      <canvas class="op__canvas" aria-hidden="true"></canvas>
+      {first && (
+        <figure class="op__work" data-kong-work data-src={heroData[0]?.src}>
+          {first.href ? (
+            <a href={first.href} data-kong-link tabindex="-1"><Art media={first.media} alt={first.title ?? 'goll'} sizes="(max-width: 640px) 100vw, 70vw" max={1800} /></a>
+          ) : (
+            <Art media={first.media} alt={first.title ?? 'goll'} sizes="(max-width: 640px) 100vw, 70vw" max={1800} />
+          )}
+        </figure>
+      )}
+      <div class="op__label cap" data-kong-label>
+        {first?.title ? (
+          <p><span class="op__label-t serif"><span class="t" lang="ko" data-kong-title>{first.title}</span><span class="t" lang="en" data-kong-title>{first.title_en ?? first.title}</span></span> <span data-kong-meta>{first.meta}</span></p>
+        ) : (
+          <p class="label">goll</p>
+        )}
+      </div>
+      <div class="op__meta" data-kong-fade>
+        <p class="op__roles label"><T ko={s.roles} en={s.roles_en} /></p>
+        <button class="op__cue label" type="button" data-kong-play>
+          <span class="op__cue-line" aria-hidden="true"></span><T t={UI.scroll} />
+        </button>
+        <a class="op__go label" href={withBase('/works/')}>GO<span aria-hidden="true"> →</span></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="intro frame">
+    <p class="intro__hi display" data-reveal><T ko={s.intro} en={s.intro_en} /></p>
+    <p class="intro__who lead" data-reveal style="--i:1">
+      <span class="serif">goll</span>{s.name_en && <span class="muted"> · {s.name_en}</span>}
+      <br /><span class="muted"><T ko={s.roles} en={s.roles_en} /></span>
+    </p>
+  </section>
+
+  <RoomsList rooms={roomsShown} />
+
+  {featured.length > 0 && (
+    <section class="selected" aria-labelledby="sel-h">
+      <div class="frame"><h2 id="sel-h" class="label muted" data-reveal><T t={UI.selected} /></h2></div>
+      <Hang works={featured} />
+    </section>
+  )}
+</Base>
+
+<style>
+  /* ── The opening ─────────────────────────────────────────── */
+  .op { position: relative; }
+  .op__stage { position: relative; height: 100svh; min-height: 520px; overflow: hidden; }
+  html:global(.js) .op:not(:global(.is-static)) { height: 340svh; }
+  html:global(.js) .op:not(:global(.is-static)) .op__stage { position: sticky; top: 0; }
+  .op__glyph {
+    position: absolute; left: 50%; top: 48%;
+    width: min(74vw, 58svh * 1.041, 640px);
+    transform: translate(-50%, -50%);
+    color: var(--ink);
+    animation: op-breathe 7s var(--ease-in-out) infinite;
+  }
+  @keyframes op-breathe { 50% { opacity: 0.86; } }
+  .op:global(.is-live) .op__glyph { visibility: hidden; animation: none; }
+  .op__canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; transition: opacity 120ms linear; }
+  .op__work { position: absolute; margin: 0; opacity: 0; transform-origin: 50% 50%; will-change: transform; }
+  .op__work :global(.art) { width: 100%; height: 100%; aspect-ratio: auto; }
+  .op__label { position: absolute; top: var(--label-top, auto); left: var(--label-left, var(--margin)); right: var(--margin); opacity: 0; color: var(--ink-2); }
+  .op__label-t { font-size: 1rem; color: var(--ink); margin-right: 0.6em; }
+  .op__meta { position: absolute; inset: auto var(--margin) calc(28px + env(safe-area-inset-bottom)); display: grid; grid-template-columns: 1fr auto 1fr; align-items: end; gap: 16px; }
+  .op__roles { color: var(--ink-2); }
+  .op__go { justify-self: end; display: inline-flex; align-items: center; min-height: 44px; padding: 0 0 0 16px; }
+  .op__go:hover { color: var(--seal); }
+  .op__cue { display: inline-flex; flex-direction: column; align-items: center; gap: 12px; color: var(--ink-2); min-height: 44px; }
+  .op__cue-line { width: 1px; height: 44px; background: linear-gradient(var(--ink-3), var(--ink-3)) no-repeat 0 0 / 1px 0; background-color: var(--line); animation: op-cue 2.8s var(--ease-in-out) infinite; }
+  @keyframes op-cue { 0% { background-size: 1px 0; background-position: 0 0; } 50% { background-size: 1px 100%; background-position: 0 0; } 100% { background-size: 1px 0; background-position: 0 100%; } }
+
+  /* static (no JS / reduced motion): 空 then the work, side by side or stacked */
+  .op:global(.is-static) .op__stage, html:not(:global(.js)) .op__stage { height: auto; min-height: 0; display: grid; gap: 40px; padding: calc(var(--header-h) + 40px) var(--margin) 40px; }
+  .op:global(.is-static) .op__glyph, html:not(:global(.js)) .op__glyph { position: static; transform: none; width: min(60vw, 420px); margin: 8vh auto; animation: none; }
+  .op:global(.is-static) .op__canvas, html:not(:global(.js)) .op__canvas { display: none; }
+  .op:global(.is-static) .op__work, html:not(:global(.js)) .op__work { position: static; opacity: 1; width: min(100%, 560px); margin: 0 auto; transform: none; }
+  .op:global(.is-static) .op__work :global(.art), html:not(:global(.js)) .op__work :global(.art) { aspect-ratio: var(--ratio); height: auto; }
+  .op:global(.is-static) .op__label, html:not(:global(.js)) .op__label { position: static; opacity: 1; text-align: center; }
+  .op:global(.is-static) .op__meta, html:not(:global(.js)) .op__meta { position: static; }
+
+  @media (max-width: 640px) {
+    .op__meta { grid-template-columns: 1fr auto; }
+    .op__cue { display: none; }
+    .op__roles { max-width: 14em; }
+  }
+
+  /* ── Intro ────────────────────────────────────────────────── */
+  .intro { padding-top: var(--room-gap); padding-bottom: calc(var(--room-gap) * 0.6); display: grid; gap: 40px; }
+  .intro__hi { max-width: 14em; }
+  .intro__who { color: var(--ink); }
+  @media (min-width: 1024px) {
+    .intro { grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter); align-items: end; }
+    .intro__hi { grid-column: 2 / span 7; }
+    .intro__who { grid-column: 9 / span 4; padding-bottom: 0.7em; }
+  }
+
+  .selected { margin-top: var(--room-gap); }
+  .selected h2 { padding-bottom: 20px; margin-bottom: clamp(48px, 8vh, 96px); border-bottom: 1px solid var(--line); }
+</style>

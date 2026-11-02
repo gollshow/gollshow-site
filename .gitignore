@@ -2,7 +2,12 @@ node_modules/
 dist/
 .astro/
 .DS_Store
+.env
 # dev-only font subsets (production subsets are generated into dist/)
 public/fonts/
+# QA-only demo content (scripts/demo.mjs)
+src/content/works/_demo-*
+src/assets/media/_demo/
+public/media/audio/_demo*
 _check/*.json
-.env
+.cache/

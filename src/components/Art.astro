@@ -1,0 +1,44 @@
+---
+/**
+ * A work image: AVIF/WebP at several widths, LQIP + dominant colour while it
+ * loads, true aspect ratio (never cropped). `ref` is the path stored by the CMS.
+ */
+import { resolveImage, type Media } from '../lib/media';
+import { pic } from '../lib/pic';
+import Kong from './Kong.astro';
+
+interface Props {
+  media?: Media;
+  ref?: string;
+  alt: string;
+  sizes: string;
+  eager?: boolean;
+  class?: string;
+  vt?: string; // view-transition name
+  max?: number;
+}
+const { ref, alt, sizes, eager = false, class: cls, vt, max = 2560 } = Astro.props;
+const media = Astro.props.media ?? resolveImage(ref);
+const p = media ? await pic(media, max) : undefined;
+---
+{p ? (
+  <div class:list={['art', cls]} style={`--ratio:${p.w}/${p.h};--c:${p.color};background-image:${p.lqip}`} transition:name={vt}>
+    <picture>
+      <source type="image/avif" srcset={p.avif} sizes={sizes} />
+      <source type="image/webp" srcset={p.webp} sizes={sizes} />
+      <img
+        src={p.fallback}
+        alt={alt}
+        width={p.w}
+        height={p.h}
+        loading={eager ? 'eager' : 'lazy'}
+        decoding="async"
+        fetchpriority={eager ? 'high' : undefined}
+      />
+    </picture>
+  </div>
+) : (
+  <div class:list={['art', 'art--empty', cls]} style="--ratio:4/5" transition:name={vt} role="img" aria-label={alt}>
+    <Kong />
+  </div>
+)}

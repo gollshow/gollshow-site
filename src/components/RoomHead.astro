@@ -1,0 +1,32 @@
+---
+import T from './T.astro';
+import { UI } from '../lib/i18n';
+import { pad } from '../lib/works';
+interface Props { no?: number; ko: string; en: string; count: number; unit: { ko: string; en?: string }; modes?: boolean; eyebrow?: { ko: string; en?: string } }
+const { no, ko, en, count, unit, modes = false, eyebrow = UI.room } = Astro.props;
+---
+<header class="rh frame">
+  <p class="rh__eyebrow label muted" data-reveal><T t={eyebrow} />{no !== undefined && <span class="num"> {pad(no)}</span>}</p>
+  <h1 class="rh__title" data-reveal style="--i:1"><span class="rh__ko">{ko}</span><span class="rh__en label">{en}</span></h1>
+  <div class="rh__bar" data-reveal style="--i:2">
+    <p class="label muted">{count ? <T ko={`${count}${unit.ko}`} en={`${count} ${unit.en}`} /> : '—'}</p>
+    {modes && count > 1 && (
+      <div class="rh__modes" role="group" aria-label="View">
+        <button class="label" type="button" data-mode="hang" aria-pressed="true"><T t={UI.hang} /></button>
+        <button class="label" type="button" data-mode="index" aria-pressed="false"><T t={UI.index} /></button>
+      </div>
+    )}
+  </div>
+</header>
+
+<style>
+  .rh { padding-top: calc(var(--header-h) + clamp(56px, 12vh, 152px)); margin-bottom: clamp(56px, 11vh, 136px); }
+  .rh__eyebrow { margin-bottom: 18px; }
+  .rh__title { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 24px; font-weight: 300; }
+  .rh__ko { font-family: var(--serif); font-size: var(--t-h1); line-height: 1.05; letter-spacing: -0.015em; }
+  .rh__en { color: var(--ink-2); }
+  .rh__bar { margin-top: clamp(28px, 5vh, 56px); padding-top: 14px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; min-height: 44px; }
+  .rh__modes { display: flex; gap: 20px; }
+  .rh__modes button { min-height: 44px; color: var(--ink-3); transition: color var(--d-fast); }
+  .rh__modes button[aria-pressed='true'] { color: var(--ink); background: linear-gradient(currentColor, currentColor) no-repeat 0 calc(100% - 10px) / 100% 1px; }
+</style>

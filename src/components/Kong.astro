@@ -1,0 +1,10 @@
+---
+/** The 空 glyph as inline SVG (Noto Serif KR, OFL). */
+import kong from '../generated/kong.json';
+interface Props { class?: string; weight?: 'light' | 'regular'; title?: string }
+const { class: cls, weight = 'light', title } = Astro.props;
+const b = kong.bbox;
+const pad = 4;
+const vb = `${b.x1 - pad} ${b.y1 - pad} ${b.x2 - b.x1 + pad * 2} ${b.y2 - b.y1 + pad * 2}`;
+---
+<svg class={cls} viewBox={vb} role={title ? 'img' : undefined} aria-hidden={title ? undefined : 'true'} aria-label={title}><path d={kong[weight]} fill="currentColor" /></svg>

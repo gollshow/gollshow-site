@@ -1,0 +1,8 @@
+---
+/** Bilingual text. Shows Korean or English according to <html data-lang>. */
+interface Props { ko?: string; en?: string; t?: { ko: string; en?: string } }
+const ko = Astro.props.t?.ko ?? Astro.props.ko ?? '';
+const en = Astro.props.t?.en ?? Astro.props.en;
+const same = !en || en === ko;
+---
+{same ? <Fragment set:text={ko} /> : <><span class="t" lang="ko" set:text={ko} /><span class="t" lang="en" set:text={en} /></>}

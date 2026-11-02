@@ -1,0 +1,14 @@
+---
+import Kong from './Kong.astro';
+import T from './T.astro';
+import { UI } from '../lib/i18n';
+---
+<div class="er frame">
+  <Kong class="er__kong" />
+  <p class="er__t lead"><T t={UI.empty} /></p>
+</div>
+<style>
+  .er { display: grid; justify-items: center; gap: 28px; padding-block: clamp(40px, 12vh, 140px); text-align: center; }
+  .er__kong { width: clamp(72px, 12vw, 132px); color: var(--ink); opacity: 0.12; }
+  .er__t { color: var(--ink-2); }
+</style>
