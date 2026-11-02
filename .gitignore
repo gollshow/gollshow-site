@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.astro/
+.DS_Store
+# dev-only font subsets (production subsets are generated into dist/)
+public/fonts/
+_check/*.json
+.env
