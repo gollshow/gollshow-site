@@ -7,7 +7,7 @@
   --paper-2: #ebe8e1;
   --ink: #1a1a18;
   --ink-2: #5d5b56;
-  --ink-3: #8d8a83;
+  --ink-3: #6e6b65;
   --line: rgb(26 26 24 / 0.14);
   --line-strong: rgb(26 26 24 / 0.32);
   --seal: #a8362a;
@@ -54,7 +54,7 @@
     --paper-2: #191917;
     --ink: #ece9e2;
     --ink-2: #a8a59d;
-    --ink-3: #75726c;
+    --ink-3: #8a877f;
     --line: rgb(236 233 226 / 0.14);
     --line-strong: rgb(236 233 226 / 0.34);
     --seal: #e0725f;
@@ -67,7 +67,7 @@
   --paper-2: #191917;
   --ink: #ece9e2;
   --ink-2: #a8a59d;
-  --ink-3: #75726c;
+  --ink-3: #8a877f;
   --line: rgb(236 233 226 / 0.14);
   --line-strong: rgb(236 233 226 / 0.34);
   --seal: #e0725f;
@@ -147,6 +147,7 @@ html[data-lang='en'] .t[lang='ko'] { display: none !important; }
   font-variant-numeric: tabular-nums;
 }
 .label :lang(ko), .label[lang='ko'], .label .t[lang='ko'] { letter-spacing: 0.08em; }
+.label.tnum, .tnum { letter-spacing: 0.06em; }
 .cap { font-size: var(--t-cap); line-height: 1.55; color: var(--ink-2); }
 .num { font-variant-numeric: tabular-nums; }
 .muted { color: var(--ink-2); }

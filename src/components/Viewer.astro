@@ -16,7 +16,7 @@
     </div>
   </div>
   <div class="vw__top">
-    <span class="vw__count label" data-viewer-count></span>
+    <span class="vw__count label tnum" data-viewer-count></span>
     <button class="vw__btn vw__close" type="button" data-viewer-close aria-label="Close (Esc)">
       <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="1.2" /></svg>
     </button>
@@ -75,7 +75,7 @@
   .vw__zoom { position: absolute; right: calc(var(--margin) - 12px); bottom: max(6px, env(safe-area-inset-bottom)); display: flex; }
   .vw.is-zoomed .vw__cap, .vw.is-zoomed .vw__nav { opacity: 0; pointer-events: none; }
   .vw__cap, .vw__nav { transition: opacity var(--d-mid); }
-  @media (hover: none) {
+  @media (hover: none), (max-width: 640px) {
     .vw__nav, .vw__zoom { display: none; }
   }
 </style>

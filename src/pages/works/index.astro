@@ -12,7 +12,7 @@ const rooms = await getRooms();
 const works = (await getWorks()).filter((w) => w.data.category !== 'music');
 ---
 <Base title={`${UI.works.ko} ${UI.works.en}`} current="works">
-  <RoomHead ko={UI.works.ko} en={UI.works.en} count={works.length} unit={{ ko: '점', en: 'works' }} eyebrow={{ ko: s.intro ?? 'goll', en: s.intro_en ?? s.intro }} />
+  <RoomHead ko={UI.works.ko} en={UI.works.en} count={works.length} unit={{ ko: '점', en: 'works' }} eyebrow={UI.all} />
   <RoomsList rooms={rooms} heading={false} />
   {works.length > 0 && (
     <section class="all" aria-labelledby="all-h">

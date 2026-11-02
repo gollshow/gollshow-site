@@ -85,7 +85,7 @@ export function initChrome() {
   if (room) {
     const setMode = (m: string) => {
       room.dataset.mode = m;
-      document.querySelectorAll<HTMLButtonElement>('[data-mode]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === m)));
+      document.querySelectorAll<HTMLButtonElement>('[data-mode-btn]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.modeBtn === m)));
       try {
         localStorage.setItem('goll:mode', m);
       } catch {}
@@ -95,6 +95,6 @@ export function initChrome() {
       saved = localStorage.getItem('goll:mode') || 'hang';
     } catch {}
     setMode(saved);
-    document.querySelectorAll<HTMLButtonElement>('[data-mode]').forEach((b) => b.addEventListener('click', () => setMode(b.dataset.mode!)));
+    document.querySelectorAll<HTMLButtonElement>('[data-mode-btn]').forEach((b) => b.addEventListener('click', () => setMode(b.dataset.modeBtn!)));
   }
 }

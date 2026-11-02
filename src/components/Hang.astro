@@ -27,7 +27,7 @@ const slots = hang(works.map((w) => w.ratio));
             <Art media={w.cover} alt={w.data.title_en ? `${w.data.title} (${w.data.title_en})` : w.data.title} sizes={sizes} vt={`work-${w.slug}`} />
           </span>
           <span class="hg__cap">
-            {numbered && <span class="hg__no label">{pad(w.no)}</span>}
+            {numbered && <span class="hg__no label tnum">{pad(w.no)}</span>}
             <span class="hg__title serif"><T ko={w.data.title} en={w.data.title_en} /></span>
             {meta && <span class="hg__meta cap"><T ko={meta} en={metaEn} /></span>}
           </span>

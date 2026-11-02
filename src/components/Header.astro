@@ -46,12 +46,12 @@ const nav = [
     </div>
     <nav aria-label="Menu">
       <ol class="menu__list">
-        <li><a href={withBase('/works/')}><span class="menu__no label">00</span><T t={UI.works} /></a></li>
+        <li><a href={withBase('/works/')}><T t={UI.works} /></a></li>
         {rooms.map((r, i) => (
-          <li class="menu__sub"><a href={withBase(r.path)}><span class="menu__no label">{String(i + 1).padStart(2, '0')}</span><T ko={r.ko} en={r.en} /></a></li>
+          <li class="menu__sub"><a href={withBase(r.path)}><T ko={r.ko} en={r.en} /><span class="menu__no label tnum">{String(i + 1).padStart(2, '0')}</span></a></li>
         ))}
-        <li><a href={withBase('/music/')}><span class="menu__no label">♪</span><T t={UI.music} /></a></li>
-        <li><a href={withBase('/about/')}><span class="menu__no label">—</span><T t={UI.about} /></a></li>
+        <li><a href={withBase('/music/')}><T t={UI.music} /><span class="menu__no label tnum">{String(rooms.length + 1).padStart(2, '0')}</span></a></li>
+        <li><a href={withBase('/about/')}><T t={UI.about} /></a></li>
       </ol>
     </nav>
     <div class="menu__foot cap">
@@ -103,8 +103,8 @@ const nav = [
   .menu__top { height: var(--header-h); display: flex; align-items: center; justify-content: space-between; }
   .menu__top button { min-height: 44px; }
   .menu__list { margin-top: clamp(24px, 6vh, 64px); }
-  .menu__list a { display: flex; align-items: baseline; gap: 18px; padding: 10px 0; font-family: var(--serif); font-weight: 300; font-size: clamp(1.75rem, 8vw, 2.75rem); line-height: 1.2; border-bottom: 1px solid var(--line); }
-  .menu__sub a { font-size: clamp(1.25rem, 5.6vw, 1.875rem); padding-left: 0; color: var(--ink-2); }
-  .menu__no { width: 2.2em; flex: none; color: var(--ink-3); }
+  .menu__list a { display: flex; align-items: baseline; justify-content: space-between; gap: 18px; padding: 10px 0; font-family: var(--serif); font-weight: 300; font-size: clamp(1.75rem, 8vw, 2.75rem); line-height: 1.2; border-bottom: 1px solid var(--line); }
+  .menu__sub a { font-size: clamp(1.25rem, 5.6vw, 1.875rem); padding-left: 1.2em; color: var(--ink-2); }
+  .menu__no { flex: none; color: var(--ink-3); }
   .menu__foot { margin-top: auto; padding: 40px 0 calc(32px + env(safe-area-inset-bottom)); display: flex; gap: 24px; flex-wrap: wrap; }
 </style>

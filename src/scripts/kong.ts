@@ -18,6 +18,8 @@ const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const range = (p: number, a: number, b: number) => clamp01((p - a) / (b - a));
 
 const Z_END = 7;
+const BLUR = 0.3; // halo width (share of the short screen side) at full bleed
+const GEXP = 1.4; // how late the strokes start to swell
 const P_COVER = 0.6; // window fully open
 const P_SETTLE = 0.9; // work framed
 
@@ -130,17 +132,23 @@ export function initKong() {
 
   let raf = 0;
   let visible = true;
-  let lastP = -1;
-  const t0 = performance.now();
+  // At rest the SVG glyph breathes in CSS; the canvas only draws once the opening moves.
+  const glyphPath = root.querySelector<SVGPathElement>('.op__glyph path');
+  let restLw = 0;
+  let drawing = false;
 
-  const draw = (now: number) => {
+  const draw = () => {
     raf = 0;
     const p = progress();
+    const nowDrawing = p > 0.0015 || !!auto;
+    if (nowDrawing && !drawing) restLw = parseFloat(glyphPath ? getComputedStyle(glyphPath).strokeWidth : '0') || 0;
+    drawing = nowDrawing;
+    root.classList.toggle('is-drawing', drawing);
     const zp = ease(range(p, 0, P_COVER));
-    const breathe = (1 - range(p, 0, 0.08)) * (0.5 - 0.5 * Math.cos(((now - t0) / 7000) * Math.PI * 2));
-    const mix = easeOut(range(p, 0.015, 0.22));
+    const settleBreath = restLw * (1 - range(p, 0, 0.08));
+    const mix = easeOut(range(p, 0.01, 0.14));
 
-    if (p < P_COVER + 0.02) {
+    if (drawing && p < P_COVER + 0.02) {
       const z = Math.exp(Math.log(Z_END) * zp);
       // where the focal point sits on screen: from its resting place to the centre
       const restX = W / 2 + (data.focal.x - gcx) * k;
@@ -149,8 +157,8 @@ export function initKong() {
       const py = lerp(restY, H / 2, zp);
       // dilation needed to cover the screen at the end of the zoom
       const need = (Math.hypot(W, H) / 2 / (k * Z_END) - 24) * 2 * 1.12;
-      const grow = Math.pow(range(p, 0.02, P_COVER), 2.4);
-      const lw = breathe * 7 + grow * need;
+      const grow = Math.pow(range(p, 0.08, P_COVER), GEXP);
+      const lw = settleBreath + grow * need;
 
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.globalCompositeOperation = 'source-over';
@@ -162,8 +170,12 @@ export function initKong() {
       ctx.translate(-data.focal.x, -data.focal.y);
       ctx.fillStyle = ink;
       ctx.strokeStyle = ink;
-      ctx.lineJoin = 'round';
-      ctx.lineCap = 'round';
+      // keep the serif's sharp corners while the strokes swell…
+      ctx.lineJoin = 'miter';
+      ctx.miterLimit = 2.2;
+      // …and let the edge soak into the paper like ink in hanji
+      ctx.shadowColor = ink;
+      ctx.shadowBlur = grow > 0 ? Math.pow(grow, 0.8) * Math.min(W, H) * BLUR * dpr : 0;
       ctx.fill(path);
       if (lw > 0.05) {
         ctx.lineWidth = lw;
@@ -195,9 +207,6 @@ export function initKong() {
     if (label) label.style.opacity = String(range(p, 0.84, 0.95));
     root.classList.toggle('is-open', p > 0.02);
 
-    lastP = p;
-    // keep breathing while at rest and visible
-    if (visible && (p < 0.08 || p !== lastP)) schedule();
   };
 
   const schedule = () => {
@@ -213,6 +222,7 @@ export function initKong() {
     visible = e.isIntersecting;
     if (visible) schedule();
   });
+  void visible;
   io.observe(root);
   const mq = matchMedia('(prefers-color-scheme: dark)');
   const onTheme = () => (readInk(), schedule());

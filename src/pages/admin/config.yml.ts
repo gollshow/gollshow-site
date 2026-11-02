@@ -14,6 +14,7 @@ const config = {
     name: 'github',
     repo: `${GITHUB_OWNER}/${GITHUB_REPO}`,
     branch: 'main',
+    auth_methods: ['token'],
     commit_messages: {
       create: '작품 추가: {{slug}}',
       update: '수정: {{slug}}',

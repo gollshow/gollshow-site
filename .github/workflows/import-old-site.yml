@@ -1,0 +1,61 @@
+# Imports works from the old Adobe Portfolio site.
+#
+# How: save pages of the old site from your browser (File → Save Page As…,
+# "Webpage, HTML only") and upload the .html files to _import/inbox/ on GitHub
+# (Add file → Upload files → Commit). This workflow then downloads every image
+# at full size from cdn.myportfolio.com, creates the works, removes the
+# uploaded pages, and redeploys the site. See _import/inbox/README.md.
+name: Import old site pages
+
+on:
+  push:
+    branches: [main]
+    paths: ['_import/inbox/**.htm*']
+  workflow_dispatch:
+    inputs:
+      crawl:
+        description: Also try to fetch gollshow.com directly (Adobe usually refuses automated requests)
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: import
+  cancel-in-progress: false
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Try the live site (optional)
+        if: ${{ inputs.crawl }}
+        run: |
+          node scripts/import/crawl.mjs "$RUNNER_TEMP/snap" || true
+          cp "$RUNNER_TEMP"/snap/raw/*.html _import/inbox/ 2>/dev/null || true
+      - name: Create works from the saved pages
+        run: node scripts/import/from-pages.mjs _import/inbox
+      - name: Commit
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898333+github-actions[bot]@users.noreply.github.com"
+          git rm -q --cached --ignore-unmatch _import/inbox/*.htm* || true
+          rm -f _import/inbox/*.htm*
+          rm -rf _import/inbox/*_files
+          git add -A src/content/works src/assets/media _import
+          git diff --cached --quiet && { echo "Nothing new."; exit 0; }
+          git commit -q -m "Import works from saved Adobe Portfolio pages"
+          git push -q origin HEAD:main
+      - name: Redeploy the site
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run deploy.yml --ref main
