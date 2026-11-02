@@ -8,6 +8,7 @@ on:
     paths-ignore:
       - '**.md'
       - '_check/**'
+      - '_import/**'
   workflow_dispatch:
 
 permissions:

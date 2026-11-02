@@ -83,7 +83,7 @@ The palette is ink and paper. No brand colour. One exception: the **seal red** o
 | `--paper-2` (raised, image well) | `#ECE9E2` | `#181816` |
 | `--ink` (text) | `#1A1A18` | `#ECE9E2` |
 | `--ink-2` (secondary) | `#5F5D58` | `#A6A39B` |
-| `--ink-3` (tertiary, hairlines on hover) | `#8D8A83` | `#6F6C66` |
+| `--ink-3` (tertiary: numbers, inactive toggles) | `#6E6B65` | `#8A877F` |
 | `--line` (hairline) | `rgb(26 26 24 / .14)` | `rgb(236 233 226 / .14)` |
 | `--seal` | `#A8362A` | `#E0725F` |
 | Viewer (always) | `#0B0B0A` | `#0B0B0A` |

@@ -33,6 +33,7 @@ export default defineConfig({
   site: SITE,
   base: BASE,
   trailingSlash: 'ignore',
+  scopedStyleStrategy: 'class',
   build: { format: 'directory', inlineStylesheets: 'auto' },
   prefetch: { prefetchAll: true, defaultStrategy: 'hover' },
   redirects: Object.fromEntries(Object.entries(old).map(([from, to]) => [from, BASE.replace(/\/$/, '') + to])),

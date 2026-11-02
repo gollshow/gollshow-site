@@ -44,14 +44,14 @@ const roomsShown = rooms;
   <section class="op" data-kong aria-label="空">
     <script type="application/json" data-kong-data set:html={JSON.stringify(kongData)} />
     <div class="op__stage" data-kong-stage>
-      <Kong class="op__glyph" title="空" />
+      <Kong class="op__glyph" title="空" pad={0} />
       <canvas class="op__canvas" aria-hidden="true"></canvas>
       {first && (
         <figure class="op__work" data-kong-work data-src={heroData[0]?.src}>
           {first.href ? (
-            <a href={first.href} data-kong-link tabindex="-1"><Art media={first.media} alt={first.title ?? 'goll'} sizes="(max-width: 640px) 100vw, 70vw" max={1800} /></a>
+            <a href={first.href} data-kong-link tabindex="-1"><Art media={first.media} alt={first.title ?? 'goll'} sizes="(max-width: 640px) 100vw, 70vw" max={1800} eager priority={false} /></a>
           ) : (
-            <Art media={first.media} alt={first.title ?? 'goll'} sizes="(max-width: 640px) 100vw, 70vw" max={1800} />
+            <Art media={first.media} alt={first.title ?? 'goll'} sizes="(max-width: 640px) 100vw, 70vw" max={1800} eager priority={false} />
           )}
         </figure>
       )}
@@ -101,10 +101,12 @@ const roomsShown = rooms;
     width: min(74vw, 58svh * 1.041, 640px);
     transform: translate(-50%, -50%);
     color: var(--ink);
-    animation: op-breathe 7s var(--ease-in-out) infinite;
   }
-  @keyframes op-breathe { 50% { opacity: 0.86; } }
-  .op:global(.is-live) .op__glyph { visibility: hidden; animation: none; }
+  /* at rest the strokes breathe: they swell and settle like ink soaking into hanji */
+  .op__glyph :global(path) { animation: op-breathe 7s var(--ease-in-out) infinite; }
+  @keyframes op-breathe { 50% { stroke-width: 7px; } }
+  .op:global(.is-drawing) .op__glyph { visibility: hidden; }
+  .op:global(.is-live):not(:global(.is-drawing)) .op__canvas { visibility: hidden; }
   .op__canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; transition: opacity 120ms linear; }
   .op__work { position: absolute; margin: 0; opacity: 0; transform-origin: 50% 50%; will-change: transform; }
   .op__work :global(.art) { width: 100%; height: 100%; aspect-ratio: auto; }

@@ -13,11 +13,12 @@ interface Props {
   alt: string;
   sizes: string;
   eager?: boolean;
+  priority?: boolean;
   class?: string;
   vt?: string; // view-transition name
   max?: number;
 }
-const { ref, alt, sizes, eager = false, class: cls, vt, max = 2560 } = Astro.props;
+const { ref, alt, sizes, eager = false, priority = eager, class: cls, vt, max = 2560 } = Astro.props;
 const media = Astro.props.media ?? resolveImage(ref);
 const p = media ? await pic(media, max) : undefined;
 ---
@@ -33,7 +34,7 @@ const p = media ? await pic(media, max) : undefined;
         height={p.h}
         loading={eager ? 'eager' : 'lazy'}
         decoding="async"
-        fetchpriority={eager ? 'high' : undefined}
+        fetchpriority={priority ? 'high' : eager ? 'low' : undefined}
       />
     </picture>
   </div>

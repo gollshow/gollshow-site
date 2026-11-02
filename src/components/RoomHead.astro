@@ -12,8 +12,8 @@ const { no, ko, en, count, unit, modes = false, eyebrow = UI.room } = Astro.prop
     <p class="label muted">{count ? <T ko={`${count}${unit.ko}`} en={`${count} ${unit.en}`} /> : '—'}</p>
     {modes && count > 1 && (
       <div class="rh__modes" role="group" aria-label="View">
-        <button class="label" type="button" data-mode="hang" aria-pressed="true"><T t={UI.hang} /></button>
-        <button class="label" type="button" data-mode="index" aria-pressed="false"><T t={UI.index} /></button>
+        <button class="label" type="button" data-mode-btn="hang" aria-pressed="true"><T t={UI.hang} /></button>
+        <button class="label" type="button" data-mode-btn="index" aria-pressed="false"><T t={UI.index} /></button>
       </div>
     )}
   </div>
