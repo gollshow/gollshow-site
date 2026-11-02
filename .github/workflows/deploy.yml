@@ -5,8 +5,12 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+    # Content entries are .md files too — only documentation is ignored here.
     paths-ignore:
-      - '**.md'
+      - 'README.md'
+      - 'DESIGN.md'
+      - 'IMPORT_REPORT.md'
+      - '관리자_사용법.md'
       - '_check/**'
       - '_import/**'
   workflow_dispatch:
