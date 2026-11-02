@@ -1,0 +1,22 @@
+---
+/**
+ * /admin — Sveltia CMS (Git-based; sign in with a GitHub personal access token).
+ * The version is pinned; see 관리자_사용법.md for how to use it.
+ */
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const SVELTIA = '0.248.1';
+---
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>goll show — 관리자</title>
+    <link rel="icon" href={`${base}/favicon.svg`} type="image/svg+xml" />
+    <link href={`${base}/admin/config.yml`} type="application/yaml" rel="cms-config-url" />
+  </head>
+  <body>
+    <script is:inline src={`https://unpkg.com/@sveltia/cms@${SVELTIA}/dist/sveltia-cms.js`}></script>
+  </body>
+</html>

@@ -1,0 +1,24 @@
+---
+/** Plain text from the CMS → paragraphs (blank line) and line breaks (single newline). Bilingual. */
+interface Props { ko?: string; en?: string; class?: string }
+const { ko, en, class: cls = 'prose' } = Astro.props;
+const paras = (s?: string) => (s ?? '').trim().split(/\n\s*\n/).filter(Boolean).map((p) => p.split('\n'));
+const k = paras(ko);
+const e = paras(en);
+const both = e.length && en !== ko;
+---
+{k.length > 0 && (
+  <div class:list={[cls, both && 't']} lang={both ? 'ko' : undefined}>
+    {k.map((lines) => <p>{lines.map((l, i) => <>{i > 0 && <br />}{l}</>)}</p>)}
+  </div>
+)}
+{both && (
+  <div class:list={[cls, 't']} lang="en">
+    {e.map((lines) => <p>{lines.map((l, i) => <>{i > 0 && <br />}{l}</>)}</p>)}
+  </div>
+)}
+{!k.length && e.length > 0 && (
+  <div class={cls} lang="en">
+    {e.map((lines) => <p>{lines.map((l, i) => <>{i > 0 && <br />}{l}</>)}</p>)}
+  </div>
+)}

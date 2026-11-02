@@ -1,0 +1,18 @@
+---
+import Base from '../layouts/Base.astro';
+import Kong from '../components/Kong.astro';
+import T from '../components/T.astro';
+import { withBase } from '../lib/media';
+---
+<Base title="404">
+  <section class="nf frame">
+    <Kong class="nf__kong" />
+    <p class="lead"><T ko="이곳은 비어 있습니다." en="Nothing here — only emptiness." /></p>
+    <a class="btn" href={withBase('/')}>GO →</a>
+  </section>
+</Base>
+<style>
+  .nf { min-height: 80svh; display: grid; place-content: center; justify-items: center; gap: 32px; text-align: center; padding-top: var(--header-h); }
+  .nf__kong { width: clamp(120px, 24vw, 240px); color: var(--ink); }
+  .nf p { color: var(--ink-2); }
+</style>

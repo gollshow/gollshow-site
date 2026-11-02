@@ -1,0 +1,68 @@
+---
+import Base from '../layouts/Base.astro';
+import RoomHead from '../components/RoomHead.astro';
+import EmptyRoom from '../components/EmptyRoom.astro';
+import T from '../components/T.astro';
+import { getRooms, pad, isAudioFile } from '../lib/works';
+import { withBase } from '../lib/media';
+import { embedFor } from '../lib/embed';
+import { UI } from '../lib/i18n';
+import { pic } from '../lib/pic';
+
+const rooms = await getRooms();
+const room = rooms.find((r) => r.key === 'music')!;
+const rows = await Promise.all(
+  room.works.map(async (w) => {
+    const audio = isAudioFile(w.data.audio) ? withBase(w.data.audio) : isAudioFile(w.data.link) ? w.data.link : undefined;
+    const art = w.cover ? (await pic(w.cover, 800)).fallback : undefined;
+    return { w, audio, embed: embedFor(w.data.link), art };
+  }),
+);
+---
+<Base title={`${room.ko} ${room.en}`} current="music">
+  <RoomHead no={room.no} ko={room.ko} en={room.en} count={room.works.length} unit={room.unit} />
+  {rows.length ? (
+    <ol class="pr frame">
+      {rows.map(({ w, audio, embed, art }, i) => (
+        <li class="pr__row" data-reveal style={`--i:${i}`}>
+          {audio ? (
+            <button class="pr__play" type="button" data-play={JSON.stringify({ src: audio, title: w.data.title, title_en: w.data.title_en, href: withBase(w.href), art })} aria-label={`${UI.play.ko} / ${UI.play.en}: ${w.data.title}`}>
+              <svg class="i-play" viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 2.8v10.4L13 8z" fill="currentColor" /></svg>
+              <svg class="i-pause" viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 3h2.2v10H4.5zM9.3 3h2.2v10H9.3z" fill="currentColor" /></svg>
+            </button>
+          ) : (
+            <a class="pr__play pr__play--ext" href={withBase(w.href)} aria-label={w.data.title}>
+              <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 2.8v10.4L13 8z" fill="none" stroke="currentColor" /></svg>
+            </a>
+          )}
+          <span class="pr__no label">{pad(w.no)}</span>
+          <a class="pr__t" href={withBase(w.href)}>
+            <span class="pr__ko serif">{w.data.title}</span>
+            {w.data.title_en && w.data.title_en !== w.data.title && <span class="pr__en">{w.data.title_en}</span>}
+          </a>
+          <span class="pr__meta cap"><T ko={[w.data.medium, w.data.year].filter(Boolean).join(' · ')} en={[w.data.medium_en ?? w.data.medium, w.data.year].filter(Boolean).join(' · ')} />{embed && <span class="pr__src"> · {embed.kind === 'soundcloud' ? 'SoundCloud' : embed.kind === 'vimeo' ? 'Vimeo' : 'YouTube'}</span>}</span>
+        </li>
+      ))}
+    </ol>
+  ) : (
+    <EmptyRoom />
+  )}
+</Base>
+<style>
+  .pr { border-top: 1px solid var(--line); }
+  .pr__row { display: grid; grid-template-columns: 48px 2.6em 1fr; gap: 6px 16px; align-items: center; padding: 22px 0; border-bottom: 1px solid var(--line); }
+  .pr__play { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; border: 1px solid var(--line-strong); transition: background var(--d-fast), color var(--d-fast); }
+  .pr__play svg { width: 14px; height: 14px; margin-left: 2px; }
+  .pr__play:hover, .pr__play:global(.is-playing) { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .pr__play .i-pause, .pr__play:global(.is-playing) .i-play { display: none; }
+  .pr__play:global(.is-playing) .i-pause { display: block; margin-left: 0; }
+  .pr__no { color: var(--ink-3); }
+  .pr__t { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; }
+  .pr__ko { font-size: var(--t-h3); font-weight: 300; line-height: 1.3; }
+  .pr__en { color: var(--ink-2); font-family: var(--serif); }
+  .pr__meta { grid-column: 3; }
+  @media (min-width: 1024px) {
+    .pr__row { grid-template-columns: 56px 4em 1fr minmax(180px, 26%); padding: 30px 0; }
+    .pr__meta { grid-column: auto; text-align: right; }
+  }
+</style>

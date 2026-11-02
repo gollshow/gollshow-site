@@ -1,0 +1,36 @@
+---
+import Base from '../layouts/Base.astro';
+import RoomHead from '../components/RoomHead.astro';
+import Hang from '../components/Hang.astro';
+import EmptyRoom from '../components/EmptyRoom.astro';
+import T from '../components/T.astro';
+import { getRooms } from '../lib/works';
+import { withBase } from '../lib/media';
+import { CATEGORY } from '../lib/i18n';
+
+export async function getStaticPaths() {
+  const rooms = (await getRooms()).filter((r) => r.key !== 'music');
+  return rooms.map((r) => ({ params: { room: CATEGORY[r.key].path.replaceAll('/', '') }, props: { key: r.key } }));
+}
+const { key } = Astro.props;
+const rooms = await getRooms();
+const i = rooms.findIndex((r) => r.key === key);
+const room = rooms[i];
+const next = rooms[(i + 1) % rooms.length];
+---
+<Base title={`${room.ko} ${room.en}`} current="works" description={`goll — ${room.en} · ${room.ko}`} image={room.works[0] ? `/og/${room.works[0].slug}.jpg` : undefined}>
+  <RoomHead no={room.no} ko={room.ko} en={room.en} count={room.works.length} unit={room.unit} modes />
+  {room.works.length ? <Hang works={room.works} room /> : <EmptyRoom />}
+  <nav class="nx frame" aria-label="Next room">
+    <a href={withBase(next.path)} class="nx__a">
+      <span class="label muted"><T ko="다음 전시실" en="Next room" /></span>
+      <span class="nx__t serif"><T ko={next.ko} en={next.en} /> <span aria-hidden="true">→</span></span>
+    </a>
+  </nav>
+</Base>
+<style>
+  .nx { margin-top: var(--room-gap); }
+  .nx__a { display: grid; gap: 10px; padding-top: 18px; border-top: 1px solid var(--line); }
+  .nx__t { font-size: var(--t-h2); font-weight: 300; line-height: 1.15; transition: transform var(--d-mid) var(--ease-out); justify-self: start; }
+  .nx__a:hover .nx__t { transform: translateX(10px); }
+</style>

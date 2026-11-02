@@ -1,0 +1,81 @@
+---
+/**
+ * The dark room — a full-screen viewer. Items come from the page as JSON
+ * (<script type="application/json" data-viewer-items>). Zoom: pinch, wheel,
+ * double-tap / double-click, + / −. Move: swipe, ← →, buttons. Esc closes.
+ */
+---
+<dialog class="vw" data-viewer aria-label="Viewer">
+  <div class="vw__stage" data-viewer-stage>
+    <div class="vw__pan" data-viewer-pan>
+      <picture data-viewer-pic>
+        <source type="image/avif" data-viewer-avif />
+        <source type="image/webp" data-viewer-webp />
+        <img data-viewer-img alt="" draggable="false" />
+      </picture>
+    </div>
+  </div>
+  <div class="vw__top">
+    <span class="vw__count label" data-viewer-count></span>
+    <button class="vw__btn vw__close" type="button" data-viewer-close aria-label="Close (Esc)">
+      <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="1.2" /></svg>
+    </button>
+  </div>
+  <button class="vw__btn vw__nav vw__nav--prev" type="button" data-viewer-prev aria-label="Previous (←)">
+    <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12.5 4L6.5 10l6 6" fill="none" stroke="currentColor" stroke-width="1.2" /></svg>
+  </button>
+  <button class="vw__btn vw__nav vw__nav--next" type="button" data-viewer-next aria-label="Next (→)">
+    <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7.5 4l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.2" /></svg>
+  </button>
+  <div class="vw__cap" data-viewer-cap aria-live="polite"></div>
+  <div class="vw__zoom" aria-hidden="true">
+    <button class="vw__btn" type="button" data-viewer-zoom="-1" tabindex="-1">−</button>
+    <button class="vw__btn" type="button" data-viewer-zoom="1" tabindex="-1">+</button>
+  </div>
+</dialog>
+
+<style>
+  .vw {
+    --fg: #ece9e2;
+    position: fixed; inset: 0; width: 100vw; height: 100dvh; max-width: none; max-height: none;
+    margin: 0; padding: 0; border: 0;
+    background: var(--night); color: var(--fg);
+    overflow: hidden;
+    overscroll-behavior: contain;
+  }
+  .vw::backdrop { background: var(--night); }
+  .vw[open] { animation: vw-in var(--d-mid) var(--ease-out); }
+  @keyframes vw-in { from { opacity: 0; } }
+  .vw__stage { position: absolute; inset: 0; touch-action: none; cursor: zoom-in; user-select: none; -webkit-user-select: none; }
+  .vw.is-zoomed .vw__stage { cursor: grab; }
+  .vw.is-dragging .vw__stage { cursor: grabbing; }
+  .vw__pan { position: absolute; inset: 0; display: grid; place-items: center; transform-origin: 0 0; will-change: transform; }
+  .vw__pan picture { display: contents; }
+  .vw__pan img {
+    max-width: calc(100vw - 2 * clamp(16px, 6vw, 120px));
+    max-height: calc(100dvh - 2 * clamp(64px, 11vh, 120px));
+    width: auto; height: auto; object-fit: contain;
+    transition: opacity var(--d-mid) var(--ease-out);
+    background: rgb(255 255 255 / 0.03);
+  }
+  .vw.is-loading .vw__pan img { opacity: 0.2; }
+  .vw__top { position: absolute; inset: 0 0 auto 0; display: flex; align-items: center; justify-content: space-between; padding: max(12px, env(safe-area-inset-top)) var(--margin) 0; pointer-events: none; }
+  .vw__top > * { pointer-events: auto; }
+  .vw__count { color: rgb(236 233 226 / 0.66); }
+  .vw__btn { width: 48px; height: 48px; display: grid; place-items: center; color: var(--fg); border-radius: 50%; transition: background var(--d-fast), opacity var(--d-fast); font-size: 20px; line-height: 1; }
+  .vw__btn:hover { background: rgb(255 255 255 / 0.08); }
+  .vw__btn svg { width: 20px; height: 20px; }
+  .vw__close { margin-right: -12px; }
+  .vw__nav { position: absolute; top: 50%; transform: translateY(-50%); }
+  .vw__nav--prev { left: max(8px, calc(var(--margin) - 24px)); }
+  .vw__nav--next { right: max(8px, calc(var(--margin) - 24px)); }
+  .vw__nav[disabled] { opacity: 0; pointer-events: none; }
+  .vw__cap { position: absolute; left: var(--margin); right: var(--margin); bottom: max(18px, env(safe-area-inset-bottom)); display: flex; gap: 6px 16px; flex-wrap: wrap; align-items: baseline; font-size: var(--t-cap); color: rgb(236 233 226 / 0.72); pointer-events: none; }
+  .vw__cap :global(b) { font-family: var(--serif); font-weight: 400; font-size: 1rem; color: var(--fg); }
+  .vw__zoom { position: absolute; right: calc(var(--margin) - 12px); bottom: max(6px, env(safe-area-inset-bottom)); display: flex; }
+  .vw.is-zoomed .vw__cap, .vw.is-zoomed .vw__nav { opacity: 0; pointer-events: none; }
+  .vw__cap, .vw__nav { transition: opacity var(--d-mid); }
+  @media (hover: none) {
+    .vw__nav, .vw__zoom { display: none; }
+  }
+</style>
