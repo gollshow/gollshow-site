@@ -1,0 +1,822 @@
+{
+  "crawledAt": "2026-11-02T20:39:13.445Z",
+  "via": {
+    "wayback": 24,
+    "live": 1
+  },
+  "archivedPageUrls": [
+    "http://www.gollshow.com:80/",
+    "http://www.gollshow.com:80/333.swf",
+    "http://gollshow.com:80/ba.swf",
+    "http://www.gollshow.com:80/cafe/11%20Snova%20Slyshu.wma",
+    "http://www.gollshow.com:80/cafe/12.wmv",
+    "http://www.gollshow.com:80/cafe/blue14We%20Qui%20Non%20Coin.wma",
+    "http://www.gollshow.com:80/cafe/Radiohead%20-%20fake%20plastic%20trees.wma",
+    "http://www.gollshow.com:80/cafe/she.swf",
+    "http://gollshow.com/common/js/AuthSSLManager.js",
+    "http://gollshow.com/common/js/AuthSSLManager.plugin.js",
+    "http://gollshow.com/common/js/jslb_ajax.js",
+    "https://gollshow.com/dist/css/main.css",
+    "https://gollshow.com/dist/js/main.js",
+    "https://gollshow.com/dist/js/main.js?cb=867137821b7eaf38fd2c2ba4ae0fe00a423eeec4",
+    "http://gollshow.com/file_data/hailie31/bc9ee194f2a8ea25c8a458cad253d814.jpg",
+    "http://gollshow.com/file_data/hailie31/c54b8107afc3e12213768454a996b4a6.jpg",
+    "http://gollshow.com/file_data/hailie31/d369e0b21cc8b1dfb7864161889ae6f8.jpg",
+    "http://gollshow.com/file_data/hailie31/gallery/069734cae85cc9b22d2d05077f214b99.jpg",
+    "http://gollshow.com/file_data/hailie31/gallery/1b6438a650f2e7a11e4dbe05cefd03ad.jpg",
+    "http://gollshow.com/file_data/hailie31/gallery/1db2cf4650d390035e0f442d0ad6453f.jpg",
+    "http://gollshow.com/file_data/hailie31/gallery/21128fb7af05a611d778f5e4cec72e60.jpg",
+    "http://gollshow.com/file_data/hailie31/gallery/3c48f049c18f0d64f1ad8d927a468f80.jpg",
+    "http://gollshow.com/file_data/hailie31/gallery/4f842f893fe2cdef17d598baea70d864.jpg",
+    "http://gollshow.com/file_data/hailie31/gallery/56b27e0a5171a6811c03b69f1b4254de.jpg",
+    "http://gollshow.com/file_data/hailie31/gallery/7db2044b1d53810101edede31ec38c91.jpg",
+    "http://gollshow.com/file_data/hailie31/gallery/a3b9532df070834d452e3b8b3cb3cd18.jpg",
+    "http://gollshow.com/file_data/hailie31/gallery/a9aee49373cc14c1416ffd90b803159c.jpg",
+    "http://gollshow.com/file_data/hailie31/gallery/bc9ee194f2a8ea25c8a458cad253d814.jpg",
+    "http://gollshow.com/file_data/hailie31/gallery/c162eebbb15662edf58857ba65a55946.jpg",
+    "http://gollshow.com/file_data/hailie31/gallery/c54b8107afc3e12213768454a996b4a6.jpg",
+    "http://gollshow.com/file_data/hailie31/gallery/d369e0b21cc8b1dfb7864161889ae6f8.jpg",
+    "http://gollshow.com/file_data/hailie31/gallery/d42c69d85d97f9fdd0d183306afd73d7.jpg",
+    "http://gollshow.com/file_data/hailie31/gallery/dcd508306a08a56cd5a2fbada6e7df23.jpg",
+    "http://gollshow.com/file_data/hailie31/gallery/f6da3f24185163ec2bca843138b98a6c.jpg",
+    "http://gollshow.com/front/html/css/mall/hailie31/board_list_new.css",
+    "http://gollshow.com/front/html/css/mall/hailie31/board_read_new.css",
+    "http://gollshow.com/front/html/css/mall/hailie31/category.css",
+    "http://gollshow.com/front/html/css/mall/hailie31/com_intro.css",
+    "http://gollshow.com/front/html/css/mall/hailie31/common.css",
+    "http://gollshow.com/front/html/css/mall/hailie31/faq.css",
+    "http://gollshow.com/front/html/css/mall/hailie31/home.css",
+    "http://gollshow.com/front/html/css/mall/hailie31/intro.css",
+    "http://gollshow.com/front/html/css/mall/hailie31/login.css",
+    "http://gollshow.com/front/html/css/mall/hailie31/member_agree.css",
+    "http://gollshow.com/front/html/css/mall/hailie31/member_regist.css",
+    "http://gollshow.com/front/html/css/mall/hailie31/myshop.css",
+    "http://gollshow.com/front/html/css/mall/hailie31/privacy_agree.css",
+    "http://gollshow.com/front/html/js/mall/hailie31/board_list_new.js",
+    "http://gollshow.com/front/html/js/mall/hailie31/board_read_new.js",
+    "http://gollshow.com/front/html/js/mall/hailie31/category.js",
+    "http://gollshow.com/front/html/js/mall/hailie31/com_intro.js",
+    "http://gollshow.com/front/html/js/mall/hailie31/common.js",
+    "http://gollshow.com/front/html/js/mall/hailie31/faq.js",
+    "http://gollshow.com/front/html/js/mall/hailie31/home.js",
+    "http://gollshow.com/front/html/js/mall/hailie31/intro.js",
+    "http://gollshow.com/front/html/js/mall/hailie31/login.js",
+    "http://gollshow.com/front/html/js/mall/hailie31/member_agree.js",
+    "http://gollshow.com/front/html/js/mall/hailie31/member_regist.js",
+    "http://gollshow.com/front/html/js/mall/hailie31/myshop.js",
+    "http://gollshow.com/front/html/js/mall/hailie31/privacy_agree.js",
+    "http://gollshow.com/front/html/js/type_b/board_list_new_ro.js",
+    "http://gollshow.com/front/html/js/type_b/board_read_new_ro.js",
+    "http://gollshow.com/front/html/js/type_b/category_ro.js",
+    "http://gollshow.com/front/html/js/type_b/com_intro_ro.js",
+    "http://gollshow.com/front/html/js/type_b/common_ro.js",
+    "http://gollshow.com/front/html/js/type_b/faq_ro.js",
+    "http://gollshow.com/front/html/js/type_b/home_ro.js",
+    "http://gollshow.com/front/html/js/type_b/intro_ro.js",
+    "http://gollshow.com/front/html/js/type_b/login_ro.js",
+    "http://gollshow.com/front/html/js/type_b/member_agree_ro.js",
+    "http://gollshow.com/front/html/js/type_b/member_regist_ro.js",
+    "http://gollshow.com/front/html/js/type_b/myshop_ro.js",
+    "http://gollshow.com/front/html/js/type_b/privacy_agree_ro.js",
+    "http://gollshow.com/front/php/b/board_list.php?board_no=8&search=&search_key=&category_no=2",
+    "http://gollshow.com/front/php/b/board_list_new.php?&board_no=1002",
+    "http://gollshow.com/front/php/b/board_list_new.php?&board_no=15",
+    "http://gollshow.com/front/php/b/board_list_new.php?&board_no=8",
+    "http://gollshow.com/front/php/b/board_read.php?board_no=8&no=890",
+    "http://gollshow.com/front/php/b/board_read.php?board_no=8&no=893",
+    "http://gollshow.com/front/php/b/board_read.php?board_no=8&no=894",
+    "http://gollshow.com/front/php/c/member_regist_f.php",
+    "http://gollshow.com/front/php/c/member_regist_ma.php",
+    "http://gollshow.com/front/php/c/member_regist_ma.php?mode=privacy_agreement",
+    "http://gollshow.com/front/php/category.php?cate_no=40",
+    "http://gollshow.com/front/php/com_intro.php",
+    "http://gollshow.com/front/php/ec_front_popup_opener.php?popup_page=M",
+    "http://gollshow.com/front/php/faq.php",
+    "http://gollshow.com/front/php/intro/intro_f.php",
+    "http://gollshow.com/front/php/login/login_f.php",
+    "http://gollshow.com/front/php/login_js.php",
+    "http://gollshow.com/front/php/member_agree.php",
+    "http://gollshow.com/front/php/myshop/myshop.php",
+    "http://gollshow.com/front/php/privacy_agree.php",
+    "http://www.gollshow.com:80/goll%20cafe.swf",
+    "http://www.gollshow.com:80/goll21/del_comment.php?id=goll21&page=1&sn1=&divpage=1&sn=off&ss=on&sc=on&select_arrange=headnum&desc=asc&no=27&c_no=12",
+    "http://www.gollshow.com:80/goll21/del_comment.php?id=goll21&page=1&sn1=&divpage=1&sn=off&ss=on&sc=on&select_arrange=headnum&desc=asc&no=28&c_no=13",
+    "http://www.gollshow.com:80/goll21/del_comment.php?id=goll21&page=1&sn1=&divpage=1&sn=off&ss=on&sc=on&select_arrange=headnum&desc=asc&no=1&c_no=14",
+    "http://www.gollshow.com:80/goll21/login.php?id=goll21&page=1&sn1=&divpage=1&sn=off&ss=on&sc=on&select_arrange=headnum&desc=asc&s_url=%2Fgoll21%2Fzboard.php%3Fid%3Dgoll21",
+    "http://www.gollshow.com:80/goll21/member_join.php?group_no=2",
+    "http://www.gollshow.com:80/goll21/skin/uZine_Emboss_navy/head_hit.gif",
+    "http://www.gollshow.com:80/goll21/skin/uZine_Emboss_navy/member_join.gif",
+    "http://www.gollshow.com:80/goll21/skin/uZine_Emboss_navy/member_logged.gif",
+    "http://www.gollshow.com:80/goll21/skin/uZine_Emboss_navy/member_login.gif",
+    "http://www.gollshow.com:80/goll21/skin/uZine_Emboss_navy/member_logout.gif",
+    "http://www.gollshow.com:80/goll21/skin/uZine_Emboss_navy/member_memo_off.gif",
+    "http://www.gollshow.com:80/goll21/skin/uZine_Emboss_navy/member_modify.gif",
+    "http://www.gollshow.com:80/goll21/skin/uZine_Emboss_navy/member_setup.gif",
+    "http://www.gollshow.com:80/goll21/skin/uZine_Emboss_navy/name_on.gif",
+    "http://www.gollshow.com:80/goll21/skin/uZine_Emboss_navy/style.css",
+    "http://www.gollshow.com:80/goll21/style.css",
+    "http://www.gollshow.com:80/goll21/view.php",
+    "http://www.gollshow.com:80/goll21/view.php?id=goll21&page=1&sn1=&divpage=1&sn=off&ss=on&sc=on&select_arrange=headnum&desc=asc&no=1",
+    "http://www.gollshow.com:80/goll21/view.php?id=goll21&page=1&sn1=&divpage=1&sn=off&ss=on&sc=on&select_arrange=headnum&desc=asc&no=21",
+    "http://www.gollshow.com:80/goll21/view.php?id=goll21&page=1&sn1=&divpage=1&sn=off&ss=on&sc=on&select_arrange=headnum&desc=asc&no=22",
+    "http://www.gollshow.com:80/goll21/view.php?id=goll21&page=1&sn1=&divpage=1&sn=off&ss=on&sc=on&select_arrange=headnum&desc=asc&no=23",
+    "http://www.gollshow.com:80/goll21/view.php?id=goll21&page=1&sn1=&divpage=1&sn=off&ss=on&sc=on&select_arrange=headnum&desc=asc&no=24",
+    "http://www.gollshow.com:80/goll21/view.php?id=goll21&page=1&sn1=&divpage=1&sn=off&ss=on&sc=on&select_arrange=headnum&desc=asc&no=25",
+    "http://www.gollshow.com:80/goll21/view.php?id=goll21&page=1&sn1=&divpage=1&sn=off&ss=on&sc=on&select_arrange=headnum&desc=asc&no=26",
+    "http://www.gollshow.com:80/goll21/view.php?id=goll21&page=1&sn1=&divpage=1&sn=off&ss=on&sc=on&select_arrange=headnum&desc=asc&no=27",
+    "http://www.gollshow.com:80/goll21/view.php?id=goll21&page=1&sn1=&divpage=1&sn=off&ss=on&sc=on&select_arrange=headnum&desc=asc&no=28",
+    "http://www.gollshow.com:80/goll21/view.php?id=goll21&page=1&sn1=&divpage=1&sn=off&ss=on&sc=on&select_arrange=headnum&desc=asc&no=29",
+    "http://www.gollshow.com:80/goll21/view.php?id=goll21&page=1&sn1=&divpage=1&sn=off&ss=on&sc=on&select_arrange=headnum&desc=asc&no=30",
+    "http://www.gollshow.com:80/goll21/view.php?id=goll21&page=1&sn1=&divpage=1&sn=off&ss=on&sc=on&select_arrange=headnum&desc=asc&no=31",
+    "http://www.gollshow.com:80/goll21/view.php?id=goll21&page=1&sn1=&divpage=1&sn=off&ss=on&sc=on&select_arrange=headnum&desc=asc&no=32",
+    "http://www.gollshow.com:80/goll21/view.php?id=goll21&page=1&sn1=&divpage=1&sn=off&ss=on&sc=on&select_arrange=headnum&desc=asc&no=33",
+    "http://www.gollshow.com:80/goll21/view.php?id=goll21&page=1&sn1=&divpage=1&sn=off&ss=on&sc=on&select_arrange=headnum&desc=asc&no=34",
+    "http://www.gollshow.com:80/goll21/view.php?id=goll21&page=1&sn1=&divpage=1&sn=off&ss=on&sc=on&select_arrange=headnum&desc=asc&no=35",
+    "http://www.gollshow.com:80/goll21/view.php?id=goll21&page=1&sn1=&divpage=1&sn=off&ss=on&sc=on&select_arrange=headnum&desc=asc&no=36",
+    "http://www.gollshow.com:80/goll21/view.php?id=goll21&page=1&sn1=&divpage=1&sn=off&ss=on&sc=on&select_arrange=headnum&desc=asc&no=38",
+    "http://www.gollshow.com:80/goll21/view.php?id=goll21&page=1&sn1=&divpage=1&sn=off&ss=on&sc=on&select_arrange=headnum&desc=asc&no=39",
+    "http://www.gollshow.com:80/goll21/view.php?id=goll21&page=1&sn1=&divpage=1&sn=off&ss=on&sc=on&select_arrange=headnum&desc=asc&no=40",
+    "http://www.gollshow.com:80/goll21/view.php?id=goll21&page=1&sn1=&divpage=1&sn=off&ss=on&sc=on&select_arrange=headnum&desc=asc&no=41",
+    "http://www.gollshow.com:80/goll21/view.php?id=goll21&page=1&sn1=&divpage=1&sn=off&ss=on&sc=on&select_arrange=headnum&desc=asc&no=42",
+    "http://www.gollshow.com:80/goll21/zboard.php",
+    "http://www.gollshow.com:80/goll21/zboard.php?id=goll21&page=1&page_num=20&category=&sn=off&ss=on&sc=on&keyword=&prev_no=22&sn1=&divpage=1&select_arrange=headnum&desc=asc",
+    "http://www.gollshow.com:80/goll21/zboard.php?id=goll21&page=1&page_num=20&category=&sn=off&ss=on&sc=on&keyword=&prev_no=23&sn1=&divpage=1&select_arrange=headnum&desc=asc",
+    "http://www.gollshow.com:80/goll21/zboard.php?id=goll21&page=1&page_num=20&category=&sn=off&ss=on&sc=on&keyword=&prev_no=25&sn1=&divpage=1&select_arrange=headnum&desc=asc",
+    "http://www.gollshow.com:80/goll21/zboard.php?id=goll21&page=1&page_num=20&category=&sn=off&ss=on&sc=on&keyword=&prev_no=26&sn1=&divpage=1&select_arrange=headnum&desc=asc",
+    "http://www.gollshow.com:80/goll21/zboard.php?id=goll21&page=1&page_num=20&category=&sn=off&ss=on&sc=on&keyword=&prev_no=27&sn1=&divpage=1&select_arrange=headnum&desc=asc",
+    "http://www.gollshow.com:80/goll21/zboard.php?id=goll21&page=1&page_num=20&category=&sn=off&ss=on&sc=on&keyword=&prev_no=28&sn1=&divpage=1&select_arrange=headnum&desc=asc",
+    "http://www.gollshow.com:80/goll21/zboard.php?id=goll21&page=1&page_num=20&category=&sn=off&ss=on&sc=on&keyword=&prev_no=29&sn1=&divpage=1&select_arrange=headnum&desc=asc",
+    "http://www.gollshow.com:80/goll21/zboard.php?id=goll21&page=2&select_arrange=headnum&desc=asc&category=&sn=off&ss=on&sc=on&keyword=&sn1=&divpage=1",
+    "http://www.gollshow.com:80/goll21/zboard.php?id=goll21&page=1&category=&sn=off&ss=on&sc=on&keyword=&prev_no=&sn1=&divpage=1",
+    "http://www.gollshow.com:80/goll21/zboard.php?id=goll21&page=1&sn1=&divpage=1&sn=off&ss=on&sc=on&select_arrange=headnum&desc=desc",
+    "http://www.gollshow.com:80/goll21/zboard.php?id=goll21&page=1&sn1=&divpage=1&sn=off&ss=on&sc=on&select_arrange=hit&desc=desc",
+    "http://www.gollshow.com:80/goll21/zboard.php?id=goll21&page=1&sn1=&divpage=1&sn=off&ss=on&sc=on&select_arrange=name&desc=desc",
+    "http://www.gollshow.com:80/goll21/zboard.php?id=goll21&page=1&sn1=&divpage=1&sn=off&ss=on&sc=on&select_arrange=reg_date&desc=desc",
+    "http://www.gollshow.com:80/goll21/zboard.php?id=goll21",
+    "http://www.gollshow.com:80/hwcont/email.html",
+    "http://www.gollshow.com:80/hwmain.html",
+    "http://www.gollshow.com:80/hwmenu.html",
+    "http://gollshow.com/inc/twit.js",
+    "http://gollshow.com/inc/widget.js",
+    "http://www.gollshow.com:80/left.htm",
+    "http://www.gollshow.com:80/main.htm",
+    "http://www.gollshow.com:80/mainFrame.htm",
+    "http://www.gollshow.com:80/page1.html",
+    "http://www.gollshow.com:80/page2.html",
+    "http://www.gollshow.com:80/pooh/I%20POOH%2002.wma",
+    "http://gollshow.com/robots.txt",
+    "https://gollshow.com/site/translations",
+    "https://gollshow.com/site/translations?cb=867137821b7eaf38fd2c2ba4ae0fe00a423eeec4",
+    "https://gollshow.com/sitemap.xml",
+    "http://www.gollshow.com:80/sss.wma",
+    "http://www.gollshow.com:80/topFrame.htm",
+    "http://gollshow.com/web/product/tiny/hailie31_328.jpg",
+    "http://gollshow.com/web/product/tiny/hailie31_329.jpg",
+    "http://gollshow.com/web/product/tiny/hailie31_333.jpg",
+    "http://gollshow.com/web/product/tiny/hailie31_334.jpg",
+    "http://gollshow.com/web/product/tiny/hailie31_336.jpg",
+    "http://gollshow.com/web/product/tiny/hailie31_345.jpg",
+    "http://gollshow.com/web/product/tiny/hailie31_346.jpg",
+    "http://gollshow.com/web/product/tiny/hailie31_348.jpg",
+    "http://gollshow.com/web/product/tiny/hailie31_349.jpg",
+    "http://gollshow.com/web/product/tiny/hailie31_350.jpg",
+    "http://gollshow.com/web/upload/bbs.gif",
+    "http://gollshow.com/web/upload/call.jpg",
+    "http://gollshow.com/web/upload/category40_top.jpg",
+    "http://gollshow.com/web/upload/ch.jpg",
+    "http://gollshow.com/web/upload/comm.gif",
+    "http://gollshow.com/web/upload/ec_bottom_logo_img.gif",
+    "http://gollshow.com/web/upload/ec_top_logo_img",
+    "http://gollshow.com/web/upload/find.jpg",
+    "http://gollshow.com/web/upload/gallery_menu.jpg",
+    "http://gollshow.com/web/upload/gollshow(1).jpg",
+    "http://gollshow.com/web/upload/gollshow(2).jpg",
+    "http://gollshow.com/web/upload/gollshow(3).jpg",
+    "http://gollshow.com/web/upload/join.jpg",
+    "http://gollshow.com/web/upload/join03.jpg",
+    "http://gollshow.com/web/upload/list.jpg",
+    "http://gollshow.com/web/upload/log.jpg",
+    "http://gollshow.com/web/upload/log02.jpg",
+    "http://gollshow.com/web/upload/map.jpg",
+    "http://gollshow.com/web/upload/meun_bg.gif",
+    "http://gollshow.com/web/upload/meun_gallery.gif",
+    "http://gollshow.com/web/upload/meun_gollshow.gif",
+    "http://gollshow.com/web/upload/meun_shop.gif",
+    "http://gollshow.com/web/upload/myshop(5).jpg",
+    "http://gollshow.com/web/upload/myshop.gif",
+    "http://gollshow.com/web/upload/pa.jpg",
+    "http://gollshow.com/web/upload/poster(1).jpg",
+    "http://gollshow.com/web/upload/titlepp.jpg",
+    "http://gollshow.com/web/upload/Untitled-2(1).jpg",
+    "http://gollshow.com/web/upload/Untitled-5.jpg",
+    "http://gollshow.com/web/upload/write.jpg"
+  ],
+  "archivedAssets": [
+    {
+      "original": "https://cdn.myportfolio.com/ed5a85f2-74ee-43ed-a157-3a865fd77e90/289295ec-ea42-4f63-9a62-929df5e59d23_rw_600.jpg?h=c09f515aa4193aaabbdceedd90ea3918",
+      "timestamp": "20250711201047",
+      "mimetype": "image/jpeg",
+      "length": 44877
+    },
+    {
+      "original": "https://cdn.myportfolio.com/ed5a85f2-74ee-43ed-a157-3a865fd77e90/6b27145318246ee993df80e3e52b9f621713326774.css?h=deab00f92f5f42f45f909ecf2b77a956",
+      "timestamp": "20250711200916",
+      "mimetype": "text/css",
+      "length": 11370
+    }
+  ],
+  "pages": [
+    {
+      "url": "https://gollshow.com/",
+      "finalUrl": "https://gollshow.com/",
+      "via": "wayback",
+      "archivedAt": "https://web.archive.org/web/20250711212909id_/https://gollshow.com/",
+      "slug": "index",
+      "links": [
+        "https://gollshow.com/home",
+        "https://gollshow.com/work"
+      ],
+      "assetCount": 3,
+      "embeds": [
+        "https://www.instagram.com/gollshow/?hl=ko"
+      ]
+    },
+    {
+      "url": "https://gollshow.com/sitemap.xml",
+      "finalUrl": "https://gollshow.com/sitemap.xml",
+      "via": "wayback",
+      "archivedAt": "https://web.archive.org/web/20250711201651id_/https://gollshow.com/sitemap.xml",
+      "slug": "sitemap.xml",
+      "links": [
+        "https://gollshow.com",
+        "https://gollshow.com/work",
+        "https://gollshow.com/home",
+        "https://gollshow.com/picture",
+        "https://gollshow.com/contepastel",
+        "https://gollshow.com/digital",
+        "https://gollshow.com/test",
+        "https://gollshow.com/ttt",
+        "https://gollshow.com/yyy",
+        "https://gollshow.com/uuu",
+        "https://gollshow.com/willow-and-water-lily",
+        "https://gollshow.com/music"
+      ],
+      "assetCount": 0,
+      "embeds": []
+    },
+    {
+      "url": "https://gollshow.com",
+      "finalUrl": "https://gollshow.com",
+      "via": "wayback",
+      "archivedAt": "https://web.archive.org/web/20250711212909id_/https://gollshow.com/",
+      "slug": "index",
+      "links": [
+        "https://gollshow.com/home",
+        "https://gollshow.com/work"
+      ],
+      "assetCount": 3,
+      "embeds": [
+        "https://www.instagram.com/gollshow/?hl=ko"
+      ]
+    },
+    {
+      "url": "https://gollshow.com/front/php/c/member_regist_f.php",
+      "finalUrl": "https://gollshow.com/front/php/c/member_regist_f.php",
+      "via": "wayback",
+      "archivedAt": "https://web.archive.org/web/20150210021654id_/http://gollshow.com/front/php/c/member_regist_f.php",
+      "slug": "front_php_c_member_regist_f.php",
+      "links": [
+        "https://gollshow.com/front/php/login/login_f.php",
+        "https://gollshow.com/front/php/c/member_regist_f.php",
+        "https://gollshow.com",
+        "https://gollshow.com/front/php/b/board_list_new.php",
+        "https://gollshow.com/front/php/b/board_list.php",
+        "https://gollshow.com/front/php/category.php",
+        "https://gollshow.com/front/php/myshop/myshop.php"
+      ],
+      "assetCount": 0,
+      "embeds": []
+    },
+    {
+      "url": "https://gollshow.com/front/php/c/member_regist_ma.php",
+      "finalUrl": "https://gollshow.com/front/php/c/member_regist_ma.php",
+      "via": "wayback",
+      "archivedAt": "https://web.archive.org/web/20131223102947id_/http://gollshow.com/front/php/c/member_regist_ma.php",
+      "slug": "front_php_c_member_regist_ma.php",
+      "links": [
+        "https://gollshow.com/front/html/css"
+      ],
+      "assetCount": 0,
+      "embeds": []
+    },
+    {
+      "url": "https://gollshow.com/front/php/com_intro.php",
+      "finalUrl": "https://gollshow.com/front/php/com_intro.php",
+      "via": "wayback",
+      "archivedAt": "https://web.archive.org/web/20150210022108id_/http://gollshow.com/front/php/com_intro.php",
+      "slug": "front_php_com_intro.php",
+      "links": [
+        "https://gollshow.com/front/php/login/login_f.php",
+        "https://gollshow.com/front/php/c/member_regist_f.php",
+        "https://gollshow.com",
+        "https://gollshow.com/front/php/b/board_list_new.php",
+        "https://gollshow.com/front/php/b/board_list.php",
+        "https://gollshow.com/front/php/category.php",
+        "https://gollshow.com/front/php/myshop/myshop.php",
+        "https://gollshow.com/front/php/com_intro.php",
+        "https://gollshow.com/front/php/member_agree.php",
+        "https://gollshow.com/front/php/privacy_agree.php",
+        "https://gollshow.com/front/php/faq.php"
+      ],
+      "assetCount": 0,
+      "embeds": []
+    },
+    {
+      "url": "https://gollshow.com/front/php/faq.php",
+      "finalUrl": "https://gollshow.com/front/php/faq.php",
+      "via": "wayback",
+      "archivedAt": "https://web.archive.org/web/20150210023710id_/http://gollshow.com/front/php/faq.php",
+      "slug": "front_php_faq.php",
+      "links": [
+        "https://gollshow.com/front/php/login/login_f.php",
+        "https://gollshow.com/front/php/c/member_regist_f.php",
+        "https://gollshow.com",
+        "https://gollshow.com/front/php/b/board_list_new.php",
+        "https://gollshow.com/front/php/b/board_list.php",
+        "https://gollshow.com/front/php/category.php",
+        "https://gollshow.com/front/php/myshop/myshop.php",
+        "https://gollshow.com/front/php/faq.php",
+        "https://gollshow.com/front/php/com_intro.php",
+        "https://gollshow.com/front/php/member_agree.php",
+        "https://gollshow.com/front/php/privacy_agree.php"
+      ],
+      "assetCount": 0,
+      "embeds": []
+    },
+    {
+      "url": "https://gollshow.com/front/php/intro/intro_f.php",
+      "finalUrl": "https://gollshow.com/front/php/intro/intro_f.php",
+      "via": "wayback",
+      "archivedAt": "https://web.archive.org/web/20110301105014id_/http://gollshow.com/front/php/intro/intro_f.php",
+      "slug": "front_php_intro_intro_f.php",
+      "links": [
+        "https://gollshow.com/front/php/lost_id/lost_id_f.php",
+        "https://gollshow.com/front/php/c/member_regist_f.php"
+      ],
+      "assetCount": 0,
+      "embeds": []
+    },
+    {
+      "url": "https://gollshow.com/front/php/login/login_f.php",
+      "finalUrl": "https://gollshow.com/front/php/login/login_f.php",
+      "via": "wayback",
+      "archivedAt": "https://web.archive.org/web/20150210010325id_/http://gollshow.com/front/php/login/login_f.php",
+      "slug": "front_php_login_login_f.php",
+      "links": [
+        "https://gollshow.com/front/php/login/login_f.php",
+        "https://gollshow.com/front/php/c/member_regist_f.php",
+        "https://gollshow.com",
+        "https://gollshow.com/front/php/b/board_list_new.php",
+        "https://gollshow.com/front/php/b/board_list.php",
+        "https://gollshow.com/front/php/category.php",
+        "https://gollshow.com/front/php/myshop/myshop.php",
+        "https://gollshow.com/front/php/lost_id/lost_id_f.php",
+        "https://gollshow.com/front/php/lost_pw/lost_pw_f.php"
+      ],
+      "assetCount": 0,
+      "embeds": []
+    },
+    {
+      "url": "https://gollshow.com/front/php/login_js.php",
+      "finalUrl": "https://gollshow.com/front/php/login_js.php",
+      "via": "wayback",
+      "archivedAt": "https://web.archive.org/web/20110201204209id_/http://gollshow.com/front/php/login_js.php",
+      "slug": "front_php_login_js.php",
+      "links": [],
+      "assetCount": 0,
+      "embeds": []
+    },
+    {
+      "url": "https://gollshow.com/front/php/member_agree.php",
+      "finalUrl": "https://gollshow.com/front/php/member_agree.php",
+      "via": "wayback",
+      "archivedAt": "https://web.archive.org/web/20150210004232id_/http://gollshow.com/front/php/member_agree.php",
+      "slug": "front_php_member_agree.php",
+      "links": [
+        "https://gollshow.com/front/php/login/login_f.php",
+        "https://gollshow.com/front/php/c/member_regist_f.php",
+        "https://gollshow.com",
+        "https://gollshow.com/front/php/b/board_list_new.php",
+        "https://gollshow.com/front/php/b/board_list.php",
+        "https://gollshow.com/front/php/category.php",
+        "https://gollshow.com/front/php/myshop/myshop.php",
+        "https://gollshow.com/front/php/com_intro.php",
+        "https://gollshow.com/front/php/member_agree.php",
+        "https://gollshow.com/front/php/privacy_agree.php",
+        "https://gollshow.com/front/php/faq.php"
+      ],
+      "assetCount": 0,
+      "embeds": []
+    },
+    {
+      "url": "https://gollshow.com/front/php/myshop/myshop.php",
+      "finalUrl": "https://gollshow.com/front/php/myshop/myshop.php",
+      "via": "wayback",
+      "archivedAt": "https://web.archive.org/web/20150210020928id_/http://gollshow.com/front/php/myshop/myshop.php",
+      "slug": "front_php_myshop_myshop.php",
+      "links": [
+        "https://gollshow.com/front/php/login/login_f.php",
+        "https://gollshow.com/front/php/c/member_regist_f.php",
+        "https://gollshow.com",
+        "https://gollshow.com/front/php/b/board_list_new.php",
+        "https://gollshow.com/front/php/b/board_list.php",
+        "https://gollshow.com/front/php/category.php",
+        "https://gollshow.com/front/php/myshop/myshop.php",
+        "https://gollshow.com/front/php/myshop/cons_board_list_new.php",
+        "https://gollshow.com/front/php/myshop/myshop_orders.php",
+        "https://gollshow.com/front/php/myshop/cons_board_list.php"
+      ],
+      "assetCount": 0,
+      "embeds": []
+    },
+    {
+      "url": "https://gollshow.com/front/php/privacy_agree.php",
+      "finalUrl": "https://gollshow.com/front/php/privacy_agree.php",
+      "via": "wayback",
+      "archivedAt": "https://web.archive.org/web/20150210021354id_/http://gollshow.com/front/php/privacy_agree.php",
+      "slug": "front_php_privacy_agree.php",
+      "links": [
+        "https://gollshow.com/front/php/login/login_f.php",
+        "https://gollshow.com/front/php/c/member_regist_f.php",
+        "https://gollshow.com",
+        "https://gollshow.com/front/php/b/board_list_new.php",
+        "https://gollshow.com/front/php/b/board_list.php",
+        "https://gollshow.com/front/php/category.php",
+        "https://gollshow.com/front/php/myshop/myshop.php",
+        "https://gollshow.com/front/php/myshop/cons_board_list_new.php",
+        "https://gollshow.com/front/php/com_intro.php",
+        "https://gollshow.com/front/php/member_agree.php",
+        "https://gollshow.com/front/php/privacy_agree.php",
+        "https://gollshow.com/front/php/faq.php"
+      ],
+      "assetCount": 0,
+      "embeds": []
+    },
+    {
+      "url": "https://gollshow.com/goll21/view.php",
+      "finalUrl": "https://gollshow.com/goll21/view.php",
+      "via": "wayback",
+      "archivedAt": "https://web.archive.org/web/20031005013623id_/http://www.gollshow.com/goll21/view.php",
+      "slug": "goll21_view.php",
+      "links": [],
+      "assetCount": 0,
+      "embeds": []
+    },
+    {
+      "url": "https://gollshow.com/goll21/zboard.php",
+      "finalUrl": "https://gollshow.com/goll21/zboard.php",
+      "via": "wayback",
+      "archivedAt": "https://web.archive.org/web/20031005013232id_/http://www.gollshow.com/goll21/zboard.php",
+      "slug": "goll21_zboard.php",
+      "links": [],
+      "assetCount": 0,
+      "embeds": []
+    },
+    {
+      "url": "https://gollshow.com/hwcont/email.html",
+      "finalUrl": "https://gollshow.com/hwcont/email.html",
+      "via": "wayback",
+      "archivedAt": "https://web.archive.org/web/20020608101536id_/http://www.gollshow.com/hwcont/email.html",
+      "slug": "hwcont_email.html",
+      "links": [],
+      "assetCount": 0,
+      "embeds": []
+    },
+    {
+      "url": "https://gollshow.com/hwmain.html",
+      "finalUrl": "https://gollshow.com/hwmain.html",
+      "via": "wayback",
+      "archivedAt": "https://web.archive.org/web/20020608004645id_/http://www.gollshow.com/hwmain.html",
+      "slug": "hwmain.html",
+      "links": [],
+      "assetCount": 0,
+      "embeds": []
+    },
+    {
+      "url": "https://gollshow.com/hwmenu.html",
+      "finalUrl": "https://gollshow.com/hwmenu.html",
+      "via": "wayback",
+      "archivedAt": "https://web.archive.org/web/20020405023018id_/http://www.gollshow.com/hwmenu.html",
+      "slug": "hwmenu.html",
+      "links": [
+        "https://gollshow.com",
+        "https://gollshow.com/cgi-bin/freebbs.cgi",
+        "https://gollshow.com/cgi-bin/newalbum.cgi",
+        "https://gollshow.com/page1.html",
+        "https://gollshow.com/page2.html",
+        "https://gollshow.com/hwcont/email.html",
+        "https://gollshow.com/cgi-auth/newhpwizard.cgi"
+      ],
+      "assetCount": 0,
+      "embeds": []
+    },
+    {
+      "url": "https://gollshow.com/left.htm",
+      "finalUrl": "https://gollshow.com/left.htm",
+      "via": "wayback",
+      "archivedAt": "https://web.archive.org/web/20021009030335id_/http://www.x-y.net/404error.html",
+      "slug": "left.htm",
+      "links": [],
+      "assetCount": 0,
+      "embeds": []
+    },
+    {
+      "url": "https://gollshow.com/main.htm",
+      "finalUrl": "https://gollshow.com/main.htm",
+      "via": "wayback",
+      "archivedAt": "https://web.archive.org/web/20021009030335id_/http://www.x-y.net/404error.html",
+      "slug": "main.htm",
+      "links": [],
+      "assetCount": 0,
+      "embeds": []
+    },
+    {
+      "url": "https://gollshow.com/mainFrame.htm",
+      "finalUrl": "https://gollshow.com/mainFrame.htm",
+      "via": "wayback",
+      "archivedAt": "https://web.archive.org/web/20050204124640id_/http://gollshow.com/mainFrame.htm",
+      "slug": "mainFrame.htm",
+      "links": [],
+      "assetCount": 0,
+      "embeds": []
+    },
+    {
+      "url": "https://gollshow.com/page1.html",
+      "finalUrl": "https://gollshow.com/page1.html",
+      "via": "wayback",
+      "archivedAt": "https://web.archive.org/web/20020406083029id_/http://www.gollshow.com/page1.html",
+      "slug": "page1.html",
+      "links": [],
+      "assetCount": 0,
+      "embeds": []
+    },
+    {
+      "url": "https://gollshow.com/page2.html",
+      "finalUrl": "https://gollshow.com/page2.html",
+      "via": "wayback",
+      "archivedAt": "https://web.archive.org/web/20020608101113id_/http://www.gollshow.com/page2.html",
+      "slug": "page2.html",
+      "links": [],
+      "assetCount": 0,
+      "embeds": []
+    },
+    {
+      "url": "https://gollshow.com/topFrame.htm",
+      "finalUrl": "https://gollshow.com/topFrame.htm",
+      "via": "wayback",
+      "archivedAt": "https://web.archive.org/web/20050204144648id_/http://gollshow.com/topFrame.htm",
+      "slug": "topFrame.htm",
+      "links": [],
+      "assetCount": 0,
+      "embeds": []
+    }
+  ],
+  "skipped": [],
+  "errors": [
+    {
+      "url": "https://gollshow.com/work",
+      "attempts": [
+        "live:403",
+        "wayback:404"
+      ]
+    },
+    {
+      "url": "https://gollshow.com/music-1",
+      "attempts": [
+        "live:403",
+        "wayback:404"
+      ]
+    },
+    {
+      "url": "https://gollshow.com/picture",
+      "attempts": [
+        "live:403",
+        "wayback:404"
+      ]
+    },
+    {
+      "url": "https://gollshow.com/ttt",
+      "attempts": [
+        "live:403",
+        "wayback:404"
+      ]
+    },
+    {
+      "url": "https://gollshow.com/contepastel",
+      "attempts": [
+        "live:403",
+        "wayback:404"
+      ]
+    },
+    {
+      "url": "https://gollshow.com/digital",
+      "attempts": [
+        "live:403",
+        "wayback:404"
+      ]
+    },
+    {
+      "url": "https://gollshow.com/test",
+      "attempts": [
+        "live:403",
+        "wayback:404"
+      ]
+    },
+    {
+      "url": "https://gollshow.com/front/php/b/board_list.php",
+      "attempts": [
+        "live:403",
+        "wayback:404"
+      ]
+    },
+    {
+      "url": "https://gollshow.com/front/php/b/board_list_new.php",
+      "attempts": [
+        "live:403",
+        "wayback:404"
+      ]
+    },
+    {
+      "url": "https://gollshow.com/front/php/b/board_read.php",
+      "attempts": [
+        "live:403",
+        "wayback:404"
+      ]
+    },
+    {
+      "url": "https://gollshow.com/front/php/category.php",
+      "attempts": [
+        "live:403",
+        "wayback:404"
+      ]
+    },
+    {
+      "url": "https://gollshow.com/front/php/ec_front_popup_opener.php",
+      "attempts": [
+        "live:403",
+        "wayback:404"
+      ]
+    },
+    {
+      "url": "https://gollshow.com/goll21/del_comment.php",
+      "attempts": [
+        "live:403",
+        "wayback:404"
+      ]
+    },
+    {
+      "url": "https://gollshow.com/goll21/login.php",
+      "attempts": [
+        "live:403",
+        "wayback:404"
+      ]
+    },
+    {
+      "url": "https://gollshow.com/goll21/member_join.php",
+      "attempts": [
+        "live:403",
+        "wayback:404"
+      ]
+    },
+    {
+      "url": "https://gollshow.com/home",
+      "attempts": [
+        "live:403",
+        "wayback:404"
+      ]
+    },
+    {
+      "url": "https://gollshow.com/yyy",
+      "attempts": [
+        "live:403",
+        "wayback:404"
+      ]
+    },
+    {
+      "url": "https://gollshow.com/uuu",
+      "attempts": [
+        "live:403",
+        "wayback:404"
+      ]
+    },
+    {
+      "url": "https://gollshow.com/willow-and-water-lily",
+      "attempts": [
+        "live:403",
+        "wayback:404"
+      ]
+    },
+    {
+      "url": "https://gollshow.com/music",
+      "attempts": [
+        "live:403",
+        "wayback:404"
+      ]
+    },
+    {
+      "url": "https://gollshow.com/front/html/css",
+      "attempts": [
+        "live:403",
+        "wayback:404"
+      ]
+    },
+    {
+      "url": "https://gollshow.com/front/php/lost_id/lost_id_f.php",
+      "attempts": [
+        "live:403",
+        "wayback:404"
+      ]
+    },
+    {
+      "url": "https://gollshow.com/front/php/lost_pw/lost_pw_f.php",
+      "attempts": [
+        "live:403",
+        "wayback:404"
+      ]
+    },
+    {
+      "url": "https://gollshow.com/front/php/myshop/cons_board_list_new.php",
+      "attempts": [
+        "live:403",
+        "wayback:404"
+      ]
+    },
+    {
+      "url": "https://gollshow.com/front/php/myshop/myshop_orders.php",
+      "attempts": [
+        "live:403",
+        "wayback:404"
+      ]
+    },
+    {
+      "url": "https://gollshow.com/front/php/myshop/cons_board_list.php",
+      "attempts": [
+        "live:403",
+        "wayback:404"
+      ]
+    },
+    {
+      "url": "https://gollshow.com/cgi-bin/freebbs.cgi",
+      "attempts": [
+        "live:403",
+        "wayback:404"
+      ]
+    },
+    {
+      "url": "https://gollshow.com/cgi-bin/newalbum.cgi",
+      "attempts": [
+        "live:403",
+        "wayback:404"
+      ]
+    },
+    {
+      "url": "https://gollshow.com/cgi-auth/newhpwizard.cgi",
+      "attempts": [
+        "live:403",
+        "wayback:404"
+      ]
+    }
+  ],
+  "embeds": [
+    {
+      "url": "https://www.instagram.com/gollshow/?hl=ko",
+      "pages": [
+        "index"
+      ]
+    }
+  ],
+  "images": [
+    {
+      "key": "/ed5a85f2-74ee-43ed-a157-3a865fd77e90/289295ec-ea42-4f63-9a62-929df5e59d23",
+      "file": "289295ec-ea42-4f63-9a62-929df5e59d23.jpg",
+      "from": "https://cdn.myportfolio.com/ed5a85f2-74ee-43ed-a157-3a865fd77e90/289295ec-ea42-4f63-9a62-929df5e59d23.jpg?h=f04f767ad0ed3a857d1dbefb4093c04f",
+      "via": "original",
+      "bytes": 36891,
+      "crop": false,
+      "pages": [
+        "index"
+      ],
+      "variants": [
+        "https://cdn.myportfolio.com/ed5a85f2-74ee-43ed-a157-3a865fd77e90/289295ec-ea42-4f63-9a62-929df5e59d23.jpg?h=f04f767ad0ed3a857d1dbefb4093c04f",
+        "https://cdn.myportfolio.com/ed5a85f2-74ee-43ed-a157-3a865fd77e90/289295ec-ea42-4f63-9a62-929df5e59d23_rw_600.jpg?h=c09f515aa4193aaabbdceedd90ea3918"
+      ],
+      "tried": [
+        {
+          "url": "https://cdn.myportfolio.com/ed5a85f2-74ee-43ed-a157-3a865fd77e90/289295ec-ea42-4f63-9a62-929df5e59d23.jpg?h=f04f767ad0ed3a857d1dbefb4093c04f",
+          "via": "live",
+          "bytes": 36891
+        }
+      ]
+    }
+  ]
+}

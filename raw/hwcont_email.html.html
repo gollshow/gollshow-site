@@ -1,0 +1,219 @@
+<html>
+<head>
+	<title>Ȩ������ ��ڿ��� ���� ������</title>
+	<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=EUC-KR">
+		<STYLE TYPE="text/css">
+<!--
+a.net:link { color: #727272 ; text-decoration: none ;}
+a.net:visited { color: #504A4A ; text-decoration: none ;}
+a.net:active {  text-decoration: none;}
+a.net:hover { color:#399B5C; text-decoration: none;}
+a.ne:link { color: black; text-decoration: none;}
+a.ne:visited { color: #464646;text-decoration: none;}
+a.ne:active { text-decoration: none;}
+a.ne:hover { color: #399B5C ; text-decoration: underline;}
+TD,TH  {font-size:9pt;};
+.b {  line-height: 140% }; 
+.c { font-size: 9pt; };
+.d { font-size: 9pt;   line-height: 140% };
+.e { font-size: 10pt;   line-height: 130% }; 
+.f { font-size: 8pt;}; 
+.inputtext {font-size : 10pt; BACKGROUND-COLOR:white; COLOR:#000000; BORDER:1x solid #000000}
+.menuClass{ position:static; visibility:visible; width:180px; height:18px; color:#5663CE; font-size:10pt; font-weight:bold;}
+.submenuClass{ position:static; visibility:visible; display:none; width:180px; color:#666666; font-size:9pt; font-weight:bold;}
+
+-->
+</STYLE>
+
+<script language="javascript">
+function checkestring(Email)
+{
+    tmp = Email.match(/^(\".*\"|[A-Za-z0-9_-]([A-Za-z0-9_-]|[\+\.])*)@(\[\d{1,3}(\.\d{1,3}){3}]|[A-Za-z0-9][A-Za-z0-9_-]*(\.[A-Za-z0-9][A-Za-z0-9_-]*)+)/);
+    if (tmp == null)
+        return false;
+
+    arrIP = tmp[2].match(/^\[(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})\]/);
+    if (arrIP != null) {
+        for (var i = 1; i <= 4; i++) {
+            if (arrIP[i] > 255) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+function CheckAddress(email) {
+
+        if (email.length == 0)
+        {
+                alert('�޴»���� �̸��� �ּҸ� �Է����ּ���');
+                return true;
+        }
+
+        toemail = email.replace(/,/, ";").split(";");
+        for (var i = 0; i < toemail.length; i++)
+        {
+                tmp = toemail[i].match(/^([^<>]*)<([^<>]+)>/);
+                if (tmp == null)
+                        smail = toemail[i];
+                else
+                        smail = tmp[2];
+
+                if (checkestring(smail) == false)
+                {
+                        alert("\"" + toemail[i] + "\"�� �߸��� �̸����ּ��Դϴ�.");
+                        return false;
+                }
+        }
+
+        return true;
+}
+function checkForm() 
+{
+	if ( document.form1.guest_email.value.length == 0)
+	{
+		alert('������ ��� E-mail�� �Է��ϼ���.');
+		document.form1.guest_email.focus();
+	}
+
+        else if ( document.form1.ma.value.length == 0 ) 
+	{
+		alert('���� ������ �Է��ϼ���');
+		document.form1.ma.focus();
+       	}
+   	else if (CheckAddress(document.form1.guest_email.value) == false)
+       	{
+                return;
+        }
+
+    	else 
+	{
+		user = document.form1.rid.value;
+		alert(user + '������ ������ ���������� �߼۵Ǿ����ϴ�');	
+		document.form1.submit();
+	}
+}
+
+</script>
+</head>
+<body topmargin=0 leftmargin=0 marginwidth=0 marginheight=0 BACKGROUND="http://icon.netian.com/im/communi/hp/bg_community.gif">
+<form name=form1 action="http://wsp-cgi1.netian.com/cgi-bin/newhpwmail.cgi" method="POST" onSubmit="return checkForm()">
+<input type=hidden name="cmd" value="s">
+<input type=hidden name="user_id" value="gollshow.com">
+
+<TABLE WIDTH="575" BORDER="0" CELLSPACING="0" CELLPADDING="0">
+<TR><TD width=20><spacer type=block width=20></TD>
+<TD WIDTH=555 VALIGN="top"><center>
+<IMG SRC="http://icon.netian.com/im/communi/hp/tt_hpmail_write.gif" WIDTH="148" HEIGHT="26" BORDER="0" ALT="">
+</center>
+
+					<TABLE WIDTH=555 BORDER="0" CELLSPACING="0" CELLPADDING="0">
+					<TR><TD  WIDTH=34><IMG SRC="http://icon.netian.com/im/communi/hp/im_top_home.gif" WIDTH="34" HEIGHT="34" BORDER="0" ALT=""></TD>
+					<TD WIDTH=518 BACKGROUND="http://icon.netian.com/im/communi/album/bg_top_home.gif" ALIGN="center"><BR>
+					 <font size="2" color="#006C00">�� Ȩ������ ��ڿ��� ������ ��������~ </font>					</TD>
+					<TD WIDTH=3  ALIGN="right"><IMG SRC="http://icon.netian.com/im/communi/hp/bg_topright_home.gif" WIDTH="3" HEIGHT="34" BORDER="0" ALT=""></TD></TR>
+					</TABLE>
+
+
+
+					<TABLE WIDTH=555 BORDER="0" CELLSPACING="0" CELLPADDING="0">
+					<TR><TD WIDTH="8" ROWSPAN="2"><spacer type=block width=8></TD>
+					<TD  width=1 BGCOLOR="Black"><spacer type=block width=1></TD>
+					<TD WIDTH=545 BGCOLOR="#F3F8EE"><spacer type=block width=495>
+						<BR>
+
+									<TABLE WIDTH=500 BORDER=0 CELLSPACING="0" CELLPADDING=0 ALIGN="center">
+									<TR><TD BGCOLOR="#C1E7D4" >
+									
+									
+<!-- ***************************************** ������� ���� ������� *************************************************************-->
+					
+									<table border="0" cellpadding=0 cellspacing=1 width="500">
+										<tr>
+											<td width="132" BGCOLOR="#E8F6EF" height="22" align="right">
+												�޴� ���&nbsp;&nbsp;&nbsp;&nbsp;
+											</td>
+											<td width="368" bgcolor="#ffffff">
+												&nbsp;&nbsp;&nbsp;&nbsp;goll@gollshow.com</font>
+												<input type="hidden" name="rid" value="goll@gollshow.com" size="30" class="nemo" maxlength="10">
+											</td>
+										</tr>
+										<tr>
+											<td width="132" BGCOLOR="#E8F6EF" height="22" align="right">
+												������ ��� E-mail&nbsp;&nbsp;&nbsp;&nbsp;
+											</td>
+											<td width="368" bgcolor="#ffffff">
+												&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" name="guest_email" size="30" >
+											</td>
+										</tr>
+										<tr>
+											<td width="132" BGCOLOR="#E8F6EF" height="22" align="right">
+												������ ��� �̸�&nbsp;&nbsp;&nbsp;&nbsp;
+											</td>
+											<td width="368" bgcolor="#ffffff">
+												&nbsp;&nbsp;&nbsp;&nbsp;
+												<input type="text" name="guest_name" value="" size="30" class="nemo" maxlength="50">
+											</td>
+										</tr>
+										<tr>
+											<td width="132" BGCOLOR="#E8F6EF" height="22" align="right">
+												����&nbsp;&nbsp;&nbsp;&nbsp;
+											</td>
+											<td width="368" bgcolor="#ffffff">
+												&nbsp;&nbsp;&nbsp;&nbsp;
+												<input type="text" name="title" size="30" class="nemo" maxlength="100">
+											</td>
+										</tr>
+										<tr>
+											<td width="132" BGCOLOR="#E8F6EF"  align="right">
+												����&nbsp;&nbsp;&nbsp;&nbsp;
+											</td>
+											<td width="368" bgcolor="#ffffff">
+												&nbsp;&nbsp;&nbsp;&nbsp;
+												<textarea name=ma cols=45 rows=8></textarea>
+												<br><br>
+											</td>
+										</tr>
+										<tr>
+											<td width="132" BGCOLOR="#E8F6EF" height="22" align="right">
+												������ ����&nbsp;&nbsp;&nbsp;&nbsp;
+											</td>
+											<td width="368" bgcolor="#ffffff">
+												&nbsp;&nbsp;&nbsp;&nbsp;
+												<input type="radio" name="sendtype" value="0" checked>TEXT����
+                                    			<input type="radio" name="sendtype" value="1">HTML����
+	<br>
+											</td>
+										</tr>
+									</table>
+			
+	<!-- ***************************************** ������� ���� ���볡 *************************************************************-->								
+
+
+									
+									</TD></TR>
+									</TABLE>
+					
+					
+						<BR>
+					</TD><TD  width=1 BGCOLOR="Black"><spacer type=block width=1></TD></TR>
+					<TR><TD COLSPAN=3 HEIGHT="1" BGCOLOR="Black"><spacer type=block height=1></TD></TR>
+					</TABLE>
+
+					<BR>
+				<center>
+				<a href="javascript:checkForm()"><img src="http://icon.netian.com/im/communi/hp/bc_mail_send.gif" border="0"></a>&nbsp;
+				<a href="javascript:document.form1.reset()"><img  src="http://icon.netian.com/im/communi/hp/bc_mail_rewrite.gif" border="0"></a><br>
+
+</center>					
+					
+					
+</TD></TR>
+</TABLE>
+
+
+
+
+</body>
+</html>

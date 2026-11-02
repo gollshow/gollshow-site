@@ -1,0 +1,21 @@
+
+    var login_mallid = 'hailie31';
+    var login_host = 'gollshow.com';
+    var login_sessionid = '21e3697c4e0caca40a39c4b3b36904f0';
+    try {
+        document.login_f.onsubmit = function() {
+            var frm = document.login_f;
+            if (frm.is_ssl != undefined && frm.is_ssl.checked == true) {
+                var newObj = document.createElement('input');
+                newObj.setAttribute('type', 'hidden');
+                newObj.setAttribute('name', 'EC_SECURE_DATA');
+                newObj.setAttribute('value', '1b6136b01fa566af5375f2d33157b1dcf1b469701d8d492bda3f3ddfa5c901890e339fca85ca5e8e8d53a58e11d89732406008f891457db5f95e4a6584eab907f99c1e1674522faf901442e5472ea18391122785314ccd0c0d807e7d6b2542a14c14f3c1bb60ec6594e0d2aad302a4436519e6607b032ec330ba5fddc2ccdf4b0d4e6ee786e5d0e0e09421956faa9fbbf8351965bb08e924b0645f6dc131a0f78747738c8c39b0a0975bce987c33ea514ebd8a781aef89c526cfa727d6474de6c6ddc612d9a7da667f7e49177022fcdfc258393c683d97b7e55bc7775ff380e2c4423e5f15ab30b4d8d2e4f2c31bf6b5759706118c4943221a13e3f13cf4eb25ca333aefad0018dc4ec686351b276f189f7ac3ee900f2e75ca0938841e3e15d1dbc76f14d331f14c403d3a33ae1a3eb33d8711570c81a5f1e95b378aea7f53dd6e3f7c376225608a9d18d2c1e4bd08e66723a580a4427790da183c5da8b21b19abdf725c6711ca6da51cf1cf1f8c57a536eea75edccd2a6511aac9d325e7c88a343a31a94d33e44d72bc9f7e6a99a633696a3e12baa5094af2858d67059ee11edd8a11ecd3f3b2fc245a5bb7de34b0da1e4232620076c440b50581af2b0dd2a3ee716300c98bb61e3dd5b92426b6b0e198f99ea9b1a01fbb1804f2606afce73352dd0cb14c0aca30a48a3ebb1079178a3d48cfb5a09abe0d31c30a06c644d4372e632695688ecba36f0fb44c33dcaba71eb98b26c333f7ffec08d7215a1e5e3a4988aa92ca81f427c2d4993e41714aa0293591795a7407e7f957a4ee49a3ee4f0f4b68f5295d723e3dc34dd0eda0db5fdd2e5dab3d7a86aad9a69cb9c30dbf7dffe35a0d0617a61fd39dfc94b06ac1390b959f3bb0d7a3e7e6e8077af853c40de964e094e47e21040ef1c2b81c6b75148e906450cc317136a1346a3d28d2a0a682ee50072bfdff45990fc7200b9280c2764b69daca9d5c08a9cd974504354fd654e1b461dace421ac9f649fa5afbcbd9b6670c789ddb2e05d071c8906d3fe2a9a757614028433fa5302501e11386321657c6821947569727a42624255c389a6a88c91caaa91d5e54bf36fc73cf4e523c23989e3dd2e6a152cb807b40d91378fc75d18a71ac614c122c317d802ea687394ca28a800783d012bcf57f090adf80be09275ddbd334a22bc92c8d1b6c3bdfbd2026fc73c0347e0a97c5c50b19e7035ef87e1d316f5b330a751a597544691fcd7034b4b5d9684b5f6ba60bef42388f121dfd4c67fe672ed78654d7149e54a26634664f324500a256cc3c86f6ff19fa42fb18384c14a135669e0e80df1dfb633696acbdf25a391b1da90667d64468c6cb143483e9ab58b479155813d2d56a3a91c67e3167ded45572e7c354f496a96f74^||^323031313032303233393331');
+                frm.appendChild(newObj);
+                frm.action = 'https://login2.simplexi.com/echosting/shop19.php?secure=on&return_url=http://gollshow.com/front/php/login/login_ssl.php?';
+            } else {
+                frm.action = '/front/php/login/login_a.php';
+            }
+            return true;
+        }
+    } catch(e) {}
+    
