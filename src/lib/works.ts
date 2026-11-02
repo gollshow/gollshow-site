@@ -59,7 +59,6 @@ export async function getRooms() {
 }
 
 export async function getSettings() {
-  const { getCollection } = await import('astro:content');
   const s = (await getCollection('settings'))[0]?.data;
   return s ?? ({} as NonNullable<typeof s>);
 }
