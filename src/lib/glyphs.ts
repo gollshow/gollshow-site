@@ -1,5 +1,10 @@
 import fs from 'node:fs';
+import path from 'node:path';
+import { createRequire } from 'node:module';
 import opentype from 'opentype.js';
+
+const req = createRequire(path.join(process.cwd(), 'package.json'));
+const pkgDir = (name: string) => path.dirname(req.resolve(`${name}/package.json`));
 
 /** Text → SVG path (so OG images never depend on fonts installed on the build machine). */
 const fonts = new Map<string, opentype.Font>();
@@ -10,9 +15,9 @@ function font(file: string) {
   }
   return fonts.get(file)!;
 }
-export const SERIF = 'node_modules/@expo-google-fonts/noto-serif-kr/400Regular/NotoSerifKR_400Regular.ttf';
-export const SERIF_LIGHT = 'node_modules/@expo-google-fonts/noto-serif-kr/300Light/NotoSerifKR_300Light.ttf';
-export const SANS = 'node_modules/pretendard/dist/public/static/Pretendard-Medium.otf';
+export const SERIF = path.join(pkgDir('@expo-google-fonts/noto-serif-kr'), '400Regular/NotoSerifKR_400Regular.ttf');
+export const SERIF_LIGHT = path.join(pkgDir('@expo-google-fonts/noto-serif-kr'), '300Light/NotoSerifKR_300Light.ttf');
+export const SANS = path.join(pkgDir('pretendard'), 'dist/public/static/Pretendard-Medium.otf');
 
 export function textPath(text: string, file: string, size: number, x: number, y: number, opts: { tracking?: number; maxWidth?: number } = {}) {
   const f = font(file);
