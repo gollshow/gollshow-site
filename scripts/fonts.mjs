@@ -11,13 +11,19 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import { createRequire } from 'node:module';
 import subsetFont from 'subset-font';
 
+const req = createRequire(import.meta.url);
+const pkg = (name) => path.dirname(req.resolve(`${name}/package.json`));
+const NOTO = pkg('@expo-google-fonts/noto-serif-kr');
+const PRET = pkg('pretendard');
+
 const FACES = [
-  { out: 'serif-300', src: 'node_modules/@expo-google-fonts/noto-serif-kr/300Light/NotoSerifKR_300Light.ttf' },
-  { out: 'serif-400', src: 'node_modules/@expo-google-fonts/noto-serif-kr/400Regular/NotoSerifKR_400Regular.ttf' },
-  { out: 'sans-400', src: 'node_modules/pretendard/dist/public/static/Pretendard-Regular.otf' },
-  { out: 'sans-500', src: 'node_modules/pretendard/dist/public/static/Pretendard-Medium.otf' },
+  { out: 'serif-300', src: path.join(NOTO, '300Light/NotoSerifKR_300Light.ttf') },
+  { out: 'serif-400', src: path.join(NOTO, '400Regular/NotoSerifKR_400Regular.ttf') },
+  { out: 'sans-400', src: path.join(PRET, 'dist/public/static/Pretendard-Regular.otf') },
+  { out: 'sans-500', src: path.join(PRET, 'dist/public/static/Pretendard-Medium.otf') },
 ];
 
 // Always include: printable ASCII, Latin-1, typographic punctuation, arrows used in UI.

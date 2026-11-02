@@ -9,7 +9,9 @@ import fs from 'node:fs';
 import opentype from 'opentype.js';
 import sharp from 'sharp';
 
-const FONT_DIR = 'node_modules/@expo-google-fonts/noto-serif-kr';
+import { createRequire } from 'node:module';
+import path from 'node:path';
+const FONT_DIR = path.dirname(createRequire(import.meta.url).resolve('@expo-google-fonts/noto-serif-kr/package.json'));
 const load = (k) => {
   const buf = fs.readFileSync(`${FONT_DIR}/${k}/NotoSerifKR_${k}.ttf`);
   return opentype.parse(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength));

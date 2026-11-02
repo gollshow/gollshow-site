@@ -1,5 +1,5 @@
-# Builds the site and publishes it to GitHub Pages on every push to main
-# (including every "Save" in /admin, which commits to main).
+# Builds the site and publishes it to GitHub Pages (branch: gh-pages) on every
+# push to main — including every "Save" in /admin, which commits to main.
 name: Deploy to GitHub Pages
 
 on:
@@ -7,20 +7,18 @@ on:
     branches: [main]
     paths-ignore:
       - '**.md'
-      - '_import/**'
+      - '_check/**'
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
   group: pages
   cancel-in-progress: false
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -37,19 +35,30 @@ jobs:
           restore-keys: astro-assets-
       - run: npm ci
       - run: npm run build
-      - uses: actions/configure-pages@v5
-        with:
-          enablement: true
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Stamp build
+        run: echo "${GITHUB_SHA}" > dist/build.txt
+      - name: Publish to the gh-pages branch
+        run: |
+          cd dist
+          git init -q -b gh-pages
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898333+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Deploy ${GITHUB_SHA::7}"
+          # gh-pages always holds exactly one commit: the current build
+          git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" gh-pages
+      - name: Check the live site
+        run: |
+          URL=$(node -e "import('./site.config.mjs').then(m => console.log(m.SITE + m.BASE))")
+          echo "Live URL: $URL"
+          for i in $(seq 1 40); do
+            LIVE=$(curl -fsS "${URL}build.txt?ts=$(date +%s)" 2>/dev/null || true)
+            if [ "$LIVE" = "$GITHUB_SHA" ]; then
+              curl -fsS -o /dev/null -w "home: %{http_code}\n" "$URL"
+              curl -fsS -o /dev/null -w "admin: %{http_code}\n" "${URL}admin/"
+              echo "✓ $URL is serving ${GITHUB_SHA::7}"
+              exit 0
+            fi
+            sleep 15
+          done
+          echo "::warning::The new build was not visible at $URL after 10 minutes (Pages may still be publishing)."
