@@ -5,9 +5,14 @@
  *   node scripts/import/from-pages.mjs <dir-with-html> [--dry]
  *
  * Understands Adobe Portfolio markup:
- *   - gallery pages  (.project-cover tiles → title, date, cover, link)
- *   - project pages  (.page-header title/description, image modules with the
- *                     original in .js-lightbox[data-src], text and embed modules)
+ *   - gallery pages  (.project-cover tiles → title, date, cover, link), only on
+ *                     pages without project modules: every project page also
+ *                     shows "other projects" cover tiles, which are not works
+ *   - project pages  (.page-header title/description, image modules and
+ *                     .project-module-media_collection grids with the original
+ *                     in .js-lightbox[data-src], text and embed modules)
+ *   - pages of images without titles (e.g. /picture): one public, untitled
+ *                     work per image, in grid order
  * For every work it downloads the LARGEST image available from
  * cdn.myportfolio.com (original → largest srcset entry), writes
  * src/assets/media/<slug>-NN.<ext> and src/content/works/<slug>.md, and keeps
@@ -128,8 +133,12 @@ for (const file of pages) {
     .get()
     .find((s) => ROOM[s]);
 
-  const covers = $('.project-cover');
-  if (covers.length) {
+  // Project pages also carry an "other projects" strip of .project-cover tiles in
+  // their footer — those are links, not works. Only a page without project
+  // modules is a gallery of covers.
+  const modules = $('.project-module');
+  const covers = $('.project-cover').filter((_, c) => !$(c).closest('.other-projects, .project-covers--footer, footer, .site-footer').length);
+  if (covers.length && !modules.length) {
     const room = ROOM[pageSlug] || ROOM[activeNav] || 'etc';
     covers.each((_, c) => {
       const href = $(c).is('a') ? $(c).attr('href') : $(c).find('a').first().attr('href');
@@ -143,7 +152,6 @@ for (const file of pages) {
     continue;
   }
 
-  const modules = $('.project-module');
   const header = $('.page-header, .project-header').first();
   const title = clean(header.find('.title').first().text() || $('h1').first().text());
   const images = [];
@@ -160,6 +168,8 @@ for (const file of pages) {
         if (u) embeds.push(u.startsWith('//') ? 'https:' + u : u);
       });
     }
+    // works sit in media modules (single images and .project-module-media_collection grids)
+    if (!$m.is('.project-module-image, .project-module-media_collection, .project-module-media')) return;
     $m.find('img').each((_, img) => {
       const c = candidates($, img);
       if (c.length) images.push({ urls: c, caption: clean($(img).closest('.project-module').find('.caption, figcaption').first().text()) || undefined });
@@ -182,17 +192,18 @@ for (const file of pages) {
     });
   } else {
     for (const im of images) loose.push({ ...im, page: pageSlug, room: ROOM[pageSlug] || ROOM[activeNav] || 'etc' });
-    note(`- \`${pageSlug}\`: ${images.length} images on a page without project titles → imported as hidden drafts`);
+    note(`- \`${pageSlug}\`: ${images.length} images on a page without project titles → imported as untitled public works, in grid order`);
   }
 }
 
 if (!DRY) fs.mkdirSync(MEDIA, { recursive: true });
-const existing = new Set(fs.readdirSync(WORKS).map((f) => f.replace(/\.md$/, '')));
+if (!DRY) fs.mkdirSync(WORKS, { recursive: true });
+const existing = new Set(fs.existsSync(WORKS) ? fs.readdirSync(WORKS).map((f) => f.replace(/\.md$/, '')) : []);
 const created = [];
 const q = (s) => JSON.stringify(s);
 let order = 100;
 
-async function writeWork({ slug, title, room, year, description, images, embeds = [], draft = false }) {
+async function writeWork({ slug, title, room, year, description, images, embeds = [], draft = false, order: ord }) {
   const base = fileSlug(slug || title);
   if (existing.has(base)) {
     note(`- \`${base}\` already exists — left untouched`);
@@ -205,16 +216,18 @@ async function writeWork({ slug, title, room, year, description, images, embeds 
     else note(`  - ✗ ${base}: image ${i + 1} could not be downloaded (${im.urls[0]})`);
   }
   const link = embeds.find((e) => /soundcloud|youtube|youtu\.be|vimeo/.test(e));
+  const video = embeds.find((e) => /adobe\.io\/v1\/player|vimeo|youtube/.test(e));
   const fm = [
     '---',
-    `title: ${q(title || base)}`,
+    title ? `title: ${q(title)}` : null, // never invent a title
     `category: ${room || 'etc'}`,
     year ? `year: ${q(year)}` : null,
     files.length ? 'images:' : 'images: []',
     ...files.flatMap((f) => [`  - image: ${q('/src/assets/media/' + f.file)}`, ...(f.caption ? [`    caption: ${q(f.caption)}`] : [])]),
     description ? `description: ${q(description)}` : null,
     link ? `link: ${q(link)}` : null,
-    `order: ${order++}`,
+    video && video !== link ? `video: ${q(video)}` : null,
+    `order: ${ord ?? order++}`,
     draft ? 'draft: true' : null,
     `# imported from gollshow.com/${slug} on ${new Date().toISOString().slice(0, 10)}`,
     '---',
@@ -224,7 +237,7 @@ async function writeWork({ slug, title, room, year, description, images, embeds 
     .join('\n');
   if (!DRY) fs.writeFileSync(path.join(WORKS, base + '.md'), fm);
   existing.add(base);
-  created.push({ base, title, room, images: files.length, draft });
+  created.push({ base, title: title || '(untitled)', room, images: files.length, draft });
 }
 
 for (const p of projects) {
@@ -238,8 +251,11 @@ for (const [s, g] of gallery) {
   await writeWork({ slug: s, title: g.title, room: g.room, year: g.year || undefined, images: [{ urls: g.cover }] });
   note(`  - ${g.title || s}: only the gallery cover was available (save the project page to get every image)`);
 }
-for (const [i, l] of loose.entries()) {
-  await writeWork({ slug: `${l.page}-${i + 1}`, title: l.caption || `${l.page} ${i + 1}`, room: l.room, images: [l], draft: true });
+// grid images without titles: one public, untitled work each, in grid order
+const perRoom = {};
+for (const l of loose) {
+  const n = (perRoom[l.room] = (perRoom[l.room] ?? 0) + 1);
+  await writeWork({ slug: `${l.room}-${String(n).padStart(3, '0')}`, room: l.room, images: [l], order: 100 + n });
 }
 
 const report = [
