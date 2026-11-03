@@ -1,0 +1,38 @@
+# Opens the deployed site in a real browser (desktop and mobile), records
+# browser errors and screenshots, and pushes them to the branch "live-check"
+# (not main, so the history of main stays clean). Run it by hand:
+# Actions → Live check → Run workflow.
+name: Live check
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Browser
+        run: |
+          npm i --no-save playwright@1.63.0
+          npx playwright install --with-deps chromium
+      - name: Visit the live site
+        run: |
+          URL=$(node -e "import('./site.config.mjs').then(m => console.log(m.SITE + m.BASE))")
+          node scripts/qa/live.mjs "$URL"
+      - name: Push the results to the live-check branch
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898333+github-actions[bot]@users.noreply.github.com"
+          git checkout -q --orphan live-check
+          git rm -rq --cached .
+          git add -f _check/live
+          git commit -q -m "Live check ${GITHUB_SHA::7}"
+          git push -q -f origin live-check

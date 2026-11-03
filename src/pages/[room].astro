@@ -1,36 +1,116 @@
 ---
+/**
+ * A room is a reel: its works run as frames through the gate in the middle of
+ * the screen. The frame in the gate is lit; the others wait in the dark.
+ */
 import Base from '../layouts/Base.astro';
-import RoomHead from '../components/RoomHead.astro';
-import Hang from '../components/Hang.astro';
-import EmptyRoom from '../components/EmptyRoom.astro';
 import T from '../components/T.astro';
-import { getRooms } from '../lib/works';
+import { getRooms, caption, nameOf, pad3 } from '../lib/works';
 import { withBase } from '../lib/media';
-import { CATEGORY } from '../lib/i18n';
+import { pic } from '../lib/pic';
+import { UI } from '../lib/i18n';
+import { capHTML } from '../scripts/caption';
 
 export async function getStaticPaths() {
   const rooms = (await getRooms()).filter((r) => r.key !== 'music');
-  return rooms.map((r) => ({ params: { room: CATEGORY[r.key].path.replaceAll('/', '') }, props: { key: r.key } }));
+  return rooms.map((r) => ({ params: { room: r.path.replaceAll('/', '') }, props: { key: r.key } }));
 }
 const { key } = Astro.props;
 const rooms = await getRooms();
 const i = rooms.findIndex((r) => r.key === key);
 const room = rooms[i];
 const next = rooms[(i + 1) % rooms.length];
+const frames = await Promise.all(
+  room.works.map(async (w) => ({ w, p: w.image ? await pic(w.image) : undefined, c: caption(w) })),
+);
 ---
-<Base title={`${room.ko} ${room.en}`} current="works" description={`goll — ${room.en} · ${room.ko}`} image={room.works[0] ? `/og/${room.works[0].slug}.jpg` : undefined}>
-  <RoomHead no={room.no} ko={room.ko} en={room.en} count={room.works.length} unit={room.unit} modes />
-  {room.works.length ? <Hang works={room.works} room /> : <EmptyRoom />}
-  <nav class="nx frame" aria-label="Next room">
-    <a href={withBase(next.path)} class="nx__a">
-      <span class="label muted"><T ko="다음 전시실" en="Next room" /></span>
-      <span class="nx__t serif"><T ko={next.ko} en={next.en} /> <span aria-hidden="true">→</span></span>
+<Base title={`${room.ko} ${room.en}`} current={key} page="reel" description={`goll — ${room.en}, ${room.works.length}`} image={room.works[0] ? `/og/${room.works[0].slug}.jpg` : undefined}>
+  <section class="reel" data-reel aria-labelledby="reel-h">
+    <h1 id="reel-h" class="reel__title title"><T ko={room.ko} en={room.en} /></h1>
+    <ol class="reel__strip">
+      {frames.map(({ w, p, c }, n) => (
+        <li class="reel__frame" data-frame={n} data-cap={JSON.stringify(c)} data-href={withBase(w.href)} data-video={w.data.video ? '1' : undefined}>
+          <span class="reel__edge reel__edge--l" aria-hidden="true" data-n={pad3(w.no)}></span>
+          <a class="reel__pic" href={withBase(w.href)} data-reel-open={n} aria-label={nameOf(w) !== nameOf(w, 'en') ? `${nameOf(w)} (${nameOf(w, 'en')})` : nameOf(w)}>
+            {p ? (
+              <picture>
+                <source type="image/avif" srcset={p.avif} sizes="(max-width: 760px) 86vw, 34vw" />
+                <source type="image/webp" srcset={p.webp} sizes="(max-width: 760px) 86vw, 34vw" />
+                <img src={p.fallback} alt="" width={p.w} height={p.h} loading={n < 2 ? 'eager' : 'lazy'} decoding="async" fetchpriority={n === 0 ? 'high' : undefined} style={`background:${p.color} ${p.lqip} center/cover no-repeat`} />
+              </picture>
+            ) : (
+              <span class="reel__blank small ash"><T ko="이미지 없음" en="No image" /></span>
+            )}
+          </a>
+          <span class="reel__edge reel__edge--r" aria-hidden="true"></span>
+        </li>
+      ))}
+    </ol>
+    <div class="reel__cap" data-reel-cap set:html={frames[0] ? capHTML(frames[0].c) : ''} />
+    <a class="reel__tail" href={withBase(next.path)}>
+      <span class="ui ash"><T t={UI.nextReel} /></span>
+      <span class="reel__next title"><T ko={next.ko} en={next.en} /></span>
     </a>
-  </nav>
+  </section>
 </Base>
+
 <style>
-  .nx { margin-top: var(--room-gap); }
-  .nx__a { display: grid; gap: 10px; padding-top: 18px; border-top: 1px solid var(--line); }
-  .nx__t { font-size: var(--t-h2); font-weight: 300; line-height: 1.15; transition: transform var(--d-mid) var(--ease-out); justify-self: start; }
-  .nx__a:hover .nx__t { transform: translateX(10px); }
+  .reel {
+    --fw: min(440px, 34vw); /* frame width */
+    --edge: 34px;
+    --holes-w: 20px;
+    --holes: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='22'%3E%3Crect x='6' y='6' width='8' height='10' rx='1.6'/%3E%3C/svg%3E");
+    position: relative;
+    padding: calc(var(--header-h) + clamp(24px, 8vh, 96px)) var(--margin) 0;
+    display: grid;
+    grid-template-columns: 1fr calc(var(--fw) + var(--edge) * 2) 1fr;
+    column-gap: clamp(24px, 4vw, 72px);
+  }
+  .reel__title { grid-column: 1; grid-row: 1; align-self: start; position: sticky; top: calc(var(--header-h) + 16px); color: var(--screen); }
+  .reel__strip { grid-column: 2; grid-row: 1 / span 2; background: var(--base); padding: 30vh 0 0; }
+  .reel__frame { position: relative; display: grid; grid-template-columns: var(--edge) 1fr var(--edge); border-bottom: 5px solid var(--base); }
+  .reel__pic { display: grid; place-items: center; aspect-ratio: 4 / 5; background: #000; overflow: hidden; transition: filter 240ms; }
+  .reel__pic picture { display: contents; }
+  .reel__pic img { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; }
+  .reel__blank { padding: 1em; }
+  .reel__edge { position: relative; }
+  .reel__edge::before {
+    content: ''; position: absolute; top: 0; bottom: 0; width: var(--holes-w);
+    background: var(--hole, #1c1915);
+    -webkit-mask: var(--holes) repeat-y center top / var(--holes-w) 22px;
+    mask: var(--holes) repeat-y center top / var(--holes-w) 22px;
+  }
+  .reel__edge--l::before { left: 0; }
+  .reel__edge--r::before { right: 0; }
+  /* edge print: the frame number on the film's edge (decoration; the caption carries it in text) */
+  .reel__edge--l::after { content: attr(data-n); position: absolute; right: 0; top: 10%; font-size: 0.75rem; line-height: 1; color: var(--dust); writing-mode: vertical-rl; transform: rotate(180deg); font-variant-numeric: tabular-nums lining-nums; }
+  /* the gate: the frame in the middle of the screen is lit, light shows through its holes */
+  :global(html.js:not(.still)) .reel__pic { filter: brightness(0.26) saturate(0.7); }
+  :global(html.js:not(.still)) .reel__frame:global(.is-gate) .reel__pic { filter: none; }
+  .reel__frame:global(.is-gate) { --hole: #6e5b40; }
+  .reel__frame:global(.is-gate) .reel__edge--l::after { color: var(--ash); }
+
+  .reel__cap { grid-column: 3; grid-row: 1; align-self: start; position: sticky; top: calc(50vh - 2em); display: flex; flex-direction: column; min-height: 6em; }
+  .reel__cap :global(.c-frame) { color: var(--ash); }
+  .reel__cap :global(.c-title) { font-size: var(--t-head); font-weight: 200; line-height: 1.2; }
+  .reel__cap :global(.c-year), .reel__cap :global(.c-sm) { color: var(--ash); }
+
+  .reel__tail { grid-column: 2; display: grid; gap: 6px; padding: 30vh 0 calc(20vh + 52px); background: var(--base); padding-inline: calc(var(--edge) + 16px); }
+  .reel__next { font-size: clamp(2rem, 1.4rem + 2.6vw, 3.5rem); color: var(--ash); transition: color 160ms; }
+  .reel__tail:hover .reel__next { color: var(--beam); }
+
+  @media (max-width: 760px) {
+    .reel { --fw: calc(100vw - 2 * var(--margin) - 2 * var(--edge)); --edge: 28px; --holes-w: 13px; grid-template-columns: 1fr; padding-top: calc(var(--header-h) + 12px); }
+    .reel__title { position: static; grid-column: 1; margin-bottom: 20px; font-size: clamp(2.5rem, 12vw, 3.5rem); }
+    .reel__strip { grid-column: 1; grid-row: auto; padding-top: 18vh; }
+    .reel__cap {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; top: auto;
+      height: calc(7.2em + 54px + env(safe-area-inset-bottom)); min-height: 0; align-content: flex-end;
+      padding: 40px var(--margin) calc(14px + env(safe-area-inset-bottom));
+      background: linear-gradient(to top, rgb(0 0 0 / 0.92) 55%, rgb(0 0 0 / 0));
+      flex-direction: row; flex-wrap: wrap; column-gap: 1em; align-items: baseline;
+    }
+    .reel__cap :global(.c-title) { font-size: 1.125rem; font-weight: 400; }
+    .reel__tail { grid-column: 1; }
+  }
 </style>

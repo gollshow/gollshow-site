@@ -1,110 +1,99 @@
 ---
+/**
+ * goll · the reels · 소개 — English/한국어 — 소리 켜기.
+ * The current page is lit in tungsten; everything else is ash.
+ */
 import T from './T.astro';
-import { UI, CATEGORY } from '../lib/i18n';
-import { getRooms, getSettings } from '../lib/works';
+import { UI } from '../lib/i18n';
+import { getRooms } from '../lib/works';
 import { withBase } from '../lib/media';
 
-interface Props { current?: string; bare?: boolean }
+interface Props { current?: string }
 const { current } = Astro.props;
-const s = await getSettings();
-const rooms = (await getRooms()).filter((r) => r.key !== 'music');
-const nav = [
-  { key: 'works', href: '/works/', t: UI.works },
-  { key: 'music', href: '/music/', t: UI.music },
-  { key: 'about', href: '/about/', t: UI.about },
-];
+const rooms = await getRooms();
+const nav = [...rooms.map((r) => ({ key: r.key, href: r.path, ko: r.ko, en: r.en })), { key: 'about', href: '/about/', ...UI.about }];
 ---
 <header class="hd" data-header>
-  <div class="hd__in frame">
-    <a class="hd__mark" href={withBase('/')} aria-label="goll show — home">
-      <span class="hd__goll">goll</span><span class="hd__show">show</span>
-    </a>
-    <nav class="hd__nav" aria-label="Main">
-      <ul>
-        {nav.map((n) => (
-          <li><a class="label link" href={withBase(n.href)} aria-current={current === n.key ? 'page' : undefined}><T t={n.t} /></a></li>
-        ))}
-      </ul>
-    </nav>
-    <div class="hd__tools">
-      <button class="hd__lang label" type="button" data-lang-toggle aria-label="한국어 / English">
-        <span data-l="ko">KO</span><span class="hd__sep" aria-hidden="true">/</span><span data-l="en">EN</span>
-      </button>
-      <button class="hd__theme" type="button" data-theme-toggle aria-label="Theme">
-        <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="6.5" fill="none" stroke="currentColor" stroke-width="1.1" /><path d="M10 3.5a6.5 6.5 0 0 1 0 13z" fill="currentColor" /></svg>
-      </button>
-      <button class="hd__menu label" type="button" data-menu-open aria-expanded="false" aria-controls="menu"><T t={UI.menu} /></button>
-    </div>
+  <a class="hd__mark" href={withBase('/')} aria-label="goll — 벽 / the wall">goll</a>
+  <nav class="hd__nav" aria-label="Reels">
+    <ul>
+      {nav.map((n) => (
+        <li><a class="ui" href={withBase(n.href)} aria-current={current === n.key ? 'page' : undefined}><T ko={n.ko} en={n.en} /></a></li>
+      ))}
+    </ul>
+  </nav>
+  <div class="hd__tools">
+    <button class="ui hd__btn" type="button" data-lang-toggle>
+      <span class="t" lang="ko" aria-label="Switch to English">English</span><span class="t" lang="en" aria-label="한국어로 보기">한국어</span>
+    </button>
+    <button class="ui hd__btn hd__sound" type="button" data-sound-toggle aria-pressed="false">
+      <i class="hd__lamp" aria-hidden="true"></i>
+      <span class="hd__off"><T t={UI.soundOn} /></span><span class="hd__on"><T t={UI.soundOff} /></span>
+    </button>
+    <button class="ui hd__btn hd__menu" type="button" data-menu-open aria-expanded="false" aria-controls="menu"><T t={UI.menu} /></button>
   </div>
 </header>
 
 <div class="menu" id="menu" data-menu hidden>
-  <div class="menu__in frame">
-    <div class="menu__top">
-      <a class="hd__mark" href={withBase('/')}><span class="hd__goll">goll</span><span class="hd__show">show</span></a>
-      <button class="label" type="button" data-menu-close><T t={UI.close} /></button>
-    </div>
-    <nav aria-label="Menu">
-      <ol class="menu__list">
-        <li><a href={withBase('/works/')}><T t={UI.works} /></a></li>
-        {rooms.map((r, i) => (
-          <li class="menu__sub"><a href={withBase(r.path)}><T ko={r.ko} en={r.en} /><span class="menu__no label tnum">{String(i + 1).padStart(2, '0')}</span></a></li>
-        ))}
-        <li><a href={withBase('/music/')}><T t={UI.music} /><span class="menu__no label tnum">{String(rooms.length + 1).padStart(2, '0')}</span></a></li>
-        <li><a href={withBase('/about/')}><T t={UI.about} /></a></li>
-      </ol>
-    </nav>
-    <div class="menu__foot cap">
-      {s.email && <a class="link link--always" href={`mailto:${s.email}`}>{s.email}</a>}
-      {s.instagram && <a class="link link--always" href={s.instagram} rel="me noopener" target="_blank">Instagram</a>}
-    </div>
+  <div class="menu__top">
+    <a class="hd__mark" href={withBase('/')}>goll</a>
+    <button class="ui hd__btn" type="button" data-menu-close><T t={UI.close} /></button>
   </div>
+  <nav aria-label="Menu">
+    <ul class="menu__list">
+      <li><a href={withBase('/')} aria-current={current === 'wall' ? 'page' : undefined}><T t={UI.wall} /></a></li>
+      {nav.map((n) => (
+        <li><a href={withBase(n.href)} aria-current={current === n.key ? 'page' : undefined}><T ko={n.ko} en={n.en} /></a></li>
+      ))}
+    </ul>
+  </nav>
 </div>
 
 <style>
   .hd {
     position: fixed; inset: 0 0 auto 0; z-index: 40;
     height: var(--header-h);
-    transition: transform var(--d-mid) var(--ease-out), background-color var(--d-mid), box-shadow var(--d-mid);
+    display: flex; align-items: center; gap: clamp(16px, 2.4vw, 40px);
+    padding: 0 var(--margin);
+    padding-top: env(safe-area-inset-top);
+    pointer-events: none;
   }
-  .hd.is-scrolled { background: var(--veil); backdrop-filter: saturate(1.1) blur(14px); -webkit-backdrop-filter: saturate(1.1) blur(14px); box-shadow: 0 1px 0 var(--line); }
-  .hd.is-hidden { transform: translateY(-100%); }
-  .hd__in { height: 100%; display: flex; align-items: center; gap: 24px; }
-  .hd__mark { display: inline-flex; align-items: baseline; gap: 0.32em; font-family: var(--serif); line-height: 1; margin-right: auto; padding: 10px 0; }
-  .hd__goll { font-size: 1.375rem; font-weight: 400; letter-spacing: -0.01em; }
-  .hd__show { font-family: var(--sans); font-size: var(--t-label); font-weight: 500; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-2); }
-  .hd__nav ul { display: flex; gap: clamp(20px, 2.6vw, 40px); }
-  .hd__nav a { display: inline-block; padding: 12px 0 2px; }
-  .hd__tools { display: flex; align-items: center; gap: 14px; }
-  .hd__lang { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 4px; color: var(--ink-3); }
-  .hd__lang [data-l] { transition: color var(--d-fast); }
-  :global(html[data-lang='ko']) .hd__lang [data-l='ko'], :global(html[data-lang='en']) .hd__lang [data-l='en'] { color: var(--ink); }
-  .hd__sep { opacity: 0.5; }
-  .hd__theme { width: 44px; height: 44px; display: grid; place-items: center; margin-right: -12px; color: var(--ink); }
-  .hd__theme svg { width: 18px; height: 18px; transition: transform var(--d-mid) var(--ease-out); }
-  .hd__theme:hover svg { transform: rotate(180deg); }
-  .hd__menu { display: none; min-height: 44px; padding: 0 2px; }
+  .hd > * { pointer-events: auto; }
+  .hd::before { content: ''; position: absolute; inset: 0 0 -24px 0; z-index: -1; background: linear-gradient(#000 calc(100% - 24px), rgb(0 0 0 / 0)); pointer-events: none; }
+  :global(.p-wall) .hd::before { display: none; }
+  .hd__mark { font-size: 1.5rem; font-weight: 400; letter-spacing: -0.01em; line-height: 1; padding: 10px 0; margin-right: auto; color: var(--screen); }
+  .hd__nav ul { display: flex; gap: clamp(14px, 1.9vw, 30px); }
+  .hd__nav a { display: inline-block; padding: 10px 0; color: var(--ash); transition: color 160ms; }
+  .hd__nav a:hover, .hd__nav a[aria-current='page'] { color: var(--beam); }
+  .hd__tools { display: flex; align-items: center; gap: clamp(8px, 1.4vw, 22px); }
+  .hd__btn { min-height: 44px; padding: 0 2px; color: var(--ash); transition: color 160ms; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+  .hd__btn:hover { color: var(--screen); }
+  .hd__lamp { width: 7px; height: 7px; border-radius: 50%; border: 1px solid currentColor; transition: background 160ms, box-shadow 160ms; }
+  .hd__sound[aria-pressed='true'] { color: var(--beam); }
+  .hd__sound[aria-pressed='true'] .hd__lamp { background: var(--beam); box-shadow: 0 0 8px 1px rgb(246 231 200 / 0.6); }
+  .hd__on { display: none; }
+  .hd__sound[aria-pressed='true'] .hd__on { display: inline; }
+  .hd__sound[aria-pressed='true'] .hd__off { display: none; }
+  .hd__menu { display: none; }
 
-  @media (max-width: 760px) {
+  @media (max-width: 1023px) {
     .hd__nav { display: none; }
-    .hd__menu { display: inline-flex; align-items: center; }
-    .hd__theme { margin-right: 0; }
-    .hd__tools { gap: 6px; }
+    .hd__menu { display: inline-flex; }
+  }
+  @media (max-width: 420px) {
+    .hd__tools { gap: 12px; }
+    .hd__lang-long { display: none; }
   }
 
   .menu {
     position: fixed; inset: 0; z-index: 60;
-    background: var(--paper);
+    background: var(--black);
     overflow-y: auto;
-    animation: menu-in var(--d-mid) var(--ease-out);
+    padding: 0 var(--margin) calc(32px + env(safe-area-inset-bottom));
+    display: flex; flex-direction: column;
   }
-  @keyframes menu-in { from { opacity: 0; } }
-  .menu__in { min-height: 100%; display: flex; flex-direction: column; }
-  .menu__top { height: var(--header-h); display: flex; align-items: center; justify-content: space-between; }
-  .menu__top button { min-height: 44px; }
-  .menu__list { margin-top: clamp(24px, 6vh, 64px); }
-  .menu__list a { display: flex; align-items: baseline; justify-content: space-between; gap: 18px; padding: 10px 0; font-family: var(--serif); font-weight: 300; font-size: clamp(1.75rem, 8vw, 2.75rem); line-height: 1.2; border-bottom: 1px solid var(--line); }
-  .menu__sub a { font-size: clamp(1.25rem, 5.6vw, 1.875rem); padding-left: 1.2em; color: var(--ink-2); }
-  .menu__no { flex: none; color: var(--ink-3); }
-  .menu__foot { margin-top: auto; padding: 40px 0 calc(32px + env(safe-area-inset-bottom)); display: flex; gap: 24px; flex-wrap: wrap; }
+  .menu__top { height: var(--header-h); display: flex; align-items: center; justify-content: space-between; padding-top: env(safe-area-inset-top); }
+  .menu__list { margin-top: clamp(24px, 7vh, 72px); display: grid; gap: 2px; }
+  .menu__list a { display: block; padding: 6px 0; font-size: clamp(2rem, 9.5vw, 3.25rem); font-weight: 200; line-height: 1.15; letter-spacing: -0.02em; color: var(--ash); }
+  .menu__list a:hover, .menu__list a[aria-current='page'] { color: var(--beam); }
 </style>

@@ -57,7 +57,7 @@ export function placeholder(m: Media): Promise<Placeholder> {
           const hex = '#' + [dominant.r, dominant.g, dominant.b].map((v) => v.toString(16).padStart(2, '0')).join('');
           return { lqip: `url("data:image/svg+xml;charset=utf-8,${svg.replace(/"/g, "'").replace(/</g, '%3C').replace(/>/g, '%3E')}")`, color: hex };
         } catch {
-          return { lqip: 'none', color: 'var(--paper-2)' };
+          return { lqip: 'none', color: '#111' };
         }
       })(),
     );
@@ -66,7 +66,7 @@ export function placeholder(m: Media): Promise<Placeholder> {
 }
 
 /** Widths we generate; never upscale. */
-export function widthsFor(meta: ImageMetadata, wanted = [480, 800, 1200, 1800, 2560]) {
+export function widthsFor(meta: ImageMetadata, wanted = [320, 640, 1024, 1600, 2560]) {
   const w = wanted.filter((x) => x < meta.width);
   if (!w.length || w[w.length - 1] < meta.width) w.push(Math.min(meta.width, wanted[wanted.length - 1]));
   return [...new Set(w)];

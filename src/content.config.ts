@@ -10,12 +10,20 @@ const text = () =>
 
 const bool = (d = false) => z.boolean().nullish().transform((v) => v ?? d);
 
+const links = () =>
+  z
+    .array(z.object({ label: text(), url: text() }))
+    .nullish()
+    .transform((v) => (v ?? []).filter((l): l is { label?: string; url: string } => !!l.url));
+
 export const CATEGORIES = ['painting', 'conte-pastel', 'digital', 'music', 'film', 'etc'] as const;
 
 const works = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/works' }),
   schema: z.object({
-    title: z.coerce.string(),
+    // Optional: the old site had no titles for its grid works. Untitled works
+    // are shown by their reel and frame number, never with an invented title.
+    title: text(),
     title_en: text(),
     year: text(),
     category: z.enum(CATEGORIES).catch('etc'),
@@ -23,12 +31,7 @@ const works = defineCollection({
     medium_en: text(),
     size: text(),
     images: z
-      .array(
-        z.union([
-          z.string(),
-          z.object({ image: text(), caption: text(), caption_en: text() }),
-        ]),
-      )
+      .array(z.union([z.string(), z.object({ image: text(), caption: text(), caption_en: text() })]))
       .nullish()
       .transform((list) =>
         (list ?? [])
@@ -40,6 +43,7 @@ const works = defineCollection({
     description_en: text(),
     audio: text(),
     link: text(),
+    video: text(), // embed player URL (Adobe, YouTube, Vimeo) shown on the work page
     featured: bool(false),
     order: z.coerce.number().nullish().transform((v) => (Number.isFinite(v) ? (v as number) : 1000)),
     draft: bool(false),
@@ -51,13 +55,20 @@ const pages = defineCollection({
   schema: z.object({
     title: text(),
     title_en: text(),
+    // about
     bio: text(),
     bio_en: text(),
     portrait: text(),
+    video: text(),
+    video_caption: text(),
+    video_caption_en: text(),
     cv: z
       .array(z.object({ year: text(), text: text(), text_en: text() }))
       .nullish()
       .transform((v) => v ?? []),
+    // music
+    name: text(),
+    links: links(),
   }),
 });
 
@@ -77,10 +88,7 @@ const settings = defineCollection({
     description_en: text(),
     email: text(),
     instagram: text(),
-    links: z
-      .array(z.object({ label: text(), url: text() }))
-      .nullish()
-      .transform((v) => (v ?? []).filter((l) => l.url)),
+    links: links(),
   }),
 });
 

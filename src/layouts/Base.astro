@@ -2,7 +2,6 @@
 import { ClientRouter } from 'astro:transitions';
 import '../styles/global.css';
 import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
 import Player from '../components/Player.astro';
 import Viewer from '../components/Viewer.astro';
 import { getSettings } from '../lib/works';
@@ -11,29 +10,24 @@ import { withBase } from '../lib/media';
 interface Props {
   title?: string; // page title (already bilingual-joined)
   description?: string;
-  image?: string; // absolute or base-relative OG image path
+  image?: string; // base-relative OG image path
   imageAlt?: string;
   jsonld?: object | object[];
   kind?: 'website' | 'article' | 'profile';
-  bare?: boolean; // landing: header floats over the opening
   current?: string; // nav key
+  page?: string; // body class: wall | reel | work | music | credits | lost
 }
 const s = await getSettings();
 const siteTitle = s.site_title ?? 'goll show';
-const { title, description = [s.description, s.description_en].filter(Boolean).join(' — '), image = '/og/site.jpg', imageAlt = siteTitle, jsonld, kind = 'website', bare = false, current } = Astro.props;
+const { title, description = [s.description, s.description_en].filter(Boolean).join(' — '), image = '/og/site.jpg', imageAlt = siteTitle, jsonld, kind = 'website', current, page } = Astro.props;
 const fullTitle = title ? `${title} — ${siteTitle}` : `${siteTitle} — ${[s.name_en, s.roles_en].filter(Boolean).join(', ')}`;
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
 const ogImage = new URL(withBase(image)!, Astro.site).href;
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-const fonts = [
-  { family: 'Goll Serif', weight: 300, file: 'serif-300' },
-  { family: 'Goll Serif', weight: 400, file: 'serif-400' },
-  { family: 'Goll Sans', weight: 400, file: 'sans-400' },
-  { family: 'Goll Sans', weight: 500, file: 'sans-500' },
-];
-const fontCss = fonts
-  .map((f) => `@font-face{font-family:'${f.family}';font-style:normal;font-weight:${f.weight};font-display:swap;src:url('${base}/fonts/${f.file}.woff2') format('woff2')}`)
-  .join('');
+const fontCss =
+  `@font-face{font-family:'Goll';font-style:normal;font-weight:200;font-display:swap;src:url('${base}/fonts/goll-200.woff2') format('woff2')}` +
+  `@font-face{font-family:'Goll';font-style:normal;font-weight:400;font-display:swap;src:url('${base}/fonts/goll-400.woff2') format('woff2')}` +
+  `@font-face{font-family:'Goll Fallback';font-style:normal;font-weight:100 900;font-display:swap;src:url('${base}/fonts/fallback.woff2') format('woff2')}`;
 const ld = jsonld ? (Array.isArray(jsonld) ? jsonld : [jsonld]) : [];
 ---
 <!doctype html>
@@ -44,8 +38,7 @@ const ld = jsonld ? (Array.isArray(jsonld) ? jsonld : [jsonld]) : [];
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
-    <meta name="theme-color" content="#f4f2ed" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#0f0f0e" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#000000" />
     <link rel="icon" href={withBase('/favicon.svg')} type="image/svg+xml" />
     <link rel="icon" href={withBase('/favicon-32.png')} sizes="32x32" type="image/png" />
     <link rel="apple-touch-icon" href={withBase('/apple-touch-icon.png')} />
@@ -62,8 +55,7 @@ const ld = jsonld ? (Array.isArray(jsonld) ? jsonld : [jsonld]) : [];
     <meta property="og:locale" content="ko_KR" />
     <meta property="og:locale:alternate" content="en_US" />
     <meta name="twitter:card" content="summary_large_image" />
-    <link rel="preload" href={`${base}/fonts/serif-300.woff2`} as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href={`${base}/fonts/sans-400.woff2`} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={`${base}/fonts/goll-200.woff2`} as="font" type="font/woff2" crossorigin />
     <style is:inline set:html={fontCss}></style>
     <script is:inline>
       (() => {
@@ -73,10 +65,8 @@ const ld = jsonld ? (Array.isArray(jsonld) ? jsonld : [jsonld]) : [];
           const lang = get('goll:lang') || ((navigator.language || 'ko').toLowerCase().startsWith('ko') ? 'ko' : 'en');
           d.dataset.lang = lang;
           d.lang = lang;
-          const theme = get('goll:theme');
-          if (theme === 'light' || theme === 'dark') d.dataset.theme = theme;
-          else delete d.dataset.theme;
           d.classList.add('js');
+          if (matchMedia('(prefers-reduced-motion: reduce)').matches) d.classList.add('still');
         };
         apply();
         if (!window.__gollPrefs) {
@@ -87,14 +77,14 @@ const ld = jsonld ? (Array.isArray(jsonld) ? jsonld : [jsonld]) : [];
     </script>
     {ld.map((j) => <script type="application/ld+json" set:html={JSON.stringify(j)} />)}
     <ClientRouter fallback="swap" />
+    <slot name="head" />
   </head>
-  <body class:list={[bare && 'is-bare']}>
+  <body class={page ? `p-${page}` : undefined}>
     <a class="skip" href="#main"><span class="t" lang="ko">본문으로 건너뛰기</span><span class="t" lang="en">Skip to content</span></a>
-    <Header current={current} bare={bare} />
+    <Header current={current} />
     <main id="main">
       <slot />
     </main>
-    <Footer />
     <Viewer />
     <Player />
     <script>

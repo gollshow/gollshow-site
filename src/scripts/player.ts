@@ -1,18 +1,40 @@
 /**
- * The horizon player. One <audio> inside a transition:persist element, so it
- * keeps playing across client-side navigation. Any element with
+ * The mini-player. One <audio> inside a transition:persist element, so it keeps
+ * playing across client-side navigation. Any element with
  * data-play='{"src","title","title_en","href"}' starts a track.
  */
-type Track = { src: string; title: string; title_en?: string; href?: string; art?: string };
+import { attachMedia, waveform } from './sound';
+
+type Track = { src: string; title: string; title_en?: string; href?: string };
 
 let root: HTMLElement | null = null;
 let audio: HTMLAudioElement | null = null;
 let current: Track | null = null;
+let raf = 0;
 
 const q = <T extends Element>(s: string) => root?.querySelector<T>(s) ?? null;
 const fmt = (s: number) => (isFinite(s) ? `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}` : '0:00');
-const lang = () => document.documentElement.dataset.lang;
-const titleOf = (t: Track) => (lang() === 'en' && t.title_en ? t.title_en : t.title);
+const titleOf = (t: Track) => (document.documentElement.dataset.lang === 'en' && t.title_en ? t.title_en : t.title);
+
+/** a thin strip of variable-area soundtrack along the player's top edge */
+function drawStrip() {
+  raf = 0;
+  const c = q<HTMLCanvasElement>('[data-player-track]');
+  if (!c || !audio || audio.paused) return;
+  const w = (c.width = c.clientWidth);
+  const h = (c.height = c.clientHeight);
+  const g = c.getContext('2d')!;
+  g.clearRect(0, 0, w, h);
+  const data = waveform();
+  g.fillStyle = '#f6e7c8';
+  const mid = h / 2;
+  for (let x = 0; x < w; x += 2) {
+    const v = data ? Math.abs(data[Math.floor((x / w) * data.length)]) : 0;
+    const a = Math.max(0.5, Math.min(mid, v * mid * 3));
+    g.fillRect(x, mid - a, 2, a * 2);
+  }
+  raf = requestAnimationFrame(drawStrip);
+}
 
 function bind() {
   const el = document.querySelector<HTMLElement>('[data-player]');
@@ -20,25 +42,20 @@ function bind() {
   root = el;
   audio = q<HTMLAudioElement>('[data-player-audio]');
   if (!audio) return;
-  const bar = q<HTMLElement>('[data-player-bar]');
   const time = q<HTMLElement>('[data-player-time]');
   audio.addEventListener('timeupdate', () => {
     const d = audio!.duration;
-    bar?.style.setProperty('--p', d ? String(audio!.currentTime / d) : '0');
     if (time) time.textContent = d ? `${fmt(audio!.currentTime)} / ${fmt(d)}` : fmt(audio!.currentTime);
   });
   const sync = () => {
     const playing = !!audio && !audio.paused;
     root!.classList.toggle('is-playing', playing);
-    q('[data-player-toggle]')?.setAttribute('aria-label', playing ? 'Pause' : 'Play');
     markButtons();
+    if (playing && !raf) raf = requestAnimationFrame(drawStrip);
   };
   audio.addEventListener('play', sync);
   audio.addEventListener('pause', sync);
-  audio.addEventListener('ended', () => {
-    sync();
-    bar?.style.setProperty('--p', '0');
-  });
+  audio.addEventListener('ended', sync);
   q('[data-player-toggle]')?.addEventListener('click', () => (audio!.paused ? audio!.play() : audio!.pause()));
   q('[data-player-close]')?.addEventListener('click', () => {
     audio!.pause();
@@ -46,6 +63,7 @@ function bind() {
     audio!.load();
     current = null;
     root!.hidden = true;
+    document.documentElement.classList.remove('has-player');
     markButtons();
   });
 }
@@ -73,6 +91,7 @@ function renderTitle() {
 export function play(t: Track) {
   bind();
   if (!audio || !root) return;
+  attachMedia(audio);
   if (current?.src === t.src) {
     audio.paused ? audio.play() : audio.pause();
     return;
@@ -80,15 +99,10 @@ export function play(t: Track) {
   current = t;
   audio.src = t.src;
   root.hidden = false;
+  document.documentElement.classList.add('has-player');
   renderTitle();
   audio.play().catch(() => {});
-  if ('mediaSession' in navigator) {
-    navigator.mediaSession.metadata = new MediaMetadata({
-      title: titleOf(t),
-      artist: 'goll',
-      artwork: t.art ? [{ src: t.art, sizes: '512x512' }] : [],
-    });
-  }
+  if ('mediaSession' in navigator) navigator.mediaSession.metadata = new MediaMetadata({ title: titleOf(t), artist: 'gogolala' });
 }
 
 export function initPlayer() {

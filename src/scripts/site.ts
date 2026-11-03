@@ -1,28 +1,27 @@
 import { initPrefs } from './prefs';
 import { initChrome } from './chrome';
 import { initPlayer } from './player';
-import { initViewer } from './viewer';
-import { initKong } from './kong';
+import { initSound } from './sound';
+import { initGrain } from './grain';
+import { initWall } from './wall';
+import { initOpening } from './opening';
+import { initReel } from './reel';
+import { initSoundtrack } from './soundtrack';
+import { initCredits } from './credits';
 
 // Once per full load (these survive client-side navigation):
 initPrefs();
+initSound();
 initPlayer();
 
 // Every page (initial load and after each client-side navigation):
+let cleanup: ((() => void) | undefined)[] = [];
+const idle = (f: () => void) => ('requestIdleCallback' in window ? requestIdleCallback(f, { timeout: 800 }) : setTimeout(f, 200));
 document.addEventListener('astro:page-load', () => {
-  initChrome();
-  initViewer();
-  initKong();
+  idle(initGrain);
+  cleanup.push(initChrome(), initOpening(), initWall(), initReel(), initSoundtrack(), initCredits());
 });
-
-// Click-to-load embeds (delegated once)
-document.addEventListener('click', (e) => {
-  const box = (e.target as Element).closest<HTMLElement>('[data-embed]');
-  if (!box || box.querySelector('iframe')) return;
-  const f = document.createElement('iframe');
-  f.src = box.dataset.embed!;
-  f.title = box.dataset.embedTitle || 'Player';
-  f.allow = 'autoplay; encrypted-media; fullscreen; picture-in-picture';
-  f.allowFullscreen = true;
-  box.replaceChildren(f);
+document.addEventListener('astro:before-swap', () => {
+  cleanup.forEach((f) => f?.());
+  cleanup = [];
 });

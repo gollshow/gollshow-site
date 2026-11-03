@@ -1,16 +1,2 @@
-desktop/light player after nav: {"paused":true,"t":20,"src":"http://localhost:4321/gollshow-site/media/audio/_demo-tone.wav"}
-desktop/light console: Failed to load resource: the server responded with a status of 404 (Not Found)
-desktop/light console: Failed to load resource: net::ERR_TUNNEL_CONNECTION_FAILED
-desktop/light console: Failed to load resource: net::ERR_TUNNEL_CONNECTION_FAILED
-desktop/light console: Failed to load resource: net::ERR_TUNNEL_CONNECTION_FAILED
-desktop/light console: Failed to load resource: net::ERR_TUNNEL_CONNECTION_FAILED
-desktop/light console: Failed to load resource: net::ERR_TUNNEL_CONNECTION_FAILED
-desktop/dark player after nav: {"paused":true,"t":20,"src":"http://localhost:4321/gollshow-site/media/audio/_demo-tone.wav"}
-desktop/dark console: Failed to load resource: the server responded with a status of 404 (Not Found)
-mobile/light player after nav: {"paused":true,"t":20,"src":"http://localhost:4321/gollshow-site/media/audio/_demo-tone.wav"}
-mobile/light console: Failed to load resource: the server responded with a status of 404 (Not Found)
-mobile/light console: Failed to load resource: net::ERR_TUNNEL_CONNECTION_FAILED
-mobile/light console: Failed to load resource: net::ERR_TUNNEL_CONNECTION_FAILED
-mobile/light console: Failed to load resource: net::ERR_TUNNEL_CONNECTION_FAILED
-mobile/light console: Failed to load resource: net::ERR_TUNNEL_CONNECTION_FAILED
-mobile/light console: Failed to load resource: net::ERR_TUNNEL_CONNECTION_FAILED
+[desktop] console: Failed to load resource: the server responded with a status of 404 (Not Found)
+[mobile] console: Failed to load resource: the server responded with a status of 404 (Not Found)

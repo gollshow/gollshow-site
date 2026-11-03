@@ -1,40 +1,35 @@
 export type Bi = { ko: string; en?: string };
 
-export const CATEGORY: Record<string, { ko: string; en: string; path: string; unit: Bi }> = {
-  painting: { ko: '회화', en: 'Painting', path: '/painting/', unit: { ko: '점', en: 'works' } },
-  'conte-pastel': { ko: '콩테 · 파스텔', en: 'Conté & Pastel', path: '/conte-pastel/', unit: { ko: '점', en: 'works' } },
-  digital: { ko: '디지털', en: 'Digital', path: '/digital/', unit: { ko: '점', en: 'works' } },
-  music: { ko: '음악', en: 'Music', path: '/music/', unit: { ko: '곡', en: 'pieces' } },
-  film: { ko: '영화', en: 'Film', path: '/film/', unit: { ko: '편', en: 'films' } },
-  etc: { ko: '그 밖의 작업', en: 'Other works', path: '/etc/', unit: { ko: '점', en: 'works' } },
+export const CATEGORY: Record<string, { ko: string; en: string; path: string }> = {
+  painting: { ko: '회화', en: 'Painting', path: '/painting/' },
+  'conte-pastel': { ko: '콩테·파스텔', en: 'Conté & pastel', path: '/conte-pastel/' },
+  digital: { ko: '디지털', en: 'Digital', path: '/digital/' },
+  film: { ko: '영화', en: 'Film', path: '/film/' },
+  etc: { ko: '그 밖의 작업', en: 'Other works', path: '/etc/' },
+  music: { ko: '음악', en: 'Music', path: '/music/' },
 };
 
-/** Rooms always shown (they existed on the old site), even while empty. */
-export const CORE_ROOMS = ['painting', 'conte-pastel', 'digital', 'music'];
+/** Reel order, on the wall and in the navigation. */
+export const ROOM_ORDER = ['painting', 'conte-pastel', 'digital', 'film', 'etc', 'music'];
+/** Rooms whose works hang on the wall. */
+export const VISUAL = ['painting', 'conte-pastel', 'digital', 'etc'];
 
 export const UI = {
-  works: { ko: '작품', en: 'Works' },
-  music: { ko: '음악', en: 'Music' },
   about: { ko: '소개', en: 'About' },
   menu: { ko: '메뉴', en: 'Menu' },
   close: { ko: '닫기', en: 'Close' },
-  hang: { ko: '전시', en: 'Hang' },
-  index: { ko: '목록', en: 'Index' },
-  rooms: { ko: '전시실', en: 'Rooms' },
-  room: { ko: '전시실', en: 'Room' },
-  all: { ko: '전체', en: 'All' },
-  selected: { ko: '대표작', en: 'Selected works' },
-  empty: { ko: '아직 비어 있는 방입니다.', en: 'This room is still empty.' },
-  prev: { ko: '이전 작품', en: 'Previous' },
-  next: { ko: '다음 작품', en: 'Next' },
+  prev: { ko: '이전', en: 'Previous' },
+  next: { ko: '다음', en: 'Next' },
+  soundOn: { ko: '소리 켜기', en: 'Sound on' },
+  soundOff: { ko: '소리 끄기', en: 'Sound off' },
+  skip: { ko: '건너뛰기', en: 'Skip' },
+  wall: { ko: '벽', en: 'The wall' },
+  process: { ko: '작업 과정 영상', en: 'Process video' },
+  nextReel: { ko: '다음 릴', en: 'Next reel' },
   play: { ko: '재생', en: 'Play' },
   pause: { ko: '일시정지', en: 'Pause' },
-  listen: { ko: '듣기', en: 'Listen' },
-  watch: { ko: '보기', en: 'Watch' },
-  view: { ko: '크게 보기', en: 'View' },
-  contact: { ko: '연락', en: 'Contact' },
-  scroll: { ko: '내려 보기', en: 'Scroll' },
-  enter: { ko: 'GO', en: 'GO' },
-  back: { ko: '전시실로', en: 'Back to room' },
-  cv: { ko: '약력', en: 'Curriculum vitae' },
+  stop: { ko: '멈춤', en: 'Pause' },
+  resume: { ko: '재생', en: 'Play' },
+  newWindow: { ko: '새 창', en: 'opens in a new window' },
+  toWall: { ko: '벽으로', en: 'To the wall' },
 } satisfies Record<string, Bi>;

@@ -21,3 +21,11 @@ export function embedFor(url?: string): { src: string; kind: 'youtube' | 'vimeo'
     return { src, kind: 'soundcloud', ratio: u.pathname.split('/').filter(Boolean).length > 2 || u.pathname.includes('/sets/') ? '16/5' : '16/5' };
   }
 }
+
+/** A `video` field → an iframe src: YouTube / Vimeo page links become players; embed URLs (Adobe…) are used as given. */
+export function videoSrc(url?: string) {
+  if (!url) return;
+  const e = embedFor(url);
+  if (e && e.kind !== 'soundcloud') return e.src.replace(/[?&]autoplay=1/, (m) => (m.startsWith('?') ? '?' : '')).replace('?&', '?');
+  return url;
+}

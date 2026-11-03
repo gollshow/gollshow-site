@@ -1,12 +1,12 @@
-# goll show — 空
+# goll show: 영사실 (the projection room)
 
-The portfolio of **goll** (Ki Hyoung Oh): film director, painter, composer.
+The site of **goll** (Ki Hyoung Oh): film director, painter, composer (as **gogolala**). A dark projection room: every painting hangs on one long studio wall, and the visitor's pointer is the projector's beam.
 
 - **Live:** https://gollshow.github.io/gollshow-site/
 - **Admin (upload works):** https://gollshow.github.io/gollshow-site/admin/ — how-to in Korean: **[관리자_사용법.md](./관리자_사용법.md)**
-- Design concept and rules: [DESIGN.md](./DESIGN.md) · Import status from the old site: [IMPORT_REPORT.md](./IMPORT_REPORT.md) · QA screenshots: [`_check/`](./_check/)
+- Design concept and rules: [DESIGN.md](./DESIGN.md). Import from the old site: [IMPORT_REPORT.md](./IMPORT_REPORT.md). QA rounds, screenshots and Lighthouse: [`_check/README.md`](./_check/README.md)
 
-Built with [Astro](https://astro.build) (static output), [Sveltia CMS](https://sveltiacms.app) (Git-based admin, sign-in with a GitHub token), hosted on GitHub Pages. Fonts: Noto Serif KR and Pretendard (both SIL OFL), self-hosted and subset at build time.
+Built with [Astro](https://astro.build) (static output), [Sveltia CMS](https://sveltiacms.app) (Git-based admin, sign-in with a GitHub token), hosted on GitHub Pages. The beam is a WebGL layer ([OGL](https://github.com/oframe/ogl)), loaded on the visitor's first interaction, with a CSS fallback. Fonts: Hahmlet (wght 200 and 400) and Noto Serif KR for the few glyphs Hahmlet lacks (空, ㎜), both SIL OFL, self-hosted and subset at build time.
 
 ---
 
@@ -23,11 +23,14 @@ Built with [Astro](https://astro.build) (static output), [Sveltia CMS](https://s
 
 | Where | What |
 |---|---|
-| `src/content/works/*.md` | one file per work: `title`, `title_en`, `year`, `category` (`painting` · `conte-pastel` · `digital` · `music` · `film` · `etc`), `medium`, `medium_en`, `size`, `images` (list, ordered), `cover`, `description`, `description_en`, `audio`, `link`, `featured`, `order`, `draft` |
-| `src/content/pages/about.md` | bio KO/EN, portrait, CV list |
-| `src/content/settings/site.yml` | site title, name, roles, greeting, contact, links |
-| `src/assets/media/` | all uploaded images (the build makes AVIF/WebP in 5 widths + blurred placeholders) |
-| `public/media/audio/` | uploaded music files (played by the persistent mini-player) |
+| `src/content/works/*.md` | one file per work: `title` (optional: untitled works are shown by reel and frame, e.g. 회화 017 / 066), `title_en`, `year`, `category` (`painting`, `conte-pastel`, `digital`, `music`, `film`, `etc`), `medium`, `medium_en`, `size` (parsed to millimetres for the wall's true scale), `images` (list, the first hangs on the wall), `cover` (share image), `description`, `description_en`, `audio` (mp3/m4a), `link`, `video` (embed or YouTube/Vimeo URL), `order`, `draft` |
+| `src/content/pages/about.md` | the end credits: `bio` (text, line breaks kept), `portrait`, `video`, `video_caption`, CV list |
+| `src/content/pages/music.md` | the music room: `name` (gogolala) and platform `links` |
+| `src/content/settings/site.yml` | site title, name, roles, contact, links |
+| `src/assets/media/` | all images (the build makes AVIF/WebP in up to 5 widths, an LQIP and the sampled colours) |
+| `public/media/audio/` | uploaded tracks (played by the persistent mini-player) |
+
+Colours for the beam (each work's dominant and most saturated colour) are sampled from the images at build time (`src/lib/palette.ts`, cached in `.cache/palette.json`). Nothing to enter in /admin.
 
 ## Develop locally
 
@@ -41,7 +44,7 @@ npm run dev
 
 Then open http://localhost:4321/gollshow-site/. For a production build, run `npm run build` (output in `dist/`), then `npm run preview`.
 
-`node scripts/demo.mjs` writes git-ignored demo works for layout testing; `node scripts/demo.mjs --clean` removes them.
+QA screenshots of every page type at 1440×900 and 390×844: `node scripts/qa/shoot.mjs <prefix>` against a running preview (writes to `_check/`).
 
 ---
 
@@ -87,7 +90,7 @@ and commit to `main` (on GitHub: open the file → pencil icon → edit → **Co
 ### 4. Turn on HTTPS
 Repository **Settings → Pages**: the custom domain shows `gollshow.com` and, once DNS has propagated, "DNS check successful". Tick **Enforce HTTPS** (the certificate can take up to an hour to be issued; the box is greyed out until then).
 
-Old Adobe addresses keep working: `/work`, `/picture`, `/ttt`, `/contepastel`, `/digital`, `/music-1`, `/test`, `/home` redirect to their new rooms.
+Old Adobe addresses keep working: `/work`, `/home`, `/picture`, `/ttt`, `/contepastel`, `/music-1`, `/test`, `/yyy`, `/uuu` and `/willow-and-water-lily` redirect to the wall, the reels and the works. (`/digital` is the same address on both sites.)
 
 The admin then lives at **https://gollshow.com/admin/**. Your GitHub token keeps working.
 
@@ -97,14 +100,16 @@ The admin then lives at **https://gollshow.com/admin/**. Your GitHub token keeps
 
 ```
 site.config.mjs          domain switch (one line)
-astro.config.mjs         Astro config, redirects from old URLs, sitemap
-src/content.config.ts    content schema (tolerant of empty CMS fields)
-src/pages/               routes: / · /works/ · /<room>/ · /works/<slug>/ · /music/ · /about/ · /admin/ · /og/<slug>.jpg
-src/components/          Header, Footer, Hang (curated layout), Art (responsive image), Viewer, Player, Kong (空)
-src/scripts/             kong.ts (opening), viewer.ts, player.ts, chrome.ts, prefs.ts
-src/lib/                 media/pic (images + LQIP), hang (layout rhythm), works, seo, i18n
-scripts/fonts.mjs        font subsetting (runs after every build)
-scripts/glyph.mjs        extracts 空 from Noto Serif KR → src/generated/kong.json + favicons
-scripts/import/          importer for saved Adobe Portfolio pages (see IMPORT_REPORT.md)
-.github/workflows/       deploy.yml (Pages), import-old-site.yml (importer)
+astro.config.mjs         Astro config, redirects from old Adobe URLs, sitemap
+src/content.config.ts    content schema (tolerant of empty CMS fields; title optional)
+src/pages/               / (the wall) · /<reel>/ · /works/<slug>/ · /music/ · /about/ (credits) · /admin/ · /og/<slug>.jpg
+src/components/          Header, Wall, Opening (空 title card), Viewer (projection), Player, Embed, T, Para
+src/scripts/             wall.ts (travel, beam, framing), light.ts (OGL shader), opening.ts, viewer.ts, reel.ts,
+                         sound.ts (projector hum, analyser), soundtrack.ts (optical track), player.ts, credits.ts, grain.ts
+src/lib/                 wall.ts (the hang, in millimetres), size.ts, palette.ts, works.ts, media/pic (images + LQIP), seo, i18n
+scripts/fonts.mjs        font subsetting (runs after every build)  ·  scripts/fonts/  Hahmlet (OFL)
+scripts/plaster.mjs      the wall's plaster texture  ·  scripts/glyph.mjs  空 outline + favicons
+scripts/import/          from-data.mjs (round 2 import), from-pages.mjs (saved Adobe pages), crawl.mjs
+scripts/qa/shoot.mjs     QA screenshots
+.github/workflows/       deploy.yml (Pages + live check), import-old-site.yml (importer)
 ```

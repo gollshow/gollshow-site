@@ -1,57 +1,39 @@
 ---
 /**
- * The horizon: a persistent mini-player. It survives page navigation
- * (transition:persist), so music keeps playing while you walk through rooms.
- * Its progress is a single hairline across the bottom of the screen.
+ * The mini-player for uploaded tracks. It survives page navigation
+ * (transition:persist), so music keeps playing while you walk along the wall.
+ * Hidden until a track is played. Its edge is a strip of optical soundtrack.
  */
+import T from './T.astro';
+import { UI } from '../lib/i18n';
 ---
 <div class="pl" data-player transition:persist="player" hidden>
-  <div class="pl__horizon" aria-hidden="true"><i data-player-bar></i></div>
-  <div class="pl__bar">
-    <button class="pl__toggle" type="button" data-player-toggle aria-label="Play">
-      <svg class="pl__icon pl__icon--play" viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 2.8v10.4L13 8z" fill="currentColor" /></svg>
-      <svg class="pl__icon pl__icon--pause" viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 3h2.2v10H4.5zM9.3 3h2.2v10H9.3z" fill="currentColor" /></svg>
-    </button>
-    <a class="pl__title" data-player-title href="#"></a>
-    <span class="pl__time label tnum" data-player-time aria-live="off">0:00</span>
-    <button class="pl__close" type="button" data-player-close aria-label="Close player">
-      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.2" /></svg>
-    </button>
-  </div>
+  <canvas class="pl__track" data-player-track aria-hidden="true"></canvas>
+  <button class="pl__toggle ui" type="button" data-player-toggle>
+    <span class="pl__play"><T t={UI.play} /></span><span class="pl__pause"><T t={UI.pause} /></span>
+  </button>
+  <a class="pl__title" data-player-title href="#"></a>
+  <span class="pl__time count small" data-player-time aria-live="off">0:00</span>
+  <button class="pl__close ui" type="button" data-player-close><T t={UI.close} /></button>
   <audio data-player-audio preload="none"></audio>
 </div>
 
 <style>
-  .pl { position: fixed; left: 0; right: 0; bottom: 0; z-index: 45; pointer-events: none; }
-  .pl__horizon { position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: var(--line); }
-  .pl__horizon i { position: absolute; inset: 0; background: var(--ink); transform-origin: 0 50%; transform: scaleX(var(--p, 0)); }
-  .pl__bar {
-    pointer-events: auto;
-    position: absolute; right: var(--margin); bottom: calc(14px + env(safe-area-inset-bottom));
-    display: flex; align-items: center; gap: 4px;
-    max-width: min(440px, calc(100vw - var(--margin) * 2));
-    padding: 4px 4px 4px 4px;
-    background: var(--veil);
-    backdrop-filter: blur(16px) saturate(1.1); -webkit-backdrop-filter: blur(16px) saturate(1.1);
-    border: 1px solid var(--line);
-    border-radius: 999px;
-    animation: pl-in var(--d-slow) var(--ease-out);
+  .pl {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
+    display: flex; align-items: center; gap: 16px;
+    padding: 0 var(--margin) env(safe-area-inset-bottom);
+    height: calc(52px + env(safe-area-inset-bottom));
+    background: var(--black);
+    border-top: 1px solid #1d1a16;
   }
-  @keyframes pl-in { from { opacity: 0; transform: translateY(12px); } }
-  .pl__toggle, .pl__close { width: 40px; height: 40px; flex: none; display: grid; place-items: center; border-radius: 50%; }
-  .pl__toggle { background: var(--ink); color: var(--paper); }
-  .pl__toggle svg { width: 14px; height: 14px; }
-  .pl__icon--pause { display: none; }
-  .pl.is-playing .pl__icon--play { display: none; }
-  .pl.is-playing .pl__icon--pause { display: block; }
-  .pl__title { min-width: 0; flex: 1; padding: 0 10px 0 12px; font-family: var(--serif); font-size: 0.9375rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .pl__title::before { content: ''; display: inline-block; width: 5px; height: 5px; margin: 0 9px 2px 0; border-radius: 50%; background: var(--seal); opacity: 0; vertical-align: middle; }
-  .pl.is-playing .pl__title::before { opacity: 1; animation: pl-dot 2.4s var(--ease-in-out) infinite; }
-  @keyframes pl-dot { 50% { opacity: 0.25; } }
-  .pl__time { color: var(--ink-2); padding-right: 2px; letter-spacing: 0.08em; }
-  .pl__close { color: var(--ink-2); }
-  .pl__close svg { width: 14px; height: 14px; }
-  @media (max-width: 640px) {
-    .pl__bar { left: 12px; right: 12px; max-width: none; bottom: calc(10px + env(safe-area-inset-bottom)); }
-  }
+  .pl__track { position: absolute; left: 0; right: 0; top: -9px; width: 100%; height: 8px; }
+  .pl__toggle, .pl__close { min-height: 44px; color: var(--ash); }
+  .pl__toggle { color: var(--beam); }
+  .pl__pause { display: none; }
+  .pl.is-playing .pl__pause { display: inline; }
+  .pl.is-playing .pl__play { display: none; }
+  .pl__title { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pl__time { color: var(--ash); }
+  .pl__close:hover, .pl__title:hover { color: var(--beam); }
 </style>

@@ -17,16 +17,17 @@ const cname = () => ({
 
 // Old Adobe Portfolio addresses keep working.
 const old = {
-  '/work': '/works/',
+  '/work': '/',
+  '/works': '/',
   '/home': '/',
   '/picture': '/painting/',
   '/ttt': '/painting/',
   '/contepastel': '/conte-pastel/',
   '/music-1': '/music/',
   '/test': '/about/',
-  '/yyy': '/works/',
-  '/uuu': '/works/',
-  '/willow-and-water-lily': '/works/',
+  '/yyy': '/works/gogo/',
+  '/uuu': '/works/pear-blossom/',
+  '/willow-and-water-lily': '/works/willow-and-water-lily/',
 };
 
 export default defineConfig({

@@ -1,0 +1,174 @@
+---
+/**
+ * The wall: every visual work, hung at its place in millimetres (src/lib/wall.ts).
+ * Real links and images, so it works without WebGL and without JavaScript;
+ * the light is a separate layer multiplied over it (src/scripts/wall.ts).
+ */
+import T from './T.astro';
+import { getWallWorks, caption, nameOf } from '../lib/works';
+import { hangWall, WALL_H } from '../lib/wall';
+import { withBase } from '../lib/media';
+import { pic } from '../lib/pic';
+import { CATEGORY } from '../lib/i18n';
+
+const works = await getWallWorks();
+const { hung, rooms, length } = hangWall(works.map((w) => ({ key: w.slug, room: w.data.category, ratio: w.ratio, area: w.area, label: [...CATEGORY[w.data.category].ko].length })));
+const at = new Map(hung.map((h) => [h.key, h]));
+const pics = await Promise.all(works.map((w) => pic(w.image!)));
+const data = {
+  len: length,
+  wallH: WALL_H,
+  rooms: rooms.map((r) => ({ key: r.room, start: r.start, end: r.end, ko: CATEGORY[r.room].ko, en: CATEGORY[r.room].en })),
+  works: works.map((w) => {
+    const h = at.get(w.slug)!;
+    return { x: h.x, y: h.y, w: h.w, h: h.h, room: w.data.category, a: w.color.accent, d: w.color.dominant, l: w.color.lum, href: withBase(w.href), video: !!w.data.video, ...caption(w) };
+  }),
+};
+---
+<section class="wall" data-wall style={`--len:${length};--plaster:url(${withBase('/wall/plaster.webp')})`} aria-labelledby="wall-h">
+  <h1 id="wall-h" class="sr-only"><T ko="goll의 벽: 모든 작품" en="goll's wall: every work" /></h1>
+  <i class="wall__probe" aria-hidden="true" data-probe></i>
+  <div class="wall__stage" data-stage>
+    <div class="wall__track" data-track>
+      {rooms.map((r) => (
+        <h2 class="wall__room" style={`--x:${r.x}`} id={`r-${r.room}`} data-ko={CATEGORY[r.room].ko} data-en={CATEGORY[r.room].en}><span class="sr-only"><T ko={CATEGORY[r.room].ko} en={CATEGORY[r.room].en} /></span></h2>
+      ))}
+      <ol class="wall__list">
+        {works.map((w, i) => {
+          const h = at.get(w.slug)!;
+          const p = pics[i];
+          const sizes = `${((h.w / WALL_H) * 100).toFixed(1)}vh`;
+          return (
+            <li class="wall__work" style={`--x:${h.x};--y:${h.y};--w:${h.w};--h:${h.h}`}>
+              <a href={withBase(w.href)} data-work={i} aria-label={nameOf(w) !== nameOf(w, 'en') ? `${nameOf(w)} (${nameOf(w, 'en')})` : nameOf(w)}>
+                {/* sources are set by script just after first paint (the room is dark then);
+                    without script the <noscript> image shows */}
+                <picture>
+                  <source type="image/avif" data-srcset={p.avif} sizes={sizes} />
+                  <source type="image/webp" data-srcset={p.webp} sizes={sizes} />
+                  <img
+                    data-src={p.small}
+                    alt=""
+                    width={p.w}
+                    height={p.h}
+                    decoding="async"
+                    style={i < 12 ? `background:${p.color} ${p.lqip} center/cover no-repeat` : `background:${p.color}`}
+                  />
+                </picture>
+                <noscript><img src={p.small} alt="" width={p.w} height={p.h} loading="lazy" /></noscript>
+              </a>
+            </li>
+          );
+        })}
+      </ol>
+    </div>
+    <div class="wall__light wall__light--css" data-light-css aria-hidden="true"></div>
+    <canvas class="wall__light" data-light aria-hidden="true"></canvas>
+  </div>
+
+  <div class="wall__hud">
+    <p class="wall__cap" data-cap aria-live="off"></p>
+    <nav class="wall__reels" aria-label="Reels on the wall">
+      <div class="wall__line" data-line>
+        {data.rooms.map((r) => (
+          <button type="button" class="wall__mark" style={`--a:${r.start / length};--b:${r.end / length}`} data-goto={r.start}>
+            <span><T ko={r.ko} en={r.en} /></span>
+          </button>
+        ))}
+        <i class="wall__dot" data-dot aria-hidden="true"></i>
+      </div>
+    </nav>
+  </div>
+  <script type="application/json" data-wall-data set:html={JSON.stringify(data)} />
+</section>
+
+<style>
+  .wall {
+    --u: calc(100svh / 2100); /* 1 mm of wall, in px */
+    --k: 1.6; /* px of travel along the wall per px of scroll */
+    --eye: 47%;
+    position: relative;
+    height: calc((var(--len) * var(--u) - 100vw) / var(--k) + 100svh);
+  }
+  @media (max-width: 760px) {
+    .wall { --k: 2.2; --eye: 46%; }
+  }
+  :global(html.wall-snap) { scroll-snap-type: y proximity; }
+  .wall :global(.wall__snap) { position: absolute; left: 0; width: 1px; height: 1px; scroll-snap-align: start; pointer-events: none; }
+  .wall__probe { position: absolute; width: calc(2100 * var(--u)); height: 0; visibility: hidden; }
+  .wall__stage { position: fixed; inset: 0; background: var(--black); touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+  .wall__track {
+    position: absolute; left: 0; top: 0; height: 100%;
+    width: calc(var(--len) * var(--u));
+    background-color: var(--wall);
+    /* plaster: grit and slow stains, only ever seen where the light falls */
+    background-image: var(--plaster);
+    background-size: 384px 384px;
+    will-change: transform;
+  }
+  .wall__room {
+    position: absolute;
+    left: calc(var(--x) * var(--u));
+    top: calc(var(--eye) - 120 * var(--u));
+    font-size: calc(200 * var(--u));
+    font-weight: 200; letter-spacing: -0.02em; line-height: 1;
+    color: #ddd5c6;
+    white-space: nowrap;
+  }
+  /* the room name is lettering painted on the wall (decoration); the heading text is for screen readers */
+  .wall__room::before { content: attr(data-ko); }
+  :global(html[data-lang='en']) .wall__room::before { content: attr(data-en); }
+  .wall__work {
+    position: absolute;
+    left: calc(var(--x) * var(--u));
+    top: calc(var(--eye) + var(--y) * var(--u));
+    width: calc(var(--w) * var(--u));
+    height: calc(var(--h) * var(--u));
+  }
+  .wall__work a { display: block; position: relative; width: 100%; height: 100%; -webkit-user-drag: none; }
+  .wall__work picture, .wall__work noscript img { position: absolute; inset: 0; }
+  .wall__work img { width: 100%; height: 100%; object-fit: cover; -webkit-user-drag: none; }
+  .wall__work a:focus-visible { outline-offset: 6px; }
+
+  /* light: multiplied over the wall (colour = paint × light) */
+  .wall__light { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; mix-blend-mode: multiply; }
+  .wall__light--css {
+    display: none;
+    --amb: rgb(15 15 15);
+    background:
+      radial-gradient(circle var(--r, 30vmin) at var(--bx, 50%) var(--by, 47%), var(--lc, #f6e7c8) 0%, var(--lc, #f6e7c8) 40%, var(--amb) 100%),
+      radial-gradient(ellipse var(--bw, 0px) var(--bh, 0px) at var(--cx, 50%) var(--cy, 50%), var(--bc, #000) 0%, var(--amb) 100%);
+    background-blend-mode: lighten;
+    background-color: var(--amb);
+  }
+  :global(.no-gl) .wall__light--css { display: block; }
+  :global(.no-gl) canvas.wall__light { display: none; }
+  /* HUD: what is under the beam, and where you are along the wall */
+  .wall__hud {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+    padding: 56px var(--margin) calc(14px + env(safe-area-inset-bottom));
+    background: linear-gradient(to top, rgb(0 0 0 / 0.86) 30%, rgb(0 0 0 / 0));
+    pointer-events: none;
+  }
+  .wall__hud > * { pointer-events: auto; }
+  .wall__cap { min-height: 3.2em; display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 1.1em; row-gap: 0; margin-bottom: 12px; pointer-events: none; }
+  .wall__cap :global(.c-frame) { color: var(--ash); }
+  .wall__cap :global(.c-title) { font-weight: 400; }
+  .wall__cap :global(.c-sm), .wall__cap :global(.c-year) { color: var(--ash); }
+  .wall__line { position: relative; height: 34px; }
+  .wall__line::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: var(--dust); opacity: 0.6; }
+  .wall__mark { position: absolute; top: 0; height: 100%; left: calc(var(--a) * 100%); width: calc((var(--b) - var(--a)) * 100%); text-align: left; color: var(--ash); font-size: var(--t-small); }
+  .wall__mark::before { content: ''; position: absolute; left: 0; top: calc(50% - 5px); width: 1px; height: 10px; background: var(--ash); }
+  .wall__mark span { position: absolute; left: 8px; bottom: calc(50% + 4px); white-space: nowrap; line-height: 1; transition: color 160ms; }
+  .wall__mark:hover span, .wall__mark.is-here span { color: var(--beam); }
+  .wall__dot { position: absolute; top: calc(50% - 4px); left: calc(var(--p, 0) * 100% - 4px); width: 8px; height: 8px; border-radius: 50%; background: var(--beam); box-shadow: 0 0 10px 2px rgb(246 231 200 / 0.55); pointer-events: none; }
+
+  /* Without JavaScript: a plain horizontal scroller, fully lit */
+  :global(html:not(.js)) .wall { height: auto; }
+  :global(html:not(.js)) .wall__stage { position: relative; height: 100svh; overflow-x: auto; }
+  :global(html:not(.js)) .wall__light, :global(html:not(.js)) .wall__line { display: none; }
+  :global(html:not(.js)) .wall__track { transform: none; }
+
+  /* Reduced motion: no beam; the room lights are on */
+  :global(.still) .wall__light { display: none !important; }
+</style>

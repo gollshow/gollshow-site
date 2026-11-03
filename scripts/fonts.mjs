@@ -1,8 +1,11 @@
 #!/usr/bin/env node
 /**
  * Self-hosted, subset web fonts (both SIL OFL 1.1):
- *   Noto Serif KR 300/400  → serif-300.woff2, serif-400.woff2
- *   Pretendard    400/500  → sans-400.woff2,  sans-500.woff2
+ *   Hahmlet ExtraLight 200 → goll-200.woff2   display: room names, titles, credits
+ *   Hahmlet Regular 400    → goll-400.woff2   reading and interface
+ *     (static instances of the variable font: ~27 KB each instead of ~70 KB)
+ *   Noto Serif KR 400      → fallback.woff2   only characters Hahmlet lacks
+ *                                             (空, ㎜, rare Hangul, Hanja)
  *
  *   node scripts/fonts.mjs dist     after `astro build`: subset to exactly the
  *                                   characters used in dist/**.html|js
@@ -13,33 +16,25 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import subsetFont from 'subset-font';
+import opentype from 'opentype.js';
 
 const req = createRequire(import.meta.url);
 const pkg = (name) => path.dirname(req.resolve(`${name}/package.json`));
-const NOTO = pkg('@expo-google-fonts/noto-serif-kr');
-const PRET = pkg('pretendard');
+const HAHMLET = 'scripts/fonts/Hahmlet-VF.ttf';
+const NOTO = path.join(pkg('@expo-google-fonts/noto-serif-kr'), '400Regular/NotoSerifKR_400Regular.ttf');
 
-const FACES = [
-  { out: 'serif-300', src: path.join(NOTO, '300Light/NotoSerifKR_300Light.ttf') },
-  { out: 'serif-400', src: path.join(NOTO, '400Regular/NotoSerifKR_400Regular.ttf') },
-  { out: 'sans-400', src: path.join(PRET, 'dist/public/static/Pretendard-Regular.otf') },
-  { out: 'sans-500', src: path.join(PRET, 'dist/public/static/Pretendard-Medium.otf') },
-];
-
-// Always include: printable ASCII, Latin-1, typographic punctuation, arrows used in UI.
+// Always include: printable ASCII, Latin-1, typographic punctuation.
 const BASE = (() => {
   let s = '';
   for (let c = 0x20; c < 0x7f; c++) s += String.fromCharCode(c);
   for (let c = 0xa0; c <= 0xff; c++) s += String.fromCharCode(c);
-  return s + '‘’“”–—…·•→←↗⤢×−①②③空「」『』〈〉《》、。·';
+  return s + '‘’“”–—…·•×−空㎜「」『』〈〉《》、。';
 })();
 
 function ksx1001() {
-  // The 2,350 modern Hangul syllables of KS X 1001 via EUC-KR decoding.
   const dec = new TextDecoder('euc-kr');
   let s = '';
-  for (let hi = 0xb0; hi <= 0xc8; hi++)
-    for (let lo = 0xa1; lo <= 0xfe; lo++) s += dec.decode(new Uint8Array([hi, lo]));
+  for (let hi = 0xb0; hi <= 0xc8; hi++) for (let lo = 0xa1; lo <= 0xfe; lo++) s += dec.decode(new Uint8Array([hi, lo]));
   return s;
 }
 
@@ -57,7 +52,7 @@ let text;
 let outDir;
 if (arg === '--dev') {
   outDir = 'public/fonts';
-  if (FACES.every((f) => fs.existsSync(path.join(outDir, f.out + '.woff2')))) {
+  if (['goll-200', 'goll-400', 'fallback'].every((f) => fs.existsSync(path.join(outDir, f + '.woff2')))) {
     console.log('fonts: dev subsets already present');
     process.exit(0);
   }
@@ -68,7 +63,8 @@ if (arg === '--dev') {
   const files = walk(dist, ['.html', '.js', '.json', '.xml']).filter((f) => !f.includes(`${path.sep}admin${path.sep}`));
   const chars = new Set(BASE);
   for (const f of files) {
-    const raw = fs.readFileSync(f, 'utf8')
+    const raw = fs
+      .readFileSync(f, 'utf8')
       .replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCodePoint(parseInt(h, 16)))
       .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(Number(d)))
       .replace(/\\u([0-9a-f]{4})/gi, (_, h) => String.fromCharCode(parseInt(h, 16)));
@@ -77,13 +73,21 @@ if (arg === '--dev') {
   text = [...chars].join('');
 }
 
+// Which characters does Hahmlet cover? The rest go to the fallback face.
+const hb = fs.readFileSync(HAHMLET);
+const font = opentype.parse(hb.buffer.slice(hb.byteOffset, hb.byteOffset + hb.byteLength));
+const has = (ch) => font.charToGlyphIndex(ch) > 0;
+const chars = [...new Set(text)].filter((ch) => ch.codePointAt(0) >= 0x20);
+const main = chars.filter(has).join('');
+const rest = chars.filter((ch) => !has(ch) && !/\s/.test(ch)).join('');
+
 fs.mkdirSync(outDir, { recursive: true });
-let total = 0;
-for (const f of FACES) {
-  const buf = fs.readFileSync(f.src);
-  const woff2 = await subsetFont(buf, text, { targetFormat: 'woff2' });
-  fs.writeFileSync(path.join(outDir, f.out + '.woff2'), woff2);
-  total += woff2.length;
-  console.log(`fonts: ${f.out}.woff2 ${(woff2.length / 1024).toFixed(1)} KB`);
+const sizes = [];
+for (const w of [200, 400]) {
+  const a = await subsetFont(hb, main, { targetFormat: 'woff2', variationAxes: { wght: w } });
+  fs.writeFileSync(path.join(outDir, `goll-${w}.woff2`), a);
+  sizes.push(`goll-${w}.woff2 ${(a.length / 1024).toFixed(1)} KB`);
 }
-console.log(`fonts: ${[...new Set(text)].length} glyphs requested, ${(total / 1024).toFixed(0)} KB total → ${outDir}`);
+const b = await subsetFont(fs.readFileSync(NOTO), rest || '空', { targetFormat: 'woff2' });
+fs.writeFileSync(path.join(outDir, 'fallback.woff2'), b);
+console.log(`fonts: ${sizes.join(', ')} (${main.length} chars), fallback.woff2 ${(b.length / 1024).toFixed(1)} KB (${rest.length} chars: ${rest.slice(0, 40)}${rest.length > 40 ? '…' : ''}) → ${outDir}`);

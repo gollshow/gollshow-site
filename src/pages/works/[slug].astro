@@ -1,14 +1,20 @@
 ---
+/**
+ * The permalink of a work: the same projection as the viewer, rendered
+ * statically, with its caption, the process video when there is one, and the
+ * previous / next frame of its reel.
+ */
 import Base from '../../layouts/Base.astro';
-import Art from '../../components/Art.astro';
 import T from '../../components/T.astro';
 import Para from '../../components/Para.astro';
 import Embed from '../../components/Embed.astro';
-import { getWorks, pad, isAudioFile, type Work } from '../../lib/works';
+import { getWorks, caption, nameOf, isAudioFile, type Work } from '../../lib/works';
 import { withBase } from '../../lib/media';
 import { pic } from '../../lib/pic';
 import { CATEGORY, UI } from '../../lib/i18n';
 import { workLd } from '../../lib/seo';
+import { videoSrc } from '../../lib/embed';
+import { capHTML } from '../../scripts/caption';
 
 export async function getStaticPaths() {
   const works = await getWorks();
@@ -18,154 +24,127 @@ export async function getStaticPaths() {
 const all = await getWorks();
 const work = all.find((w) => w.slug === Astro.props.slug)!;
 const d = work.data;
-const room = all.filter((w) => w.data.category === d.category);
-const i = room.indexOf(work);
-const prev = room[i - 1];
-const next = room[i + 1];
+const reel = all.filter((w) => w.data.category === d.category);
+const i = reel.indexOf(work);
+const prev = reel[i - 1];
+const next = reel[i + 1];
 const cat = CATEGORY[d.category];
-
-// Viewer sequence: every image of every work in this room, so ← → walks the room.
-const seqWorks: Work[] = d.category === 'music' || d.category === 'film' ? [work] : room;
-const metaOf = (w: Work, en = false) => [w.data.year, en ? w.data.medium_en ?? w.data.medium : w.data.medium, w.data.size].filter(Boolean).join(' · ');
-const viewerItems: object[] = [];
-let startAt = 0;
-for (const w of seqWorks) {
-  const imgs = w.gallery.filter((g) => g.media);
-  if (w === work) startAt = viewerItems.length;
-  for (const [n, g] of imgs.entries()) {
-    const p = await pic(g.media!);
-    viewerItems.push({
-      avif: p.avif,
-      webp: p.webp,
-      src: p.fallback,
-      large: p.large,
-      w: p.w,
-      h: p.h,
-      title: w.data.title + (imgs.length > 1 ? ` (${n + 1}/${imgs.length})` : ''),
-      title_en: w.data.title_en ? w.data.title_en + (imgs.length > 1 ? ` (${n + 1}/${imgs.length})` : '') : undefined,
-      meta: g.caption ?? metaOf(w),
-      meta_en: g.caption_en ?? g.caption ?? metaOf(w, true),
-      href: withBase(w.href),
-    });
-  }
-}
-const images = work.gallery.filter((g) => g.media);
-const main = images[0]?.media ?? work.cover;
-const rest = images.slice(1);
-const meta = metaOf(work);
-const metaEn = metaOf(work, true);
+const c = caption(work);
+const main = work.image ? await pic(work.image) : undefined;
+const more = await Promise.all(work.gallery.filter((g) => g.media && g.media !== work.image).map(async (g) => ({ p: await pic(g.media!), g })));
 const audio = isAudioFile(d.audio) ? withBase(d.audio) : isAudioFile(d.link) ? d.link : undefined;
 const external = d.link && !isAudioFile(d.link) ? d.link : undefined;
-const titleBi = d.title_en ? `${d.title} ${d.title_en}` : d.title;
+const name = nameOf(work);
+const nameEn = nameOf(work, 'en');
+const titleBi = name === nameEn ? name : `${name} ${nameEn}`;
 const og = `/og/${work.slug}.jpg`;
 const ogAbs = new URL(withBase(og)!, Astro.site).href;
-const coverPic = main ? await pic(main, 800) : undefined;
+const desc = [d.description ?? d.description_en, [c.title, c.year, c.sm].filter(Boolean).join(', '), `goll — ${cat.en} ${c.frame} / ${c.total}`].filter(Boolean).join(' — ').slice(0, 300);
+const label = (w: Work) => nameOf(w);
+// the projected image is bounded by width and by height: tell the browser its real size
+const r = main ? (main.w / main.h).toFixed(3) : '1';
+const sizes = `(max-width: 760px) min(92vw, calc(68svh * ${r})), min(70vw, calc((100svh - 260px) * ${r}))`;
+const video = videoSrc(d.video);
 ---
-<Base title={titleBi} description={[d.description ?? d.description_en, `goll — ${cat.en}${d.year ? `, ${d.year}` : ''}`].filter(Boolean).join(' — ').slice(0, 300)} image={og} imageAlt={titleBi} kind="article" current={d.category === 'music' ? 'music' : 'works'} jsonld={workLd(work, Astro.site, ogAbs)}>
-  <script type="application/json" data-viewer-items set:html={JSON.stringify(viewerItems)} />
-  <article class="wk frame" class:list={[work.ratio >= 1.15 ? 'is-land' : 'is-port', !main && 'is-noimage']}>
-    <div class="wk__stage">
-      {main && (
-        <a class="wk__main" href={coverPic?.large} data-view={startAt} style={`--r:${work.ratio}`} aria-label={`${d.title} — ${UI.view.ko} / ${UI.view.en}`}>
-          <Art media={main} alt={d.title_en ? `${d.title} (${d.title_en})` : d.title} sizes="(min-width: 1024px) 64vw, 92vw" eager vt={`work-${work.slug}`} />
-          <span class="wk__zoom label" aria-hidden="true"><T t={UI.view} /> ⤢</span>
-        </a>
+<Base title={titleBi} description={desc} image={og} imageAlt={titleBi} kind="article" current={d.category} page="work" jsonld={workLd(work, Astro.site, ogAbs)}>
+  <article class="wp">
+    <div class="wp__screen">
+      {main ? (
+        <div class="wp__weave" style={`--r:${r}`}>
+          {/* halation: a blurred copy, so the smallest file is enough */}
+          <img class="wp__halo" src={main.small} alt="" width={main.w} height={main.h} aria-hidden="true" decoding="async" />
+          <picture class="wp__pic">
+            <source type="image/avif" srcset={main.avif} sizes={sizes} />
+            <source type="image/webp" srcset={main.webp} sizes={sizes} />
+            <img src={main.fallback} alt={name} width={main.w} height={main.h} fetchpriority="high" style={`background:${main.color} ${main.lqip} center/cover no-repeat`} />
+          </picture>
+        </div>
+      ) : (
+        <p class="wp__blank ash"><T ko="이미지 없음" en="No image" /></p>
       )}
+      <div class="wp__vignette" aria-hidden="true"></div>
+      <div class="wp__grainbox" aria-hidden="true"><div class="grain"></div></div>
     </div>
 
-    <aside class="wk__label">
-      <div class="wk__sticky">
-        <p class="label muted" data-reveal><a class="link" href={withBase(cat.path)}><T ko={cat.ko} en={cat.en} /></a> <span class="num">· {pad(work.no)}</span></p>
-        <h1 class="wk__title" data-reveal style="--i:1">
-          <span class="wk__ko">{d.title}</span>
-          {d.title_en && d.title_en !== d.title && <span class="wk__en">{d.title_en}</span>}
-        </h1>
-        {meta && <p class="wk__meta cap" data-reveal style="--i:2"><T ko={meta} en={metaEn} /></p>}
-        {(audio || external) && (
-          <div class="wk__media" data-reveal style="--i:3">
-            {audio && (
-              <button class="btn wk__playbtn" type="button" data-play={JSON.stringify({ src: audio, title: d.title, title_en: d.title_en, href: withBase(work.href), art: coverPic?.fallback })}>
-                <svg class="i-play" viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 2.8v10.4L13 8z" fill="currentColor" /></svg>
-                <svg class="i-pause" viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 3h2.2v10H4.5zM9.3 3h2.2v10H9.3z" fill="currentColor" /></svg>
-                <T t={UI.play} />
-              </button>
-            )}
-            {external && <Embed url={external} title={d.title} />}
-          </div>
-        )}
-        <div data-reveal style="--i:4"><Para ko={d.description} en={d.description_en} /></div>
-      </div>
-    </aside>
+    <div class="wp__label">
+      <p class="wp__count count ash"><a href={withBase(cat.path)}><T ko={cat.ko} en={cat.en} /></a> {c.frame} / {c.total}</p>
+      {c.title ? <h1 class="wp__cap" set:html={capHTML(c, { frame: false })} /> : <h1 class="sr-only"><T ko={`${c.room_ko} ${c.frame}`} en={`${c.room_en} ${c.frame}`} /></h1>}
+    </div>
 
-    {rest.length > 0 && (
-      <div class="wk__more">
-        {rest.map((g, n) => (
-          <figure class="wk__fig" data-reveal>
-            <a href="#" data-view={startAt + n + 1} style={`--r:${g.media!.meta.width / g.media!.meta.height}`} aria-label={`${d.title} ${n + 2} — ${UI.view.ko}`}>
-              <Art media={g.media} alt={`${d.title} — ${n + 2}`} sizes="(min-width: 1024px) 64vw, 92vw" />
-            </a>
-            {(g.caption || g.caption_en) && <figcaption class="cap"><T ko={g.caption ?? g.caption_en} en={g.caption_en} /></figcaption>}
+    {(audio || external || video || d.description || d.description_en || more.length > 0) && (
+      <div class="wp__more">
+        {audio && (
+          <button class="wp__play ui" type="button" data-play={JSON.stringify({ src: audio, title: name, title_en: nameEn, href: withBase(work.href) })}>
+            <T t={UI.play} />
+          </button>
+        )}
+        {video && (
+          <section id="video" class="wp__video" aria-label={`${UI.process.ko} / ${UI.process.en}`}>
+            <div class="wp__frame16">
+              <iframe src={video} title={`${name} — ${UI.process.ko} (${UI.process.en})`} loading="lazy" allow="fullscreen; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
+            </div>
+          </section>
+        )}
+        {external && <Embed url={external} title={name} />}
+        <Para ko={d.description} en={d.description_en} class="wp__text" />
+        {more.map(({ p, g }) => (
+          <figure class="wp__fig">
+            <picture>
+              <source type="image/avif" srcset={p.avif} sizes="(max-width: 760px) 92vw, 60vw" />
+              <source type="image/webp" srcset={p.webp} sizes="(max-width: 760px) 92vw, 60vw" />
+              <img src={p.fallback} alt={name} width={p.w} height={p.h} loading="lazy" decoding="async" style={`background:${p.color}`} />
+            </picture>
+            {(g.caption || g.caption_en) && <figcaption class="small ash"><T ko={g.caption ?? g.caption_en} en={g.caption_en} /></figcaption>}
           </figure>
         ))}
       </div>
     )}
-  </article>
 
-  <nav class="pg frame" aria-label="Works">
-    <div class="pg__cell">
-      {prev && (
-        <a class="pg__a" href={withBase(prev.href)} rel="prev">
-          <span class="label muted">← <T t={UI.prev} /></span>
-          <span class="pg__t serif"><T ko={prev.data.title} en={prev.data.title_en} /></span>
-        </a>
-      )}
-    </div>
-    <a class="pg__room label" href={withBase(cat.path)}><T ko={cat.ko} en={cat.en} /></a>
-    <div class="pg__cell pg__cell--next">
-      {next && (
-        <a class="pg__a" href={withBase(next.href)} rel="next">
-          <span class="label muted"><T t={UI.next} /> →</span>
-          <span class="pg__t serif"><T ko={next.data.title} en={next.data.title_en} /></span>
-        </a>
-      )}
-    </div>
-  </nav>
+    <nav class="wp__nav" aria-label="Reel">
+      {prev ? (
+        <a class="wp__step" href={withBase(prev.href)} rel="prev"><span class="ui ash"><T t={UI.prev} /></span><span>{label(prev)}</span></a>
+      ) : <span />}
+      <a class="wp__step wp__step--wall" href={withBase('/')}><span class="ui ash"><T t={UI.toWall} /></span></a>
+      {next ? (
+        <a class="wp__step wp__step--next" href={withBase(next.href)} rel="next"><span class="ui ash"><T t={UI.next} /></span><span>{label(next)}</span></a>
+      ) : <span />}
+    </nav>
+  </article>
 </Base>
 
 <style>
-  .wk { padding-top: calc(var(--header-h) + clamp(24px, 6vh, 72px)); display: grid; gap: 40px; }
-  .wk__main { position: relative; display: block; width: min(100%, calc(78svh * var(--r))); cursor: zoom-in; }
-  .wk__zoom { position: absolute; right: 0; bottom: -30px; color: var(--ink-3); opacity: 0; transition: opacity var(--d-mid); }
-  .wk__main:hover .wk__zoom, .wk__main:focus-visible .wk__zoom { opacity: 1; }
-  .wk__title { font-weight: 300; margin: 18px 0 14px; }
-  .wk__ko { display: block; font-family: var(--serif); font-size: var(--t-h2); line-height: 1.2; letter-spacing: -0.01em; }
-  .wk__en { display: block; margin-top: 10px; font-family: var(--serif); font-size: var(--t-lead); color: var(--ink-2); line-height: 1.35; }
-  .wk__meta { margin-bottom: 28px; }
-  .wk__media { display: grid; gap: 16px; margin-bottom: 32px; }
-  .wk__playbtn { justify-self: start; }
-  .wk__playbtn .i-pause, .wk__playbtn:global(.is-playing) .i-play { display: none; }
-  .wk__playbtn:global(.is-playing) .i-pause { display: block; }
-  .wk__more { display: grid; gap: clamp(56px, 10vh, 120px); }
-  .wk__fig a { display: block; width: min(100%, calc(84svh * var(--r))); }
-  .wk__fig figcaption { margin-top: 12px; }
-
-  @media (min-width: 1024px) {
-    .wk { grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter); row-gap: clamp(72px, 12vh, 140px); align-items: start; }
-    .wk__stage { grid-column: 1 / span 8; display: flex; justify-content: center; min-height: calc(78svh); align-items: center; }
-    .wk.is-port .wk__stage { grid-column: 2 / span 7; }
-    .wk__label { grid-column: 10 / span 3; grid-row: 1 / span 2; align-self: stretch; }
-    .wk__sticky { position: sticky; top: calc(var(--header-h) + 32px); padding-top: 2px; }
-    .wk__more { grid-column: 1 / span 8; justify-items: center; }
-    .wk.is-noimage .wk__label { grid-column: 2 / span 7; }
-  }
-
-  .pg { margin-top: var(--room-gap); padding-top: 18px; border-top: 1px solid var(--line); display: grid; grid-template-columns: 1fr auto 1fr; gap: 20px; align-items: start; }
-  .pg__cell--next { text-align: right; }
-  .pg__a { display: inline-grid; gap: 8px; }
-  .pg__t { font-size: var(--t-lead); font-weight: 300; line-height: 1.35; }
-  .pg__room { padding-top: 2px; color: var(--ink-2); }
-  @media (max-width: 640px) {
-    .pg { grid-template-columns: 1fr 1fr; }
-    .pg__room { grid-column: 1 / -1; grid-row: 2; text-align: center; margin-top: 24px; }
+  .wp { padding: var(--header-h) var(--margin) 0; }
+  .wp__screen { position: relative; height: calc(100svh - var(--header-h) - var(--cap-h, 136px)); min-height: 320px; display: grid; place-items: center; overflow: hidden; }
+  .wp__label { min-height: var(--cap-h, 136px); padding-top: 10px; }
+  .wp__weave { --maxh: calc(100svh - var(--header-h) - var(--cap-h, 136px) - 28px); width: 100%; display: grid; place-items: center; animation: weave 0.5s steps(1) infinite; }
+  .wp__weave > *, .wp__pic img { grid-area: 1 / 1; }
+  .wp__pic { display: contents; }
+  /* the frame has its size before the file arrives: bounded by width and by height */
+  .wp__pic img, .wp__halo { width: min(100%, calc(var(--maxh) * var(--r))); height: auto; aspect-ratio: var(--r); object-fit: contain; }
+  .wp__halo { filter: blur(22px) saturate(1.6) sepia(0.35); opacity: 0.4; mix-blend-mode: screen; transform: scale(1.03); }
+  .wp__vignette { position: absolute; inset: 0; background: radial-gradient(ellipse 75% 70% at 50% 50%, transparent 55%, rgb(0 0 0 / 0.55) 100%); pointer-events: none; }
+  .wp__grainbox { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+  .wp__grainbox .grain { opacity: 0.16; }
+  .wp__count a:hover { color: var(--beam); }
+  .wp { --cap-h: 164px; }
+  .wp__cap { display: flex; flex-direction: column; font-weight: 400; font-size: var(--t-body); line-height: 1.45; margin-top: 2px; }
+  .wp__cap :global(.c-title) { font-size: var(--t-head); font-weight: 200; line-height: 1.2; }
+  .wp__cap :global(.c-year), .wp__cap :global(.c-sm) { color: var(--ash); }
+  .wp__more { margin-top: clamp(48px, 10vh, 120px); display: grid; gap: clamp(40px, 8vh, 96px); max-width: 1100px; }
+  .wp__play { justify-self: start; min-height: 44px; color: var(--beam); border-bottom: 1px solid var(--dust); }
+  .wp__frame16 { position: relative; aspect-ratio: 16 / 9; background: #0b0a09; }
+  .wp__frame16 iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #0b0a09; color-scheme: dark; }
+  .wp__text { max-width: 34em; }
+  .wp__fig img { max-height: 86svh; width: auto; }
+  .wp__fig figcaption { margin-top: 10px; }
+  .wp__nav { margin-top: clamp(64px, 14vh, 160px); padding: 18px 0 calc(40px + env(safe-area-inset-bottom)); border-top: 1px solid #1d1a16; display: grid; grid-template-columns: 1fr auto 1fr; gap: 16px; align-items: start; }
+  .wp__step { display: grid; gap: 2px; min-height: 44px; }
+  .wp__step:hover span { color: var(--beam); }
+  .wp__step--next { text-align: right; }
+  .wp__step--wall { text-align: center; }
+  @media (max-width: 760px) {
+    .wp__screen { height: auto; min-height: 0; padding: 24px 0 8px; }
+    .wp__vignette { background: radial-gradient(ellipse 90% 85% at 50% 50%, transparent 70%, rgb(0 0 0 / 0.4) 100%); }
+    .wp__weave { --maxh: 68svh; }
   }
 </style>

@@ -93,10 +93,11 @@ const fav = (() => {
   const size = Math.max(w, h) * 1.12;
   const x = b.x1 - (size - w) / 2;
   const y = b.y1 - (size - h) / 2;
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${x.toFixed(0)} ${y.toFixed(0)} ${size.toFixed(0)} ${size.toFixed(0)}"><style>path{fill:#1a1a18}@media (prefers-color-scheme:dark){path{fill:#ece9e2}}</style><path d="${regular.d}"/></svg>`;
+  // the projection room: a tungsten 空 on projection black
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${x.toFixed(0)} ${y.toFixed(0)} ${size.toFixed(0)} ${size.toFixed(0)}"><rect x="${x.toFixed(0)}" y="${y.toFixed(0)}" width="${size.toFixed(0)}" height="${size.toFixed(0)}" rx="${(size * 0.12).toFixed(0)}" fill="#000"/><path d="${regular.d}" fill="#f6e7c8"/></svg>`;
 })();
 fs.writeFileSync('public/favicon.svg', fav);
-await sharp(Buffer.from(iconSvg(regular.d, '#1a1a18', '#f4f2ed'))).resize(32, 32).png().toFile('public/favicon-32.png');
-await sharp(Buffer.from(iconSvg(light.d, '#1a1a18', '#f4f2ed'))).resize(180, 180).png().toFile('public/apple-touch-icon.png');
-await sharp(Buffer.from(iconSvg(light.d, '#1a1a18', '#f4f2ed'))).resize(512, 512).png().toFile('public/icon-512.png');
+await sharp(Buffer.from(iconSvg(regular.d, '#f6e7c8', '#000000'))).resize(32, 32).png().toFile('public/favicon-32.png');
+await sharp(Buffer.from(iconSvg(light.d, '#f6e7c8', '#000000'))).resize(180, 180).png().toFile('public/apple-touch-icon.png');
+await sharp(Buffer.from(iconSvg(light.d, '#f6e7c8', '#000000'))).resize(512, 512).png().toFile('public/icon-512.png');
 console.log('focal', Math.round(fx), Math.round(fy), 'depth', (best / scale).toFixed(1));

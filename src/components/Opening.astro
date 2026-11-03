@@ -1,0 +1,83 @@
+---
+/**
+ * The one orchestrated moment (≈3 s, once per session, skippable): the
+ * projector starts, 空 — the only word on the old landing page — is thrown as a
+ * title card with grain and gate weave, then the card burns out and the beam
+ * opens onto the wall. Pure CSS timing; src/scripts/opening.ts handles skip
+ * and hands over to the wall.
+ */
+import T from './T.astro';
+import { UI } from '../lib/i18n';
+---
+<script is:inline>
+  (() => {
+    const d = document.documentElement;
+    let seen = false;
+    try { seen = sessionStorage.getItem('goll:opened') === '1'; } catch {}
+    if (seen || matchMedia('(prefers-reduced-motion: reduce)').matches) d.classList.add('no-op');
+    else d.classList.add('opening');
+  })();
+</script>
+<div class="op" data-opening>
+  <div class="op__gate" aria-hidden="true">
+    <div class="op__card">
+      <p class="op__kong" lang="zh-Hant">空</p>
+      <div class="grain"></div>
+    </div>
+  </div>
+  <button class="op__skip ui" type="button" data-opening-skip><T t={UI.skip} /></button>
+</div>
+
+<style>
+  .op { position: fixed; inset: 0; z-index: 70; background: var(--black); display: grid; place-items: center; animation: op-out 3s linear forwards; }
+  :global(.no-op) .op, :global(html:not(.js)) .op { display: none; }
+  :global(.op-skip) .op { animation: op-skip 260ms linear forwards; }
+  @keyframes op-out { 0%, 73% { background: rgb(0 0 0 / 1); } 96% { background: rgb(0 0 0 / 0); } 100% { background: rgb(0 0 0 / 0); visibility: hidden; } }
+  @keyframes op-skip { to { opacity: 0; visibility: hidden; } }
+
+  /* the gate: the lit rectangle of an empty frame, flickering on */
+  .op__gate {
+    position: relative;
+    width: min(74vw, 104vh, 980px);
+    aspect-ratio: 1.375;
+    border-radius: 0.8%;
+    background: radial-gradient(ellipse 70% 70% at 50% 48%, #221d16 0%, #16120d 62%, #0c0a07 100%);
+    /* projected edges are never razor sharp */
+    -webkit-mask: linear-gradient(90deg, transparent, #000 1.6%, #000 98.4%, transparent), linear-gradient(transparent, #000 2.2%, #000 97.8%, transparent);
+    -webkit-mask-composite: source-in;
+    mask: linear-gradient(90deg, transparent, #000 1.6%, #000 98.4%, transparent), linear-gradient(transparent, #000 2.2%, #000 97.8%, transparent);
+    mask-composite: intersect;
+    overflow: hidden;
+    animation: gate-on 3s linear forwards;
+  }
+  @keyframes gate-on {
+    0% { opacity: 0; }
+    3% { opacity: 0.85; } 5% { opacity: 0; } 9% { opacity: 0; } 11% { opacity: 1; } 13% { opacity: 0.25; }
+    16% { opacity: 1; } 18% { opacity: 0.6; } 20%, 74% { opacity: 1; transform: none; border-radius: 0.8%; }
+    86% { opacity: 0.5; transform: scale(0.36); border-radius: 50%; }
+    100% { opacity: 0; transform: scale(0.3); border-radius: 50%; }
+  }
+  /* the card burns out: a flash of tungsten across the frame */
+  .op__gate::after {
+    content: ''; position: absolute; inset: 0; opacity: 0;
+    background: radial-gradient(ellipse 60% 55% at 50% 50%, #fff6e2 0%, #f6e7c8 45%, rgb(246 231 200 / 0.3) 100%);
+    mix-blend-mode: screen;
+    animation: burn 3s linear forwards;
+  }
+  @keyframes burn { 0%, 72% { opacity: 0; } 77% { opacity: 0.85; } 86% { opacity: 1; } 100% { opacity: 0.6; } }
+  .op__card { position: absolute; inset: 0; display: grid; place-items: center; animation: weave 0.5s steps(1) infinite; }
+  .op__kong {
+    font-family: 'Goll Fallback', 'Noto Serif KR', serif;
+    font-weight: 400;
+    font-size: min(46vmin, 400px);
+    line-height: 1;
+    color: #f4ead6;
+    text-shadow: 0 0 22px rgb(255 150 90 / 0.35), 0 0 70px rgb(255 190 120 / 0.18);
+    opacity: 0;
+    animation: kong 3s linear forwards;
+  }
+  @keyframes kong { 0%, 19% { opacity: 0; } 21% { opacity: 1; } 24% { opacity: 0.86; } 26%, 72% { opacity: 1; } 78%, 100% { opacity: 0; } }
+  .op__card .grain { opacity: 0.12; }
+  .op__skip { position: absolute; right: var(--margin); bottom: calc(18px + env(safe-area-inset-bottom)); min-height: 44px; padding: 0 4px; color: var(--ash); }
+  .op__skip:hover { color: var(--beam); }
+</style>

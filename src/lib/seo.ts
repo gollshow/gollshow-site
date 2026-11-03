@@ -1,4 +1,4 @@
-import type { Work } from './works';
+import { nameOf, type Work } from './works';
 import { CATEGORY } from './i18n';
 
 type S = { name?: string; name_en?: string; roles_en?: string; email?: string; instagram?: string; links?: { url?: string }[]; site_title?: string };
@@ -25,8 +25,8 @@ export function workLd(w: Work, site: URL | undefined, image?: string) {
   const ld: Record<string, unknown> = {
     '@context': 'https://schema.org',
     '@type': type,
-    name: w.data.title,
-    alternateName: w.data.title_en,
+    name: nameOf(w),
+    alternateName: nameOf(w, 'en') !== nameOf(w) ? nameOf(w, 'en') : undefined,
     url: new URL(w.href.replace(/^\//, ''), base).href,
     image,
     dateCreated: w.data.year,
@@ -35,7 +35,7 @@ export function workLd(w: Work, site: URL | undefined, image?: string) {
     genre: CATEGORY[cat]?.en,
   };
   const creator = { '@type': 'Person', '@id': base + '#goll', name: 'goll' };
-  if (type === 'VisualArtwork') Object.assign(ld, { creator, artMedium: w.data.medium_en ?? w.data.medium, artform: CATEGORY[cat]?.en, size: w.data.size });
+  if (type === 'VisualArtwork') Object.assign(ld, { creator, artMedium: w.data.medium_en ?? w.data.medium, artform: CATEGORY[cat]?.en, size: w.data.size, position: w.no });
   else if (type === 'MusicComposition') Object.assign(ld, { composer: creator });
   else Object.assign(ld, { director: creator });
   return ld;

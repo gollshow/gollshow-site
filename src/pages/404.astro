@@ -1,18 +1,18 @@
 ---
 import Base from '../layouts/Base.astro';
-import Kong from '../components/Kong.astro';
 import T from '../components/T.astro';
 import { withBase } from '../lib/media';
+import { UI } from '../lib/i18n';
 ---
-<Base title="404">
-  <section class="nf frame">
-    <Kong class="nf__kong" />
-    <p class="lead"><T ko="이곳은 비어 있습니다." en="Nothing here — only emptiness." /></p>
-    <a class="btn" href={withBase('/')}>GO →</a>
+<Base title="404" page="lost">
+  <section class="nf">
+    <div class="nf__gate"><div class="grain"></div></div>
+    <h1 class="nf__t head"><T ko="이 프레임은 비어 있습니다." en="This frame is empty." /></h1>
+    <a class="nf__a ui" href={withBase('/')}><T t={UI.toWall} /></a>
   </section>
 </Base>
 <style>
-  .nf { min-height: 80svh; display: grid; place-content: center; justify-items: center; gap: 32px; text-align: center; padding-top: var(--header-h); }
-  .nf__kong { width: clamp(120px, 24vw, 240px); color: var(--ink); }
-  .nf p { color: var(--ink-2); }
+  .nf { min-height: 100svh; display: grid; place-content: center; justify-items: center; gap: 28px; text-align: center; padding: var(--header-h) var(--margin); }
+  .nf__gate { position: relative; width: min(70vw, 420px); aspect-ratio: 1.375; border-radius: 2.2% / 3%; background: radial-gradient(ellipse 80% 75% at 50% 50%, #1d1913 0%, #120f0b 70%, #080705 100%); overflow: hidden; animation: weave 0.5s steps(1) infinite; }
+  .nf__a { color: var(--beam); border-bottom: 1px solid var(--dust); min-height: 32px; }
 </style>

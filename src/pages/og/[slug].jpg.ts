@@ -2,76 +2,71 @@ import type { APIRoute, GetStaticPaths } from 'astro';
 import path from 'node:path';
 import sharp from 'sharp';
 import kong from '../../generated/kong.json';
-import { getWorks, getSettings } from '../../lib/works';
-import { resolveImage, type Media } from '../../lib/media';
-import { CATEGORY } from '../../lib/i18n';
-import { textPath, SERIF, SERIF_LIGHT, SANS } from '../../lib/glyphs';
+import { getWorks, caption } from '../../lib/works';
+import { type Media } from '../../lib/media';
+import { textPath, HAHMLET } from '../../lib/glyphs';
 
+/** Share images: the work projected in the dark room, with its real caption. */
 const W = 1200;
 const H = 630;
-const PAPER = '#f4f2ed';
-const INK = '#1a1a18';
-const INK2 = '#6b6964';
+const SCREEN = '#eceae4';
+const ASH = '#8a847c';
 
 export const getStaticPaths: GetStaticPaths = async () => {
   const works = await getWorks();
   return [{ params: { slug: 'site' } }, ...works.map((w) => ({ params: { slug: w.slug } }))];
 };
 
-async function placed(m: Media | undefined, boxW: number, boxH: number) {
-  if (!m) return undefined;
-  const buf = await sharp(path.join(process.cwd(), m.file), { failOn: 'none' })
-    .rotate()
-    .resize(boxW, boxH, { fit: 'inside' })
-    .toBuffer({ resolveWithObject: true });
-  return buf;
+async function fit(m: Media, boxW: number, boxH: number) {
+  return sharp(path.join(process.cwd(), m.file), { failOn: 'none' }).rotate().resize(boxW, boxH, { fit: 'inside' }).toBuffer({ resolveWithObject: true });
 }
 
 export const GET: APIRoute = async ({ params }) => {
-  const s = await getSettings();
   const layers: sharp.OverlayOptions[] = [];
   let svg = '';
 
   if (params.slug === 'site') {
-    // 空 on the left, the landing work on the right
+    // the opening title card: a lit gate and 空
+    svg += `<defs><radialGradient id="g" cx="50%" cy="50%" r="60%"><stop offset="0" stop-color="#1d1913"/><stop offset=".7" stop-color="#120f0b"/><stop offset="1" stop-color="#080705"/></radialGradient>
+      <filter id="h" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="14"/></filter></defs>`;
+    const gw = 760;
+    const gh = gw / 1.375;
+    const gx = (W - gw) / 2;
+    const gy = (H - gh) / 2 - 10;
+    svg += `<rect x="${gx}" y="${gy}" width="${gw}" height="${gh}" rx="16" fill="url(#g)"/>`;
     const b = kong.bbox;
-    const gh = 360;
-    const k = gh / (b.y2 - b.y1);
-    const gx = 120 - b.x1 * k;
-    const gy = (H - gh) / 2 - 20 - b.y1 * k;
-    svg += `<path transform="translate(${gx} ${gy}) scale(${k})" d="${kong.light}" fill="${INK}"/>`;
-    const t = textPath('goll show', SERIF, 34, 120, H - 74);
-    svg += `<path d="${t.d}" fill="${INK}"/>`;
-    const r = s.roles_en ? textPath(s.roles_en.toUpperCase(), SANS, 13, 120 + t.width + 24, H - 78, { tracking: 0.2 }) : undefined;
-    if (r) svg += `<path d="${r.d}" fill="${INK2}"/>`;
-    const img = await placed(resolveImage(s.hero_image), 420, 470);
-    if (img) layers.push({ input: img.data, left: Math.round(W - 120 - img.info.width), top: Math.round((H - img.info.height) / 2) });
+    const kh = 330;
+    const k = kh / (b.y2 - b.y1);
+    const kx = W / 2 - ((b.x1 + b.x2) / 2) * k;
+    const ky = gy + gh / 2 - ((b.y1 + b.y2) / 2) * k;
+    svg += `<path transform="translate(${kx} ${ky}) scale(${k})" d="${kong.regular}" fill="#ff9a5a" opacity=".35" filter="url(#h)"/>`;
+    svg += `<path transform="translate(${kx} ${ky}) scale(${k})" d="${kong.regular}" fill="#f4ead6"/>`;
+    svg += `<path d="${textPath('goll', HAHMLET, 30, gx, H - 28).d}" fill="${SCREEN}"/>`;
   } else {
     const w = (await getWorks()).find((x) => x.slug === params.slug)!;
-    const img = await placed(w.cover, 640, 510);
-    const left = 60;
-    if (img) layers.push({ input: img.data, left: left + Math.round((640 - img.info.width) / 2), top: Math.round((H - img.info.height) / 2) });
-    const x = 760;
-    const cat = CATEGORY[w.data.category];
-    const c = textPath(`${cat.en.toUpperCase()}`, SANS, 13, x, 150, { tracking: 0.2 });
-    svg += `<path d="${c.d}" fill="${INK2}"/>`;
-    const t = textPath(w.data.title, SERIF_LIGHT, 46, x, 236, { maxWidth: W - x - 60 });
-    svg += `<path d="${t.d}" fill="${INK}"/>`;
-    let y = 236 + 52;
-    if (w.data.title_en && w.data.title_en !== w.data.title) {
-      const e = textPath(w.data.title_en, SERIF, 24, x, y, { maxWidth: W - x - 60 });
-      svg += `<path d="${e.d}" fill="${INK2}"/>`;
-      y += 44;
+    const c = caption(w);
+    const m = w.cover ?? w.image;
+    if (m) {
+      const img = await fit(m, 980, 470);
+      const left = Math.round((W - img.info.width) / 2);
+      const top = Math.round(40 + (470 - img.info.height) / 2);
+      // halation: a warm, blurred copy behind the work
+      const halo = await sharp(img.data).blur(26).modulate({ brightness: 1.1, saturation: 1.6 }).tint('#ffb27a').toBuffer();
+      layers.push({ input: halo, left, top, blend: 'screen' });
+      layers.push({ input: img.data, left, top });
     }
-    const meta = [w.data.year, w.data.medium_en ?? w.data.medium].filter(Boolean).join(' · ');
-    if (meta) svg += `<path d="${textPath(meta, SANS, 17, x, y + 8, { maxWidth: W - x - 60 }).d}" fill="${INK2}"/>`;
-    const b = kong.bbox;
-    const k = 40 / (b.y2 - b.y1);
-    svg += `<path transform="translate(${x - b.x1 * k} ${H - 110 - b.y1 * k}) scale(${k})" d="${kong.regular}" fill="${INK}"/>`;
-    svg += `<path d="${textPath('goll show', SERIF, 22, x + 58, H - 80).d}" fill="${INK}"/>`;
+    const y = H - 52;
+    const name = c.title ?? `${c.room_ko} ${c.frame}`;
+    const t = textPath(name, HAHMLET, 30, 60, y, { maxWidth: 640 });
+    svg += `<path d="${t.d}" fill="${SCREEN}"/>`;
+    const meta = [c.year, c.sm].filter(Boolean).join('   ');
+    if (meta) svg += `<path d="${textPath(meta, HAHMLET, 18, 60 + t.width + 24, y, { maxWidth: W - 60 - t.width - 260 }).d}" fill="${ASH}"/>`;
+    const right = `${c.room_en} ${c.frame} / ${c.total}`;
+    const r = textPath(right, HAHMLET, 18, 0, 0);
+    svg += `<path d="${textPath(right, HAHMLET, 18, W - 60 - r.width, y).d}" fill="${ASH}"/>`;
   }
 
-  const out = await sharp({ create: { width: W, height: H, channels: 3, background: PAPER } })
+  const out = await sharp({ create: { width: W, height: H, channels: 3, background: '#000000' } })
     .composite([...layers, { input: Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">${svg}</svg>`), left: 0, top: 0 }])
     .jpeg({ quality: 84, mozjpeg: true })
     .toBuffer();
