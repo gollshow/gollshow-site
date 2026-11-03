@@ -107,6 +107,13 @@ The reels scored 94–95 with best practices 96 until the edge print went from 1
 
 All other 118 images downloaded with exactly the listed pixel size. No replacement was guessed. Details in [`../IMPORT_REPORT.md`](../IMPORT_REPORT.md).
 
-## Live site
+## Live site (verified after the deploy)
 
-See the end of this file, added after the deploy.
+- Commit `daf7e61` was deployed by *Deploy to GitHub Pages* (run 6, success, including its own live smoke check of `build.txt`, home and admin).
+- Then the *Live check* workflow opened **https://gollshow.github.io/gollshow-site/** in Chromium 153 on a GitHub Actions runner, at desktop 1440×900 and mobile 390×844 ([`live/report.md`](./live/report.md)). This cloud session cannot reach github.io itself, so the check ran there.
+  - `/`, `/painting/`, `/works/gogo/`, `/music/`, `/about/`, `/admin/`: **status 200, no browser errors**, on both sizes.
+  - The wall holds 116 works and the 회화 reel 66 frames. The caption under the beam reads `회화 001 / 066  gogo  2024  1200x870mm Oil`.
+  - The old address `/yyy` lands on `/works/gogo/`.
+  - The Adobe process video loads under gogo's work page (`live/mobile-03-work.jpg`).
+  - /admin shows the Sveltia sign-in with the access-token button and the new 空 icon (`live/desktop-07-admin.jpg`).
+- Screenshots: [`live/`](./live/) (`desktop-*`, `mobile-*`). To run it again: GitHub → Actions → *Live check* → *Run workflow*. The results land on the `live-check` branch.
