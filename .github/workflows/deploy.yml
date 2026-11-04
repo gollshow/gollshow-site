@@ -10,7 +10,7 @@ on:
       - 'README.md'
       - 'DESIGN.md'
       - 'IMPORT_REPORT.md'
-      - '관리자_사용법.md'
+      - 'docs/**'
       - '_check/**'
       - '_import/**'
   workflow_dispatch:

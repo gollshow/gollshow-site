@@ -1,94 +1,118 @@
 ---
-import { ClientRouter } from 'astro:transitions';
 import '../styles/global.css';
-import Header from '../components/Header.astro';
-import Player from '../components/Player.astro';
-import Viewer from '../components/Viewer.astro';
-import { getSettings } from '../lib/works';
+import Top from '../components/Top.astro';
+import T from '../components/T.astro';
+import { getSettings, UI, type NavKey } from '../lib/site';
 import { withBase } from '../lib/media';
 
 interface Props {
-  title?: string; // page title (already bilingual-joined)
+  title?: { en?: string; ko?: string };
   description?: string;
-  image?: string; // base-relative OG image path
-  imageAlt?: string;
-  jsonld?: object | object[];
-  kind?: 'website' | 'article' | 'profile';
-  current?: string; // nav key
-  page?: string; // body class: wall | reel | work | music | credits | lost
+  current?: NavKey;
+  page?: string; // body class
+  home?: boolean;
+  image?: string; // absolute or base-relative share image
+  noindex?: boolean;
 }
 const s = await getSettings();
-const siteTitle = s.site_title ?? 'goll show';
-const { title, description = [s.description, s.description_en].filter(Boolean).join(' — '), image = '/og/site.jpg', imageAlt = siteTitle, jsonld, kind = 'website', current, page } = Astro.props;
-const fullTitle = title ? `${title} — ${siteTitle}` : `${siteTitle} — ${[s.name_en, s.roles_en].filter(Boolean).join(', ')}`;
+const site = s.site_title || 'gollshow';
+const { title, current, page, home = false, image = '/og.jpg', noindex = false } = Astro.props;
+const description = Astro.props.description ?? s.description_en ?? '';
+const tEn = title?.en ? `${title.en} — ${site}` : `${site} — ${[s.name_en, s.roles_en].filter(Boolean).join(', ')}`;
+const tKo = title?.ko || title?.en ? `${title?.ko ?? title?.en} — ${site}` : `${site} — ${[s.name_ko || s.name_en, s.roles_ko].filter(Boolean).join(', ')}`;
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
 const ogImage = new URL(withBase(image)!, Astro.site).href;
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-const fontCss =
-  `@font-face{font-family:'Goll';font-style:normal;font-weight:200;font-display:swap;src:url('${base}/fonts/goll-200.woff2') format('woff2')}` +
-  `@font-face{font-family:'Goll';font-style:normal;font-weight:400;font-display:swap;src:url('${base}/fonts/goll-400.woff2') format('woff2')}` +
-  `@font-face{font-family:'Goll Fallback';font-style:normal;font-weight:100 900;font-display:swap;src:url('${base}/fonts/fallback.woff2') format('woff2')}`;
-const ld = jsonld ? (Array.isArray(jsonld) ? jsonld : [jsonld]) : [];
+const fonts =
+  'https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500&family=Instrument+Serif&family=IBM+Plex+Sans+KR:wght@400;500&display=swap';
+const year = new Date().getFullYear();
+const vt = `:root{--wash:url('${base}/fx/wash.webp')}
+@view-transition{navigation:auto}
+::view-transition-old(root){animation:none}
+::view-transition-new(root){animation:vt-wash 620ms steps(16,jump-none) both;-webkit-mask-image:var(--wash);mask-image:var(--wash);-webkit-mask-size:1600% 100%;mask-size:1600% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
+@keyframes vt-wash{from{-webkit-mask-position:0% 0;mask-position:0% 0}to{-webkit-mask-position:100% 0;mask-position:100% 0}}
+@media (prefers-reduced-motion:reduce){@view-transition{navigation:none}}`;
 ---
 <!doctype html>
-<html lang="ko" data-lang="ko">
+<html lang="en" data-lang="en" data-bg="white" data-title-en={tEn} data-title-ko={tKo}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>{fullTitle}</title>
+    <meta name="theme-color" content="#F2F0EB" />
+    <script is:inline>
+      /* Ground: white paper or black, picked once per browser session (?bg=white|black forces one).
+         Language: English unless the visitor chose KR before. Runs before the first paint. */
+      (function () {
+        var d = document.documentElement, g, q, l;
+        try { q = new URLSearchParams(location.search).get('bg'); } catch (e) {}
+        try { g = sessionStorage.getItem('gollshow:bg'); } catch (e) {}
+        if (q === 'white' || q === 'black') g = q;
+        if (g !== 'white' && g !== 'black') g = Math.random() < 0.5 ? 'white' : 'black';
+        try { sessionStorage.setItem('gollshow:bg', g); } catch (e) {}
+        d.setAttribute('data-bg', g);
+        var m = document.querySelector('meta[name="theme-color"]');
+        if (m) m.setAttribute('content', g === 'black' ? '#0C0C0D' : '#F2F0EB');
+        try { l = localStorage.getItem('gollshow:lang'); } catch (e) {}
+        if (l === 'ko') { d.setAttribute('data-lang', 'ko'); d.lang = 'ko'; }
+        d.className += ' js';
+      })();
+    </script>
+    <title>{tEn}</title>
     <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex" />}
     <link rel="canonical" href={canonical} />
-    <meta name="theme-color" content="#000000" />
     <link rel="icon" href={withBase('/favicon.svg')} type="image/svg+xml" />
     <link rel="icon" href={withBase('/favicon-32.png')} sizes="32x32" type="image/png" />
     <link rel="apple-touch-icon" href={withBase('/apple-touch-icon.png')} />
     <link rel="sitemap" href={withBase('/sitemap-index.xml')} />
-    <meta property="og:type" content={kind} />
-    <meta property="og:site_name" content={siteTitle} />
-    <meta property="og:title" content={title ?? siteTitle} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site} />
+    <meta property="og:title" content={tEn} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:image" content={ogImage} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content={imageAlt} />
-    <meta property="og:locale" content="ko_KR" />
-    <meta property="og:locale:alternate" content="en_US" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale:alternate" content="ko_KR" />
     <meta name="twitter:card" content="summary_large_image" />
-    <link rel="preload" href={`${base}/fonts/goll-200.woff2`} as="font" type="font/woff2" crossorigin />
-    <style is:inline set:html={fontCss}></style>
-    <script is:inline>
-      (() => {
-        const d = document.documentElement;
-        const get = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
-        const apply = () => {
-          const lang = get('goll:lang') || ((navigator.language || 'ko').toLowerCase().startsWith('ko') ? 'ko' : 'en');
-          d.dataset.lang = lang;
-          d.lang = lang;
-          d.classList.add('js');
-          if (matchMedia('(prefers-reduced-motion: reduce)').matches) d.classList.add('still');
-        };
-        apply();
-        if (!window.__gollPrefs) {
-          window.__gollPrefs = apply;
-          document.addEventListener('astro:after-swap', () => window.__gollPrefs());
-        }
-      })();
-    </script>
-    {ld.map((j) => <script type="application/ld+json" set:html={JSON.stringify(j)} />)}
-    <ClientRouter fallback="swap" />
-    <slot name="head" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href={fonts} />
+    <style is:inline set:html={vt}></style>
   </head>
-  <body class={page ? `p-${page}` : undefined}>
-    <a class="skip" href="#main"><span class="t" lang="ko">본문으로 건너뛰기</span><span class="t" lang="en">Skip to content</span></a>
-    <Header current={current} />
+  <body class={page}>
+    <a class="skip" href="#main"><T t={UI.skip} /></a>
+    <Top settings={s} current={current} home={home} />
     <main id="main">
       <slot />
     </main>
-    <Viewer />
-    <Player />
+    {
+      !home && (
+        <footer class="foot">
+          <p>© {year} {site}</p>
+          <ul>
+            {s.instagram && (
+              <li>
+                <a href={s.instagram} rel="me noopener" target="_blank">Instagram</a>
+              </li>
+            )}
+            {s.youtube && (
+              <li>
+                <a href={s.youtube} rel="me noopener" target="_blank">YouTube</a>
+              </li>
+            )}
+            {s.email && (
+              <li>
+                <a href={`mailto:${s.email}`}>{s.email}</a>
+              </li>
+            )}
+          </ul>
+        </footer>
+      )
+    }
     <script>
-      import '../scripts/site';
+      import '../scripts/chrome';
     </script>
   </body>
 </html>

@@ -1,100 +1,112 @@
 ---
-/**
- * End credits. A slow roll (24 steps a second, like film) that the visitor can
- * take over by scrolling, dragging or a key; 멈춤 stops it. Only real text: name
- * and roles from the site settings, the old About page's photo, text, KBS clip
- * and caption, and the contact details.
- */
+/** About: bio (EN/KR), the KBS clip as a lite embed, Instagram and contact. */
 import Base from '../layouts/Base.astro';
 import T from '../components/T.astro';
-import { getPage, getSettings } from '../lib/works';
-import { resolveImage } from '../lib/media';
-import { pic } from '../lib/pic';
-import { UI } from '../lib/i18n';
-import { personLd } from '../lib/seo';
+import Lite from '../components/Lite.astro';
+import { getEntry } from 'astro:content';
+import { getSettings, navItems, UI } from '../lib/site';
+import { pic, resolveImage } from '../lib/media';
 
 const s = await getSettings();
-const a = await getPage('about');
-const portrait = resolveImage(a?.portrait);
-const photo = portrait ? await pic(portrait, 1024) : undefined;
-const roles = (s.roles ?? '').split(/\s*[·,]\s*/).filter(Boolean);
-const rolesEn = (s.roles_en ?? '').split(/\s*[·,]\s*/).filter(Boolean);
-const handle = s.instagram?.match(/instagram\.com\/([^/?#]+)/)?.[1];
-const lines = (t?: string) => (t ?? '').split('\n');
+const nav = navItems(s).find((n) => n.key === 'about')!;
+const a = (await getEntry('pages', 'about'))?.data;
+const pm = resolveImage(a?.portrait);
+const portrait = pm ? await pic(pm) : undefined;
+const capEn = a?.video_caption_en ?? a?.video_caption_ko ?? 'Video';
+const capKo = a?.video_caption_ko ?? capEn;
 ---
-<Base title={`${a?.title ?? UI.about.ko} ${a?.title_en ?? UI.about.en}`} current="about" page="credits" kind="profile" jsonld={personLd(s, Astro.site)}>
-  <section class="cr" data-credits aria-labelledby="cr-h">
-    <div class="cr__roll">
-      <h1 id="cr-h" class="cr__name title">goll</h1>
-      {s.name && <p class="cr__real head">{s.name}</p>}
-      {s.name_en && <p class="cr__real head">{s.name_en}</p>}
+<Base title={{ en: nav.en, ko: nav.ko }} current="about" page="about">
+  <div class="page">
+    <h1 class="page-title"><T en={nav.en} ko={nav.ko} /></h1>
+    <div class="about">
+      <div class="about__text">
+        {
+          (s.name_en || s.name_ko) && (
+            <p class="about__name">
+              <T en={s.name_en ?? s.name_ko} ko={s.name_ko || s.name_en} />
+            </p>
+          )
+        }
+        {(s.roles_en || s.roles_ko) && <T as="p" class="about__roles" en={s.roles_en} ko={s.roles_ko} />}
+        {(a?.bio_en || a?.bio_ko) && <T block class="about__bio" en={a?.bio_en} ko={a?.bio_ko} />}
 
-      {roles.length > 0 && (
-        <ul class="cr__roles">
-          {roles.map((r, i) => <li><T ko={r} en={rolesEn[i]} /></li>)}
-        </ul>
-      )}
-
-      {photo && (
-        <figure class="cr__photo">
-          <img src={photo.fallback} srcset={photo.webp} sizes="(max-width: 760px) 64vw, 300px" alt="goll" width={photo.w} height={photo.h} loading="lazy" decoding="async" style={`background:${photo.color} ${photo.lqip} center/cover no-repeat`} />
-        </figure>
-      )}
-
-      {(a?.bio || a?.bio_en) && (
-        <div class="cr__text">
-          {a?.bio && <p class:list={[a.bio_en && a.bio_en !== a.bio && 't']} lang={a.bio_en && a.bio_en !== a.bio ? 'ko' : undefined}>{lines(a.bio).map((l, i) => <>{i > 0 && <br />}{l}</>)}</p>}
-          {a?.bio_en && a.bio_en !== a.bio && <p class="t" lang="en">{lines(a.bio_en).map((l, i) => <>{i > 0 && <br />}{l}</>)}</p>}
-        </div>
-      )}
-
-      {a?.video && (
-        <figure class="cr__video">
-          <div class="cr__frame">
-            <iframe src={a.video} title={a.video_caption ?? 'Video'} loading="lazy" allow="fullscreen; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
-          </div>
-          {(a.video_caption || a.video_caption_en) && <figcaption class="ash"><T ko={a.video_caption ?? a.video_caption_en} en={a.video_caption_en} /></figcaption>}
-        </figure>
-      )}
-
-      <ul class="cr__contact">
-        {s.email && <li><a href={`mailto:${s.email}`}>{s.email}</a></li>}
-        {s.instagram && <li><a href={s.instagram} target="_blank" rel="me noopener">Instagram{handle && <span class="ash"> {handle}</span>}<span class="sr-only"> (<T t={UI.newWindow} />)</span></a></li>}
-        {s.links.map((l) => <li><a href={l.url} target="_blank" rel="me noopener">{l.label ?? l.url}</a></li>)}
-      </ul>
-
-      <p class="cr__end" lang="zh-Hant" aria-hidden="true">空</p>
+        <section class="about__contact">
+          <h2 class="section-title"><T t={UI.contact} /></h2>
+          <ul>
+            {s.email && <li><a class="text-link" href={`mailto:${s.email}`}>{s.email}</a></li>}
+            {s.instagram && <li><a class="text-link" href={s.instagram} target="_blank" rel="me noopener">Instagram</a></li>}
+            {s.youtube && <li><a class="text-link" href={s.youtube} target="_blank" rel="me noopener">YouTube</a></li>}
+            {s.links.map((l) => <li><a class="text-link" href={l.url} target="_blank" rel="noopener">{l.label ?? l.url}</a></li>)}
+          </ul>
+        </section>
+      </div>
+      {
+        portrait && (
+          <figure class="about__img">
+            <img src={portrait.src} srcset={portrait.srcset} sizes="(max-width: 860px) 100vw, 34vw" width={portrait.w} height={portrait.h} alt="gollshow, 2002" decoding="async" />
+          </figure>
+        )
+      }
     </div>
-    <button class="cr__toggle ui" type="button" data-credits-toggle aria-pressed="false">
-      <span class="cr__stop"><T t={UI.stop} /></span><span class="cr__go"><T t={UI.resume} /></span>
-    </button>
-  </section>
+    {
+      a?.video && (
+        <figure class="about__clip">
+          <Lite url={a.video} label={{ en: `${UI.play.en} — ${capEn}`, ko: `${UI.play.ko} — ${capKo}` }} title={capEn} />
+          <T as="figcaption" class="meta" en={capEn} ko={capKo} />
+        </figure>
+      )
+    }
+  </div>
 </Base>
 
 <style>
-  .cr { padding: 0 var(--margin); text-align: center; }
-  :global(html.js:not(.still)) .cr { padding-top: 72svh; }
-  :global(html:not(.js)) .cr, :global(.still) .cr { padding-top: calc(var(--header-h) + 10vh); }
-  .cr__roll { display: grid; justify-items: center; gap: 0; max-width: 40rem; margin: 0 auto; }
-  .cr__name { color: var(--screen); }
-  .cr__real { margin-top: 18px; color: var(--screen); }
-  .cr__roles { margin-top: clamp(64px, 14vh, 140px); display: grid; gap: 6px; font-size: clamp(1.125rem, 1rem + 0.6vw, 1.5rem); font-weight: 200; color: var(--screen); }
-  .cr__photo { margin-top: clamp(80px, 16vh, 160px); width: min(64vw, 300px); }
-  .cr__photo img { width: 100%; height: auto; }
-  .cr__text { margin-top: clamp(64px, 12vh, 120px); line-height: 1.8; color: var(--screen); }
-  .cr__video { margin-top: clamp(80px, 16vh, 160px); width: min(100%, 640px); }
-  .cr__frame { position: relative; aspect-ratio: 16 / 9; background: #0b0a09; }
-  .cr__frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #0b0a09; color-scheme: dark; }
-  .cr__video figcaption { margin-top: 14px; }
-  .cr__contact { margin-top: clamp(80px, 16vh, 160px); display: grid; gap: 4px; font-size: clamp(1.125rem, 1rem + 0.6vw, 1.5rem); font-weight: 200; }
-  .cr__contact a { display: inline-block; padding: 4px 0; min-height: 44px; line-height: 36px; transition: color 160ms; }
-  .cr__contact a:hover { color: var(--beam); }
-  .cr__end { margin: clamp(120px, 30vh, 280px) 0 45svh; font-family: 'Goll Fallback', serif; font-size: clamp(3rem, 2rem + 4vw, 5.5rem); line-height: 1; color: var(--screen); }
-  .cr__toggle { position: fixed; right: var(--margin); bottom: calc(14px + env(safe-area-inset-bottom)); z-index: 30; min-height: 44px; padding: 0 4px; color: var(--ash); }
-  .cr__toggle:hover { color: var(--beam); }
-  .cr__go { display: none; }
-  .cr__toggle[aria-pressed='true'] .cr__go { display: inline; }
-  .cr__toggle[aria-pressed='true'] .cr__stop { display: none; }
-  :global(html:not(.js)) .cr__toggle, :global(.still) .cr__toggle { display: none; }
-  :global(.has-player) .cr__toggle { bottom: calc(64px + env(safe-area-inset-bottom)); }
+  .about {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: 48px clamp(40px, 7vw, 120px);
+    align-items: start;
+  }
+  .about__name {
+    font: 400 clamp(28px, 3vw, 40px) / 1.15 var(--f-display);
+  }
+  .about__roles {
+    margin-top: 8px;
+    color: var(--ink-2);
+  }
+  .about__bio {
+    margin-top: 32px;
+    max-width: 52ch;
+    font-size: 17px;
+    line-height: 1.7;
+    white-space: pre-line;
+  }
+  .about__bio :global(p + p) {
+    margin-top: 1em;
+  }
+  .about__contact {
+    margin-top: 48px;
+  }
+  .about__contact ul {
+    display: grid;
+    gap: 6px;
+  }
+  .about__img img {
+    width: 100%;
+    max-width: calc(var(--nw, 600) * 1.5px);
+  }
+  .about__clip {
+    margin-top: clamp(64px, 9vw, 130px);
+    max-width: 980px;
+  }
+  .about__clip figcaption {
+    margin-top: 12px;
+  }
+  @media (max-width: 860px) {
+    .about {
+      grid-template-columns: 1fr;
+    }
+    .about__img {
+      max-width: 420px;
+    }
+  }
 </style>

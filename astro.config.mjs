@@ -15,7 +15,7 @@ const cname = () => ({
   },
 });
 
-// Old Adobe Portfolio addresses keep working.
+// Old Adobe Portfolio addresses (and the round-2 work pages) keep working.
 const old = {
   '/work': '/',
   '/works': '/',
@@ -25,9 +25,12 @@ const old = {
   '/contepastel': '/conte-pastel/',
   '/music-1': '/music/',
   '/test': '/about/',
-  '/yyy': '/works/gogo/',
-  '/uuu': '/works/pear-blossom/',
-  '/willow-and-water-lily': '/works/willow-and-water-lily/',
+  '/yyy': '/painting/',
+  '/uuu': '/painting/',
+  '/willow-and-water-lily': '/painting/',
+  '/works/gogo': '/painting/',
+  '/works/pear-blossom': '/painting/',
+  '/works/willow-and-water-lily': '/painting/',
 };
 
 export default defineConfig({
@@ -43,7 +46,7 @@ export default defineConfig({
   },
   integrations: [
     sitemap({
-      filter: (page) => !/\/(admin|og)\//.test(page) && !Object.keys(old).some((o) => page.replace(/\/$/, '').endsWith(o)),
+      filter: (page) => !/\/admin\//.test(page) && !Object.keys(old).some((o) => page.replace(/\/$/, '').endsWith(o)),
     }),
     cname(),
   ],

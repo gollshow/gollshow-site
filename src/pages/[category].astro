@@ -1,0 +1,106 @@
+---
+/**
+ * Painting / Conté & Pastel / Digital: a loose salon hang. Works at their true
+ * proportions in justified rows with generous gutters; S/M/L (set in /admin) changes
+ * a work's share of its row. No cards, borders, shadows or hover zoom. Calm ground.
+ */
+import Base from '../layouts/Base.astro';
+import Viewer from '../components/Viewer.astro';
+import T from '../components/T.astro';
+import { ART } from '../content.config';
+import { getWorks, viewerData } from '../lib/art';
+import { getSettings, navItems, type NavKey } from '../lib/site';
+
+export function getStaticPaths() {
+  return ART.map((category) => ({ params: { category } }));
+}
+const { category } = Astro.params as { category: (typeof ART)[number] };
+const s = await getSettings();
+const nav = navItems(s).find((n) => n.key === category)!;
+const works = await getWorks(category);
+const S = { S: 0.78, M: 1, L: 1.38 } as const;
+---
+<Base title={{ en: nav.en, ko: nav.ko }} current={category as NavKey} page="art">
+  <div class="page">
+    <h1 class="page-title"><T en={nav.en} ko={nav.ko} /></h1>
+    <ul class="salon">
+      {
+        works.map((w, i) => (
+          <li
+            class:list={['salon__item', `is-${w.display}`]}
+            style={`--a:${(w.w / w.h).toFixed(4)};--s:${S[w.display]};--nw:${w.w}`}
+          >
+            <a class="salon__link" href={w.pic.large} data-view={i}>
+              <img
+                class="salon__img"
+                src={w.src}
+                srcset={w.srcset}
+                sizes={w.display === 'L' ? '(max-width: 640px) calc(100vw - 32px), 44vw' : '(max-width: 640px) calc(100vw - 32px), (max-width: 1100px) 40vw, 30vw'}
+                width={w.w}
+                height={w.h}
+                alt={w.alt.en}
+                data-alt-en={w.alt.en}
+                data-alt-ko={w.alt.ko}
+                loading={i < 8 ? 'eager' : 'lazy'}
+                decoding="async"
+              />
+            </a>
+            {w.title && <T as="p" class="salon__cap" en={w.title.en} ko={w.title.ko} />}
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+  <Viewer items={viewerData(works)} label={{ en: nav.en, ko: nav.ko }} />
+</Base>
+
+<style>
+  .salon {
+    --H: clamp(170px, 21vw, 330px);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: clamp(28px, 4.2vw, 68px);
+    row-gap: clamp(56px, 7.5vw, 120px);
+  }
+  /* Keeps the last row at its natural size instead of stretching it. */
+  .salon::after {
+    content: '';
+    flex: 999 1 0;
+  }
+  .salon__item {
+    flex: calc(var(--a) * var(--s)) 1 calc(var(--a) * var(--s) * var(--H));
+    min-width: 0;
+    /* never more than 1.5× the image's natural width */
+    max-width: min(100%, calc(var(--nw) * 1.5px));
+  }
+  .salon__link {
+    display: block;
+    cursor: zoom-in;
+  }
+  .salon__img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: var(--a);
+  }
+  .salon__link:focus-visible {
+    outline-offset: 6px;
+  }
+  .salon__cap {
+    margin-top: 12px;
+    font: 400 13px/1.4 var(--f-ui);
+    color: var(--ink-2);
+  }
+  @media (max-width: 640px) {
+    .salon {
+      display: grid;
+      gap: 56px;
+    }
+    .salon::after {
+      display: none;
+    }
+    .salon__item {
+      width: 100%;
+    }
+  }
+</style>

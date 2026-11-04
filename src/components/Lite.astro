@@ -1,0 +1,65 @@
+---
+/**
+ * Lite embed: a poster frame (or the quiet ground) and a play button. The real
+ * player (YouTube, Vimeo, Spotify, Adobe) only loads when the visitor clicks.
+ */
+import { embedFor } from '../lib/embed';
+
+interface Props {
+  url?: string;
+  poster?: { src: string; srcset?: string; position?: string };
+  label: { en: string; ko?: string };
+  title?: string; // iframe title
+  class?: string;
+}
+const { url, poster, label, title = label.en, class: cls } = Astro.props;
+const e = embedFor(url);
+const ko = label.ko ?? label.en;
+---
+{
+  e && (
+    <div
+      class:list={['lite', `lite--${e.kind}`, cls]}
+      data-lite={e.src}
+      data-lite-title={title}
+      style={e.ratio ? `aspect-ratio:${e.ratio}` : `aspect-ratio:auto;height:${e.height}px`}
+    >
+      {poster && (
+        <img src={poster.src} srcset={poster.srcset} sizes="(max-width: 900px) 100vw, 900px" alt="" loading="lazy" decoding="async" style={poster.position ? `object-position:${poster.position}` : undefined} />
+      )}
+      <button class="lite__play" type="button" aria-label={label.en} data-aria-en={label.en} data-aria-ko={ko}>
+        <span class="lite__btn" aria-hidden="true">
+          <svg viewBox="0 0 14 14">
+            <path d="M3 1.5v11l9.5-5.5z" />
+          </svg>
+          <span data-l="en">{label.en}</span>
+          <span data-l="ko" lang="ko">{ko}</span>
+        </span>
+      </button>
+    </div>
+  )
+}
+<script>
+  document.addEventListener('click', (ev) => {
+    const b = (ev.target as Element).closest('.lite__play');
+    const box = b?.closest<HTMLElement>('[data-lite]');
+    if (!box) return;
+    let src = box.dataset.lite!;
+    if (box.classList.contains('lite--adobe')) {
+      // Match the player's background to the page ground.
+      try {
+        const u = new URL(src);
+        u.searchParams.set('bgcolor', getComputedStyle(document.documentElement).getPropertyValue('--ground').trim());
+        src = u.href;
+      } catch {}
+    }
+    const f = document.createElement('iframe');
+    f.src = src;
+    f.title = box.dataset.liteTitle || '';
+    f.allow = 'autoplay; encrypted-media; fullscreen; picture-in-picture; clipboard-write';
+    f.allowFullscreen = true;
+    f.loading = 'eager';
+    box.replaceChildren(f);
+    f.focus();
+  });
+</script>

@@ -1,15 +1,31 @@
 # 사이트 설정 — /admin 의 "사이트 설정"에서 편집합니다.
-site_title: goll show
-name: ""
+site_title: gollshow
+wordmark: gollshow
 name_en: Ki Hyoung Oh
-roles: 영화감독 · 화가 · 작곡가
+name_ko: ""
 roles_en: Film director · Painter · Composer
-hero_text: 空
-hero_image: /src/assets/media/goll-landing-watercolor.jpg
-intro: Hi, I'm goll !
-intro_en: Hi, I'm goll !
-description: 영화감독 · 화가 · 작곡가 goll(Ki Hyoung Oh)의 회화, 콩테·파스텔, 디지털 작업과 음악.
-description_en: Paintings, drawings, digital works and music by goll (Ki Hyoung Oh) — film director, painter and composer.
+roles_ko: 영화감독 · 화가 · 작곡가
+description_en: Films, paintings, drawings, digital works and music by goll (Ki Hyoung Oh) — film director, painter and composer.
+description_ko: 영화감독 · 화가 · 작곡가 goll(Ki Hyoung Oh)의 영화, 회화, 콩테·파스텔, 디지털 작업과 음악.
 email: gollshow@gmail.com
 instagram: https://www.instagram.com/gollshow/
+youtube: https://www.youtube.com/@gogolalashow
 links: []
+menu:
+  painting_en: Painting
+  painting_ko: 회화
+  conte_en: Conté & Pastel
+  conte_ko: 콩테·파스텔
+  digital_en: Digital
+  digital_ko: 디지털
+  film_en: Film
+  film_ko: 영화
+  music_en: Music
+  music_ko: 음악
+  about_en: About
+  about_ko: 소개
+pigments:
+  ultramarine: "#1C2B94"
+  vermilion: "#DB3821"
+  viridian: "#0A6B5C"
+  ochre: "#F2B833"

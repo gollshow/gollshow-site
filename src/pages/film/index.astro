@@ -1,0 +1,125 @@
+---
+/** Film list: one film per row — a wide still (2.39:1), titles, year, role, runtime, logline. */
+import Base from '../../layouts/Base.astro';
+import T from '../../components/T.astro';
+import { getSettings, navItems, publishedFilms, runtimeOf, UI } from '../../lib/site';
+import { pic, resolveImage, withBase } from '../../lib/media';
+
+const s = await getSettings();
+const nav = navItems(s).find((n) => n.key === 'film')!;
+const films = await Promise.all(
+  (await publishedFilms()).map(async (f) => {
+    const m = resolveImage(f.data.still ?? f.data.stills[0]);
+    return { f, still: m ? await pic(m) : undefined, rt: runtimeOf(f.data.runtime) };
+  }),
+);
+---
+<Base title={{ en: nav.en, ko: nav.ko }} current="film" page="film-list">
+  <div class="page">
+    <h1 class="page-title"><T en={nav.en} ko={nav.ko} /></h1>
+    {
+      films.length === 0 ? (
+        <T as="p" class="soon" t={UI.filmsSoon} />
+      ) : (
+        <ul class="films">
+          {films.map(({ f, still, rt }) => {
+            const d = f.data;
+            const en = d.title_en ?? d.title_ko ?? f.id;
+            const ko = d.title_ko ?? d.title_en ?? f.id;
+            const meta = (l: 'en' | 'ko') => [d.year, l === 'en' ? (d.role_en ?? d.role_ko) : (d.role_ko ?? d.role_en), rt?.[l]].filter(Boolean).join(' · ');
+            return (
+              <li class="film">
+                <a class="film__link" href={withBase(`/film/${f.id}/`)}>
+                  {!d.published && <T as="p" class="draft" t={UI.draft} />}
+                  <div class="film__still">
+                    {still && (
+                      <img
+                        src={still.src}
+                        srcset={still.srcset}
+                        sizes="(max-width: 1480px) calc(100vw - 2 * var(--gutter)), 1368px"
+                        alt=""
+                        loading="lazy"
+                        decoding="async"
+                        style={`object-position:${d.focus ?? 'center'}`}
+                      />
+                    )}
+                  </div>
+                  <div class="film__text">
+                    <h2 class="film__title">
+                      <span data-l="en">{en}{d.title_ko && d.title_ko !== en && <span class="film__alt" lang="ko">{d.title_ko}</span>}</span>
+                      <span data-l="ko" lang="ko">{ko}{d.title_en && d.title_en !== ko && <span class="film__alt" lang="en">{d.title_en}</span>}</span>
+                    </h2>
+                    <p class="meta"><T en={meta('en')} ko={meta('ko')} /></p>
+                    {(d.logline_en || d.logline_ko) && <T as="p" class="film__log" en={d.logline_en} ko={d.logline_ko} />}
+                  </div>
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      )
+    }
+  </div>
+</Base>
+
+<style>
+  .soon {
+    font: 400 clamp(20px, 2.2vw, 26px) / 1.4 var(--f-display);
+    color: var(--ink-2);
+    min-height: 30vh;
+  }
+  .films {
+    display: grid;
+    gap: clamp(64px, 9vw, 140px);
+  }
+  .film__link {
+    display: block;
+  }
+  .film__still {
+    aspect-ratio: 2.39;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--ink) 6%, var(--ground));
+  }
+  .film__still img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .film__text {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 8px 48px;
+    margin-top: 22px;
+  }
+  .film__title {
+    font: 400 clamp(28px, 3.2vw, 44px) / 1.1 var(--f-display);
+    grid-row: span 2;
+  }
+  .film__alt {
+    display: block;
+    margin-top: 8px;
+    font: 400 16px/1.4 var(--f-ui);
+    color: var(--ink-2);
+  }
+  .film__log {
+    max-width: 52ch;
+  }
+  .film__link:hover .film__title > span {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.16em;
+  }
+  .draft {
+    font: 500 13px/1.4 var(--f-nav);
+    color: var(--ink-2);
+    margin-bottom: 10px;
+  }
+  @media (max-width: 760px) {
+    .film__text {
+      grid-template-columns: 1fr;
+    }
+    .film__title {
+      grid-row: auto;
+    }
+  }
+</style>

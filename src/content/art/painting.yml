@@ -1,0 +1,207 @@
+# 회화 — /admin 의 "회화"에서 편집합니다. 위에서부터 사이트에 보이는 순서입니다.
+bulk: []
+works:
+  - image: /src/assets/media/painting/gogo-01.jpg
+    title_en: gogo
+    year: "2024"
+    material: Oil
+    size: 1200x870mm
+    display: L
+    hidden: false
+    process: https://www-ccv.adobe.io/v1/player/ccv/Jt-jwMn9hdq/embed?bgcolor=%23191919&lazyLoading=true&api_key=BehancePro2View
+  - image: /src/assets/media/painting/pear-blossom-cover.jpg
+    title_en: Pear blossom
+    year: "2024"
+    material: Oil on canvas
+    size: 530X455mm
+    display: L
+    hidden: false
+    process: https://www-ccv.adobe.io/v1/player/ccv/8DGyZJcmrMR/embed?bgcolor=%23191919&lazyLoading=true&api_key=BehancePro2View
+  - image: /src/assets/media/painting/willow-and-water-lily-cover.jpg
+    title_en: willow and water lily
+    year: "2024"
+    material: Acrylic on canvas
+    size: 596×896㎜
+    display: L
+    hidden: false
+    process: https://www-ccv.adobe.io/v1/player/ccv/B8wiwPZRziR/embed?bgcolor=%23191919&lazyLoading=true&api_key=BehancePro2View
+  - image: /src/assets/media/painting/painting-001.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-002.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-003.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-004.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-005.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-006.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-007.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-008.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-009.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-010.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-011.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-012.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-013.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-014.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-015.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-016.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-017.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-018.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-019.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-020.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-021.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-022.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-023.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-024.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-025.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-026.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-027.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-028.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-029.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-030.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-031.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-032.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-034.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-035.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-036.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-037.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-038.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-039.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-040.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-041.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-042.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-043.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-044.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-045.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-046.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-047.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-048.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-049.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-050.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-051.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-052.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-053.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-054.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-055.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-056.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-057.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/painting/painting-058.jpg
+    display: M
+    hidden: true
+  - image: /src/assets/media/painting/painting-059.jpg
+    display: M
+    hidden: true
+  - image: /src/assets/media/painting/painting-060.jpg
+    display: M
+    hidden: true
+  - image: /src/assets/media/painting/painting-063.jpg
+    display: M
+    hidden: false

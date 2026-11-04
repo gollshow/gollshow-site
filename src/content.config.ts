@@ -10,86 +10,157 @@ const text = () =>
 
 const bool = (d = false) => z.boolean().nullish().transform((v) => v ?? d);
 
+const strings = () =>
+  z
+    .union([z.array(z.union([z.string(), z.number()]).nullish()), z.string()])
+    .nullish()
+    .transform((v) =>
+      (Array.isArray(v) ? v : typeof v === 'string' ? v.split(/\n|,/) : [])
+        .map((s) => (s === null || s === undefined ? '' : String(s).trim()))
+        .filter(Boolean),
+    );
+
 const links = () =>
   z
-    .array(z.object({ label: text(), url: text() }))
+    .array(z.object({ label: text(), url: text() }).nullish())
     .nullish()
-    .transform((v) => (v ?? []).filter((l): l is { label?: string; url: string } => !!l.url));
+    .transform((v) => (v ?? []).filter((l): l is { label?: string; url: string } => !!l?.url));
 
-export const CATEGORIES = ['painting', 'conte-pastel', 'digital', 'music', 'film', 'etc'] as const;
+/* ── Painting / Conté & Pastel / Digital ─────────────────────────────────────
+ * One YAML file per category (src/content/art/<category>.yml) holding the list
+ * of works in display order. `bulk` is the CMS's "drop many images" field: the
+ * admin moves those images into `works` on save; anything left there is still
+ * shown (after the listed works) so an upload is never lost. */
+export const ART = ['painting', 'conte-pastel', 'digital'] as const;
 
-const works = defineCollection({
-  loader: glob({ pattern: '**/*.md', base: './src/content/works' }),
+const work = z.object({
+  image: text(),
+  title_en: text(),
+  title_ko: text(),
+  year: text(),
+  material: text(),
+  size: text(),
+  note: text(),
+  display: z
+    .string()
+    .nullish()
+    .transform((v) => (v ?? 'M').toUpperCase())
+    .pipe(z.enum(['S', 'M', 'L']).catch('M')),
+  hidden: bool(false),
+  process: text(),
+});
+
+const art = defineCollection({
+  loader: glob({ pattern: '*.{yml,yaml}', base: './src/content/art' }),
   schema: z.object({
-    // Optional: the old site had no titles for its grid works. Untitled works
-    // are shown by their reel and frame number, never with an invented title.
-    title: text(),
-    title_en: text(),
-    year: text(),
-    category: z.enum(CATEGORIES).catch('etc'),
-    medium: text(),
-    medium_en: text(),
-    size: text(),
-    images: z
-      .array(z.union([z.string(), z.object({ image: text(), caption: text(), caption_en: text() })]))
+    bulk: strings(),
+    works: z
+      .array(work.nullish())
       .nullish()
-      .transform((list) =>
-        (list ?? [])
-          .map((i) => (typeof i === 'string' ? { image: i, caption: undefined, caption_en: undefined } : i))
-          .filter((i): i is { image: string; caption?: string; caption_en?: string } => !!i.image),
-      ),
-    cover: text(),
-    description: text(),
-    description_en: text(),
-    audio: text(),
-    link: text(),
-    video: text(), // embed player URL (Adobe, YouTube, Vimeo) shown on the work page
-    featured: bool(false),
-    order: z.coerce.number().nullish().transform((v) => (Number.isFinite(v) ? (v as number) : 1000)),
-    draft: bool(false),
+      .transform((v) => (v ?? []).filter((w): w is z.infer<typeof work> => !!w?.image)),
   }),
 });
 
+/* ── Film: one Markdown file per film ─────────────────────────────────────── */
+const films = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/films' }),
+  schema: z.object({
+    published: bool(false),
+    order: z.coerce.number().nullish().transform((v) => (Number.isFinite(v) ? (v as number) : 1000)),
+    title_en: text(),
+    title_ko: text(),
+    year: text(),
+    runtime: text(),
+    role_en: text(),
+    role_ko: text(),
+    logline_en: text(),
+    logline_ko: text(),
+    still: text(),
+    focus: text(),
+    trailer: text(),
+    synopsis_en: text(),
+    synopsis_ko: text(),
+    stills: strings(),
+    credits: z
+      .array(z.object({ role_en: text(), role_ko: text(), names: strings() }).nullish())
+      .nullish()
+      .transform((v) => (v ?? []).filter((c): c is NonNullable<typeof c> => !!c && (!!c.role_en || !!c.role_ko || c.names.length > 0))),
+    festivals: z
+      .array(z.object({ year: text(), text_en: text(), text_ko: text() }).nullish())
+      .nullish()
+      .transform((v) => (v ?? []).filter((f): f is NonNullable<typeof f> => !!f && (!!f.text_en || !!f.text_ko))),
+    links: links(),
+  }),
+});
+
+/* ── About and Music ─────────────────────────────────────────────────────── */
 const pages = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/pages' }),
   schema: z.object({
-    title: text(),
-    title_en: text(),
     // about
-    bio: text(),
     bio_en: text(),
+    bio_ko: text(),
     portrait: text(),
     video: text(),
-    video_caption: text(),
     video_caption_en: text(),
-    cv: z
-      .array(z.object({ year: text(), text: text(), text_en: text() }))
-      .nullish()
-      .transform((v) => v ?? []),
+    video_caption_ko: text(),
     // music
     name: text(),
+    intro_en: text(),
+    intro_ko: text(),
     links: links(),
   }),
 });
+
+/* ── Site settings ───────────────────────────────────────────────────────── */
+const hex = (d: string) =>
+  z
+    .string()
+    .nullish()
+    .transform((v) => (v && /^#?[0-9a-f]{6}$/i.test(v.trim()) ? '#' + v.trim().replace('#', '').toUpperCase() : d));
 
 const settings = defineCollection({
-  loader: glob({ pattern: '**/*.{yml,yaml,json}', base: './src/content/settings' }),
+  loader: glob({ pattern: '**/*.{yml,yaml}', base: './src/content/settings' }),
   schema: z.object({
     site_title: text(),
-    name: text(),
+    wordmark: text(),
     name_en: text(),
-    roles: text(),
+    name_ko: text(),
     roles_en: text(),
-    hero_text: text(),
-    hero_image: text(),
-    intro: text(),
-    intro_en: text(),
-    description: text(),
+    roles_ko: text(),
     description_en: text(),
+    description_ko: text(),
     email: text(),
     instagram: text(),
+    youtube: text(),
     links: links(),
+    menu: z
+      .object({
+        painting_en: text(),
+        painting_ko: text(),
+        conte_en: text(),
+        conte_ko: text(),
+        digital_en: text(),
+        digital_ko: text(),
+        film_en: text(),
+        film_ko: text(),
+        music_en: text(),
+        music_ko: text(),
+        about_en: text(),
+        about_ko: text(),
+      })
+      .nullish()
+      .transform((v) => v ?? {}),
+    pigments: z
+      .object({
+        ultramarine: hex('#1C2B94'),
+        vermilion: hex('#DB3821'),
+        viridian: hex('#0A6B5C'),
+        ochre: hex('#F2B833'),
+      })
+      .nullish()
+      .transform((v) => v ?? { ultramarine: '#1C2B94', vermilion: '#DB3821', viridian: '#0A6B5C', ochre: '#F2B833' }),
   }),
 });
 
-export const collections = { works, pages, settings };
+export const collections = { art, films, pages, settings };

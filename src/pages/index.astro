@@ -1,13 +1,80 @@
 ---
+/** Home: the pigment flow. No artwork on this screen (owner's rule). */
 import Base from '../layouts/Base.astro';
-import Wall from '../components/Wall.astro';
-import Opening from '../components/Opening.astro';
-import { getSettings } from '../lib/works';
-import { personLd } from '../lib/seo';
+import { getSettings, wordmarkOf } from '../lib/site';
 
 const s = await getSettings();
+const word = wordmarkOf(s);
+const p = s.pigments;
+const pig = [p.ultramarine, p.vermilion, p.viridian, p.ochre];
 ---
-<Base jsonld={personLd(s, Astro.site)} current="wall" page="wall">
-  <Opening />
-  <Wall />
+<Base home page="home">
+  <section
+    class="hero"
+    data-hero
+    data-word={word}
+    data-pigments={pig.join(',')}
+    style={`--p0:${pig[0]};--p1:${pig[1]};--p2:${pig[2]};--p3:${pig[3]}`}
+  >
+    <div class="hero__wash" aria-hidden="true"></div>
+    <h1 class="hero__mark">{word}</h1>
+    <canvas class="hero__cv" aria-hidden="true"></canvas>
+  </section>
 </Base>
+
+<script>
+  import '../scripts/hero';
+</script>
+
+<style>
+  :global(body.home) {
+    overflow: hidden;
+    height: 100vh;
+    height: 100dvh;
+  }
+  .hero {
+    position: relative;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    touch-action: pan-y;
+  }
+  .hero__cv {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    opacity: 0;
+  }
+  .hero.is-gl .hero__cv {
+    opacity: 1;
+  }
+  /* Static fallback (no JS, no WebGL): the ground, the wordmark in ink and a soft wash of the four pigments. */
+  .hero__wash {
+    position: absolute;
+    inset: -12%;
+    background:
+      radial-gradient(34% 30% at 34% 40%, color-mix(in srgb, var(--p0) 70%, transparent), transparent 72%),
+      radial-gradient(30% 34% at 66% 60%, color-mix(in srgb, var(--p1) 62%, transparent), transparent 72%),
+      radial-gradient(26% 24% at 46% 66%, color-mix(in srgb, var(--p2) 60%, transparent), transparent 70%),
+      radial-gradient(22% 20% at 60% 34%, color-mix(in srgb, var(--p3) 66%, transparent), transparent 70%);
+    filter: blur(48px);
+    opacity: 0.5;
+  }
+  .hero__mark {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding-bottom: 2vh;
+    font: 400 min(21.5vw, 34vh) / 1 var(--f-mark);
+    color: var(--ink);
+    white-space: nowrap;
+    pointer-events: none;
+  }
+  :global(.js) .hero:not(.is-static) .hero__wash,
+  :global(.js) .hero:not(.is-static) .hero__mark {
+    opacity: 0;
+  }
+</style>

@@ -1,8 +1,37 @@
 ---
-/** Bilingual text. Shows Korean or English according to <html data-lang>. */
-interface Props { ko?: string; en?: string; t?: { ko: string; en?: string } }
-const ko = Astro.props.t?.ko ?? Astro.props.ko ?? '';
-const en = Astro.props.t?.en ?? Astro.props.en;
-const same = !en || en === ko;
+/**
+ * Bilingual text. English is the default; the Korean version is shown when the
+ * visitor switches to KR. When there is no Korean (or it is the same), only one
+ * copy is written. `block` keeps the owner's line breaks and blank-line paragraphs.
+ */
+interface Props {
+  en?: string;
+  ko?: string;
+  t?: { en?: string; ko?: string };
+  as?: string;
+  class?: string;
+  block?: boolean;
+}
+const { t, block = false, class: cls } = Astro.props;
+const Tag = Astro.props.as ?? (block ? 'div' : 'span');
+const en = Astro.props.en ?? t?.en;
+const ko = Astro.props.ko ?? t?.ko;
+const one = !ko || !en || ko === en;
+const paras = (s?: string) => (s ?? '').split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
 ---
-{same ? <Fragment set:text={ko} /> : <><span class="t" lang="ko" set:text={ko} /><span class="t" lang="en" set:text={en} /></>}
+{
+  block ? (
+    one ? (
+      <Tag class:list={['bi', cls]} lang={!en ? 'ko' : undefined}>{paras(en ?? ko).map((p) => <p>{p}</p>)}</Tag>
+    ) : (
+      <>
+        <Tag class:list={['bi', cls]} data-l="en">{paras(en).map((p) => <p>{p}</p>)}</Tag>
+        <Tag class:list={['bi', cls]} data-l="ko" lang="ko">{paras(ko).map((p) => <p>{p}</p>)}</Tag>
+      </>
+    )
+  ) : one ? (
+    cls || Tag !== 'span' ? <Tag class={cls} lang={!en ? 'ko' : undefined}>{en ?? ko}</Tag> : (en ?? ko)
+  ) : (
+    <Tag class={cls}><span data-l="en">{en}</span><span data-l="ko" lang="ko">{ko}</span></Tag>
+  )
+}

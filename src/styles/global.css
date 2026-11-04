@@ -1,134 +1,283 @@
-/* ──────────────────────────────────────────────────────────────────────────
-   영사실 — the projection room. Tokens and rules mirror DESIGN.md.
-   One theme: the room is dark.
-   ────────────────────────────────────────────────────────────────────────── */
+/* gollshow — round 3. Two grounds (white paper / black), ink letters, colour only in the pigment. */
 
 :root {
-  --black: #000;
-  --beam: #f6e7c8;
-  --screen: #eceae4;
-  --ash: #8a847c;
-  --dust: #6b6660;
-  --wall: #4a443d;
-  --base: #0b0907;
+  /* ONE place for the wordmark font: the home motion's text canvas reads this variable too. */
+  --f-mark: 'Instrument Serif', 'Iowan Old Style', Georgia, serif;
+  --f-display: 'Instrument Serif', 'IBM Plex Sans KR', Georgia, serif;
+  --f-nav: 'Instrument Sans', 'IBM Plex Sans KR', 'Helvetica Neue', Arial, sans-serif;
+  --f-ui: 'Instrument Sans', 'IBM Plex Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Helvetica Neue', Arial, sans-serif;
 
-  --font: 'Goll', 'Goll Fallback', 'Noto Serif KR', 'AppleMyungjo', 'Batang', serif;
+  --ground: #f2f0eb;
+  --ink: #1e1d1b;
+  --ink-2: #5a5753;
+  --line: rgba(30, 29, 27, 0.2);
+  --veil: rgba(242, 240, 235, 0.92);
 
-  --t-title: clamp(2.75rem, 1.6rem + 5vw, 6.5rem);
-  --t-head: clamp(1.5rem, 1.2rem + 1.2vw, 2.25rem);
-  --t-body: clamp(1rem, 0.97rem + 0.1vw, 1.0625rem);
-  --t-ui: 0.9375rem;
-  --t-small: 0.8125rem;
-
-  --margin: clamp(16px, 4vw, 56px);
-  --header-h: 56px;
-
-  --ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --frame: 42ms; /* one frame at 24 fps */
-
+  --gutter: clamp(16px, 4vw, 56px);
+  --top-h: 64px;
+  --max: 1480px;
+  color-scheme: light;
+}
+:root[data-bg='black'] {
+  --ground: #0c0c0d;
+  --ink: #ece9e2;
+  --ink-2: #a8a49c;
+  --line: rgba(236, 233, 226, 0.22);
+  --veil: rgba(12, 12, 13, 0.92);
   color-scheme: dark;
 }
-@media (min-width: 1024px) {
-  :root { --header-h: 68px; }
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
-
-/* ── Reset ─────────────────────────────────────────────────────────────── */
-*, *::before, *::after { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
-body, h1, h2, h3, p, figure, blockquote, dl, dd, ol, ul { margin: 0; }
-ol, ul { padding: 0; list-style: none; }
-img, svg, video, canvas, iframe { display: block; max-width: 100%; }
-img { height: auto; }
-button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
-a { color: inherit; text-decoration: none; }
-[hidden] { display: none !important; }
-
-html { background: var(--black); color: var(--screen); font-family: var(--font); }
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
 body {
+  margin: 0;
+  min-height: 100vh;
   min-height: 100svh;
-  background: var(--black);
-  color: var(--screen);
-  font-size: var(--t-body);
-  line-height: 1.65;
-  font-weight: 400;
+  background: var(--ground);
+  color: var(--ink);
+  font: 400 16px/1.6 var(--f-ui);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  display: flex;
+  flex-direction: column;
+}
+main {
+  flex: 1 0 auto;
+}
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+h1,
+h2,
+h3,
+p,
+ul,
+ol,
+dl,
+dd,
+figure {
+  margin: 0;
+}
+ul,
+ol {
+  padding: 0;
+  list-style: none;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+::selection {
+  background: var(--ink);
+  color: var(--ground);
+}
+:focus {
+  outline: none;
+}
+:focus-visible {
+  outline: 1.5px solid var(--ink);
+  outline-offset: 3px;
+  border-radius: 1px;
+}
+[hidden] {
+  display: none !important;
+}
+
+/* Language: English by default, Korean when the visitor picks KR. */
+html:not([data-lang='ko']) [data-l='ko'],
+html[data-lang='ko'] [data-l='en'] {
+  display: none !important;
+}
+[lang='ko'],
+html[data-lang='ko'] body {
   word-break: keep-all;
-  line-break: strict;
-  overflow-wrap: break-word;
-  font-kerning: normal;
+  overflow-wrap: anywhere;
 }
-::selection { background: var(--beam); color: var(--black); }
-
-:focus { outline: none; }
-:focus-visible { outline: 2px solid var(--beam); outline-offset: 3px; }
-
-.skip {
-  position: fixed; left: var(--margin); top: 10px; z-index: 100;
-  padding: 8px 14px; background: var(--beam); color: var(--black);
-  font-size: var(--t-small); transform: translateY(-200%);
-}
-.skip:focus-visible { transform: none; }
 
 .sr-only {
-  position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px;
-  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+.skip {
+  position: fixed;
+  left: 12px;
+  top: 10px;
+  z-index: 100;
+  padding: 8px 12px;
+  background: var(--ground);
+  color: var(--ink);
+  font: 500 14px/1 var(--f-nav);
+  transform: translateY(-200%);
+}
+.skip:focus-visible {
+  transform: none;
 }
 
-/* ── Bilingual ─────────────────────────────────────────────────────────── */
-html[data-lang='ko'] .t[lang='en'],
-html[data-lang='en'] .t[lang='ko'] { display: none !important; }
+/* Links inside running text: a thin ink underline, nothing else. */
+.text-link,
+.prose a {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.22em;
+  text-decoration-color: var(--line);
+  transition: text-decoration-color 160ms ease;
+}
+.text-link:hover,
+.prose a:hover {
+  text-decoration-color: currentColor;
+}
 
-/* ── Type voices ───────────────────────────────────────────────────────── */
-.title { font-size: var(--t-title); font-weight: 200; line-height: 1.02; letter-spacing: -0.02em; }
-.head { font-size: var(--t-head); font-weight: 200; line-height: 1.2; letter-spacing: -0.01em; }
-.ui { font-size: var(--t-ui); font-weight: 400; line-height: 1.3; }
-.small { font-size: var(--t-small); line-height: 1.5; }
-.ash { color: var(--ash); }
-.count { font-variant-numeric: tabular-nums lining-nums; font-feature-settings: 'tnum', 'lnum'; letter-spacing: 0.02em; }
+/* Page frame */
+.page {
+  width: 100%;
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: calc(var(--top-h) + clamp(28px, 6vw, 72px)) var(--gutter) clamp(72px, 10vw, 140px);
+}
+.page-title {
+  font: 400 clamp(36px, 4.6vw, 60px) / 1.05 var(--f-display);
+  letter-spacing: -0.005em;
+  margin-bottom: clamp(36px, 6vw, 80px);
+}
+.eyebrowless {
+  color: var(--ink-2);
+}
+.meta {
+  color: var(--ink-2);
+  font: 400 14px/1.5 var(--f-ui);
+}
+.section-title {
+  font: 500 14px/1.4 var(--f-nav);
+  letter-spacing: 0.01em;
+  color: var(--ink-2);
+  margin-bottom: 18px;
+}
 
-.frame { width: 100%; padding-inline: var(--margin); }
+/* Footer: one quiet line */
+.foot {
+  width: 100%;
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: 28px var(--gutter) 32px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  justify-content: space-between;
+  color: var(--ink-2);
+  font: 400 13px/1.4 var(--f-nav);
+}
+.foot ul {
+  display: flex;
+  gap: 20px;
+}
+.foot a:hover {
+  color: var(--ink);
+}
 
-/* ── Images: true proportions, LQIP + sampled colour while loading ─────── */
-.art { position: relative; aspect-ratio: var(--ratio); background: var(--c, #111) center / cover no-repeat; }
-.art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+/* Small text buttons used by the viewer, lite embeds and the menu */
+.tbtn {
+  font: 500 14px/1 var(--f-nav);
+  letter-spacing: 0.01em;
+  min-height: 40px;
+  min-width: 40px;
+  padding: 0 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink);
+}
+.tbtn:hover {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.3em;
+}
 
-/* ── Grain: a noise tile drawn once by script (src/scripts/grain.ts) ───── */
-.grain {
-  position: absolute; inset: -50%;
-  background-image: var(--grain, none);
-  background-size: 192px 192px;
-  opacity: 0.11;
-  mix-blend-mode: overlay;
+/* Lite embeds: poster + play; the iframe only loads on click */
+.lite {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: color-mix(in srgb, var(--ink) 7%, var(--ground));
+  overflow: hidden;
+}
+.lite img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.lite__play {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  cursor: pointer;
+}
+.lite__play span.lite__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px 12px 16px;
+  background: var(--veil);
+  color: var(--ink);
+  font: 500 14px/1 var(--f-nav);
+  letter-spacing: 0.01em;
+  border-radius: 999px;
+  transition: transform 200ms ease;
+}
+.lite__play:hover span.lite__btn,
+.lite__play:focus-visible span.lite__btn {
+  transform: scale(1.04);
+}
+.lite__play:focus-visible {
+  outline-offset: -4px;
+}
+.lite__btn svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+.lite iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/* The ink-wash mask sprite is loaded on every page so transitions never wait for it. */
+body::after {
+  content: '';
+  position: fixed;
+  width: 1px;
+  height: 1px;
+  left: -10px;
+  top: -10px;
+  background: var(--wash) no-repeat;
   pointer-events: none;
-  animation: grain 333ms steps(1) infinite;
-}
-@keyframes grain {
-  0% { transform: translate(0, 0); }
-  12% { transform: translate(-7%, 4%); }
-  25% { transform: translate(5%, -9%); }
-  37% { transform: translate(-11%, -3%); }
-  50% { transform: translate(9%, 8%); }
-  62% { transform: translate(-3%, 11%); }
-  75% { transform: translate(12%, -5%); }
-  87% { transform: translate(-8%, -10%); }
-}
-
-/* gate weave: the frame drifts by a fraction of a pixel, as film does in the gate */
-@keyframes weave {
-  0% { transform: translate(0, 0); }
-  17% { transform: translate(0.4px, -0.6px); }
-  33% { transform: translate(-0.3px, 0.5px); }
-  50% { transform: translate(0.2px, 0.9px); }
-  67% { transform: translate(-0.5px, -0.2px); }
-  83% { transform: translate(0.3px, 0.3px); }
-}
-
-/* ── View transitions ──────────────────────────────────────────────────── */
-::view-transition-old(root), ::view-transition-new(root) { animation-duration: 160ms; }
-
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation: none !important; transition-duration: 0ms !important; scroll-behavior: auto !important; }
-  .grain { display: none; }
-  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
 }

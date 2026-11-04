@@ -22,13 +22,14 @@ const views = [
   { name: 'mobile', viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true },
 ];
 const pages = [
-  ['01-wall', ''],
-  ['02-reel', 'painting/'],
-  ['03-work', 'works/gogo/'],
-  ['04-music', 'music/'],
-  ['05-about', 'about/'],
-  ['06-old-url-yyy', 'yyy/'],
-  ['07-admin', 'admin/'],
+  ['01-home', ''],
+  ['02-painting', 'painting/'],
+  ['03-viewer', 'painting/#1'],
+  ['04-film', 'film/'],
+  ['05-music', 'music/'],
+  ['06-about', 'about/'],
+  ['07-old-url-yyy', 'yyy/'],
+  ['08-admin', 'admin/'],
 ];
 let failures = 0;
 for (const v of views) {
@@ -44,15 +45,15 @@ for (const v of views) {
     try {
       const res = await page.goto(url + path, { waitUntil: 'networkidle', timeout: 45000 });
       status = String(res?.status());
-      await sleep(name === '01-wall' ? 4200 : 1500); // the wall: let the opening finish
-      if (name === '01-wall' && v.name === 'desktop') {
+      await sleep(name === '01-home' ? 6000 : 1800); // home: let the pigment gather the wordmark
+      if (name === '01-home' && v.name === 'desktop') {
         await page.mouse.move(700, 420, { steps: 10 });
-        await sleep(1500);
+        await sleep(1200);
       }
       const info = await page.evaluate(() => ({
         title: document.title,
-        works: document.querySelectorAll('[data-work], [data-frame]').length,
-        caption: (document.querySelector('[data-cap], [data-reel-cap], .wp__label'))?.innerText?.replace(/\s+/g, ' ').trim().slice(0, 60),
+        works: document.querySelectorAll('[data-view]').length,
+        caption: (document.querySelector('dialog[open] .viewer__cap'))?.innerText?.replace(/\s+/g, ' ').trim().slice(0, 60),
         final: location.pathname,
       }));
       await page.screenshot({ path: `${out}/${v.name}-${name}.jpg`, type: 'jpeg', quality: 80 });

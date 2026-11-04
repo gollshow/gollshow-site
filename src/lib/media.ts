@@ -1,13 +1,12 @@
 import type { ImageMetadata } from 'astro';
+import { getImage } from 'astro:assets';
 import path from 'node:path';
-import sharp from 'sharp';
 
 /**
  * Every image the owner uploads (through /admin or by hand) lives in
  * src/assets/media/. Content files reference them by path; we resolve by file
  * name so that "/src/assets/media/a.jpg", "../../assets/media/a.jpg" and
- * "a.jpg" all work, and a missing file degrades to an empty frame instead of
- * breaking the build.
+ * "a.jpg" all work, and a missing file is skipped instead of breaking the build.
  */
 const files = import.meta.glob<ImageMetadata>('/src/assets/media/**/*.{jpg,jpeg,png,webp,avif,gif,tif,tiff,JPG,JPEG,PNG,WEBP,AVIF,GIF,TIF,TIFF}', {
   eager: true,
@@ -24,52 +23,53 @@ const norm = (s: string) => {
 
 export type Media = { meta: ImageMetadata; file: string; name: string };
 const byName = new Map<string, Media>();
-for (const [file, meta] of Object.entries(files)) byName.set(norm(file), { meta, file, name: path.basename(file) });
+const byPath = new Map<string, Media>();
+for (const [file, meta] of Object.entries(files)) {
+  const m = { meta, file, name: path.basename(file) };
+  byPath.set(file.normalize('NFC').toLowerCase(), m);
+  if (!byName.has(norm(file))) byName.set(norm(file), m);
+}
 
 export function resolveImage(ref?: string | null): Media | undefined {
   if (!ref) return undefined;
-  return byName.get(norm(ref));
+  const p = ref.split('?')[0].normalize('NFC').toLowerCase();
+  return byPath.get(p.startsWith('/') ? p : '/' + p) ?? byName.get(norm(ref));
 }
 
-export const missing = new Set<string>();
-export function resolveOrNote(ref?: string | null) {
-  const m = resolveImage(ref);
-  if (ref && !m) missing.add(ref);
-  return m;
-}
+export type Pic = {
+  w: number; // natural size
+  h: number;
+  src: string; // a mid-size WebP
+  srcset: string; // WebP widths, never wider than the original
+  large: string; // the largest WebP
+};
 
-type Placeholder = { lqip: string; color: string };
-const cache = new Map<string, Promise<Placeholder>>();
+const cache = new Map<string, Promise<Pic>>();
+const WIDTHS = [360, 540, 720, 1080, 1600, 2400];
 
-/** Tiny blurred preview (inline SVG wrapping a 16px WebP) + dominant colour. */
-export function placeholder(m: Media): Promise<Placeholder> {
+/** WebP srcset for one image (memoised per build). Never upscaled: widths stop at the original's width. */
+export function pic(m: Media): Promise<Pic> {
   if (!cache.has(m.file)) {
     cache.set(
       m.file,
       (async () => {
-        const abs = path.join(process.cwd(), m.file);
-        try {
-          const img = sharp(abs, { failOn: 'none' }).rotate();
-          const { dominant } = await img.clone().stats();
-          const tiny = await img.clone().resize(16, 16, { fit: 'inside' }).webp({ quality: 50 }).toBuffer({ resolveWithObject: true });
-          const { width: w, height: h } = tiny.info;
-          const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 ${w} ${h}' preserveAspectRatio='none'><filter id='b' color-interpolation-filters='sRGB'><feGaussianBlur stdDeviation='1.2'/><feComponentTransfer><feFuncA type='discrete' tableValues='1 1'/></feComponentTransfer></filter><image width='100%' height='100%' preserveAspectRatio='none' filter='url(%23b)' href='data:image/webp;base64,${tiny.data.toString('base64')}'/></svg>`;
-          const hex = '#' + [dominant.r, dominant.g, dominant.b].map((v) => v.toString(16).padStart(2, '0')).join('');
-          return { lqip: `url("data:image/svg+xml;charset=utf-8,${svg.replace(/"/g, "'").replace(/</g, '%3C').replace(/>/g, '%3E')}")`, color: hex };
-        } catch {
-          return { lqip: 'none', color: '#111' };
-        }
+        const nat = m.meta.width;
+        const widths = WIDTHS.filter((x) => x < nat * 0.92);
+        widths.push(Math.min(nat, WIDTHS[WIDTHS.length - 1]));
+        const img = await getImage({ src: m.meta, widths: [...new Set(widths)], format: 'webp', quality: 82 });
+        const vals = img.srcSet.values;
+        const mid = vals.find((v) => Number(v.descriptor?.replace('w', '')) >= 720) ?? vals[vals.length - 1];
+        return {
+          w: m.meta.width,
+          h: m.meta.height,
+          src: mid?.url ?? img.src,
+          srcset: img.srcSet.attribute,
+          large: vals[vals.length - 1]?.url ?? img.src,
+        };
       })(),
     );
   }
   return cache.get(m.file)!;
-}
-
-/** Widths we generate; never upscale. */
-export function widthsFor(meta: ImageMetadata, wanted = [320, 640, 1024, 1600, 2560]) {
-  const w = wanted.filter((x) => x < meta.width);
-  if (!w.length || w[w.length - 1] < meta.width) w.push(Math.min(meta.width, wanted[wanted.length - 1]));
-  return [...new Set(w)];
 }
 
 export const withBase = (p?: string) => {

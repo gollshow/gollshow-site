@@ -1,0 +1,114 @@
+# 콩테·파스텔 — /admin 의 "콩테·파스텔"에서 편집합니다. 위에서부터 사이트에 보이는 순서입니다.
+bulk: []
+works:
+  - image: /src/assets/media/conte-pastel/conte-pastel-001.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/conte-pastel/conte-pastel-002.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/conte-pastel/conte-pastel-003.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/conte-pastel/conte-pastel-004.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/conte-pastel/conte-pastel-005.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/conte-pastel/conte-pastel-006.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/conte-pastel/conte-pastel-007.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/conte-pastel/conte-pastel-008.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/conte-pastel/conte-pastel-009.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/conte-pastel/conte-pastel-010.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/conte-pastel/conte-pastel-011.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/conte-pastel/conte-pastel-012.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/conte-pastel/conte-pastel-013.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/conte-pastel/conte-pastel-014.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/conte-pastel/conte-pastel-015.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/conte-pastel/conte-pastel-016.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/conte-pastel/conte-pastel-017.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/conte-pastel/conte-pastel-018.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/conte-pastel/conte-pastel-019.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/conte-pastel/conte-pastel-020.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/conte-pastel/conte-pastel-021.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/conte-pastel/conte-pastel-023.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/conte-pastel/conte-pastel-024.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/conte-pastel/conte-pastel-025.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/conte-pastel/conte-pastel-026.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/conte-pastel/conte-pastel-027.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/conte-pastel/conte-pastel-028.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/conte-pastel/conte-pastel-029.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/conte-pastel/conte-pastel-030.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/conte-pastel/conte-pastel-031.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/conte-pastel/conte-pastel-032.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/conte-pastel/conte-pastel-033.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/conte-pastel/conte-pastel-034.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/conte-pastel/conte-pastel-035.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/conte-pastel/conte-pastel-036.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/conte-pastel/conte-pastel-037.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/conte-pastel/conte-pastel-038.jpg
+    display: M
+    hidden: false

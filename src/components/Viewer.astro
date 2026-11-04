@@ -1,86 +1,219 @@
 ---
 /**
- * The projection: a work thrown large on the screen, with film grain, gentle
- * gate weave, halation and a soft vignette. ← → / swipe / 이전 다음 advance
- * like a reel: a hard splice cut with a single-frame flash. Esc closes.
+ * Full-screen viewer on the same ground. Opened by any link with [data-view="<index>"]
+ * inside the page; the items come from the JSON written here. ←/→, swipe, Esc, a
+ * close button, focus kept inside (modal dialog), a counter "12 / 63", and a
+ * "Process" button when the work has a process video.
  */
 import T from './T.astro';
-import { UI } from '../lib/i18n';
+import { UI } from '../lib/site';
+import type { ViewerItem } from '../lib/art';
+
+interface Props {
+  items: ViewerItem[];
+  label: { en: string; ko: string };
+}
+const { items, label } = Astro.props;
 ---
-<dialog class="pj" data-viewer aria-label="Projection">
-  <div class="pj__screen" data-pj-stage tabindex="-1" autofocus>
-    <div class="pj__weave">
-      <picture class="pj__halo" aria-hidden="true"><img data-pj-halo alt="" /></picture>
-      <picture class="pj__pic">
-        <source type="image/avif" data-pj-avif sizes="92vw" />
-        <source type="image/webp" data-pj-webp sizes="92vw" />
-        <img data-pj-img alt="" draggable="false" />
-      </picture>
-    </div>
-    <div class="pj__vignette" aria-hidden="true"></div>
-    <div class="pj__grainbox" aria-hidden="true"><div class="grain"></div></div>
-    <div class="pj__flash" data-pj-flash aria-hidden="true"><i></i></div>
+<dialog class="viewer" aria-label={label.en} data-aria-en={label.en} data-aria-ko={label.ko}>
+  <script type="application/json" class="viewer__data" set:html={JSON.stringify(items).replace(/</g, '\\u003c')} />
+  <button class="tbtn viewer__close" type="button" data-close autofocus><T t={UI.close} /></button>
+  <div class="viewer__stage">
+    <figure class="viewer__fig">
+      <img class="viewer__img" alt="" decoding="async" />
+    </figure>
+    <div class="viewer__video" hidden></div>
+    <button class="viewer__zone viewer__zone--prev" type="button" tabindex="-1" aria-hidden="true" data-prev></button>
+    <button class="viewer__zone viewer__zone--next" type="button" tabindex="-1" aria-hidden="true" data-next></button>
   </div>
-  <p class="pj__count count" data-pj-count aria-live="polite"></p>
-  <button class="pj__btn pj__close ui" type="button" data-pj-close><T t={UI.close} /></button>
-  <button class="pj__btn pj__prev ui" type="button" data-pj-prev><T t={UI.prev} /></button>
-  <button class="pj__btn pj__next ui" type="button" data-pj-next><T t={UI.next} /></button>
-  <div class="pj__cap" data-pj-cap></div>
-  <a class="pj__more ui" data-pj-more href="#" hidden><T t={UI.process} /></a>
+  <div class="viewer__bar">
+    <div class="viewer__cap" aria-live="polite"></div>
+    <div class="viewer__ctl">
+      <button class="tbtn viewer__process" type="button" data-process hidden>
+        <span class="viewer__process-a"><T t={UI.process} /></span><span class="viewer__process-b" hidden><T t={UI.work} /></span>
+      </button>
+      <button class="tbtn" type="button" data-prev><T t={UI.prev} /></button>
+      <button class="tbtn" type="button" data-next><T t={UI.next} /></button>
+      <span class="viewer__count" aria-hidden="true"></span>
+    </div>
+  </div>
 </dialog>
 
+<script>
+  import '../scripts/viewer';
+</script>
+
 <style>
-  .pj {
-    position: fixed; inset: 0; width: 100vw; height: 100dvh; max-width: none; max-height: none;
-    margin: 0; padding: 0; border: 0;
-    background: var(--black); color: var(--screen);
-    overflow: hidden; overscroll-behavior: contain;
+  .viewer {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: var(--ground);
+    color: var(--ink);
+    overflow: hidden;
   }
-  .pj::backdrop { background: var(--black); }
-  .pj__screen:focus { outline: none; }
-  .pj__screen { position: absolute; inset: 0; display: grid; place-items: center; touch-action: pan-y; user-select: none; -webkit-user-select: none; overflow: hidden; }
-  .pj__weave { position: relative; display: grid; place-items: center; animation: weave 0.5s steps(1) infinite; }
-  .pj__weave > * { grid-area: 1 / 1; }
-  .pj__pic img, .pj__halo img {
+  .viewer[open] {
+    display: grid;
+    grid-template-rows: var(--top-h) 1fr auto;
+    animation: viewer-in 220ms ease both;
+  }
+  .viewer::backdrop {
+    background: var(--ground);
+  }
+  @keyframes viewer-in {
+    from {
+      opacity: 0;
+    }
+  }
+  :global(html:has(dialog[open])) {
+    overflow: hidden;
+  }
+  .viewer__close {
+    grid-row: 1;
+    justify-self: end;
+    align-self: center;
+    margin-right: 24px;
+  }
+  .viewer__stage {
+    grid-row: 2;
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-height: 0;
+    padding: 0 var(--gutter);
+    touch-action: pan-y pinch-zoom;
+  }
+  .viewer__fig,
+  .viewer__video {
+    grid-area: 1 / 1;
+    position: relative;
+    z-index: 1;
+  }
+  .viewer__img {
     display: block;
-    max-width: calc(100vw - 2 * var(--margin));
-    max-height: calc(100dvh - 2 * clamp(72px, 13vh, 132px));
-    width: auto; height: auto;
-    object-fit: contain;
+    width: 100%;
+    height: 100%;
+    user-select: none;
+    -webkit-user-drag: none;
   }
-  .pj__pic img { background-size: cover; }
-  /* halation: highlights bloom warm into the dark around them */
-  .pj__halo { filter: blur(22px) saturate(1.6) sepia(0.35); opacity: 0.4; mix-blend-mode: screen; transform: scale(1.03); pointer-events: none; }
-  .pj__vignette { position: absolute; inset: 0; background: radial-gradient(ellipse 75% 70% at 50% 50%, transparent 55%, rgb(0 0 0 / 0.55) 100%); pointer-events: none; }
-  .pj__grainbox { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
-  .pj__grainbox .grain { opacity: 0.16; }
-  .pj__flash { position: absolute; inset: 0; pointer-events: none; opacity: 0; background: var(--beam); }
-  .pj__flash i { position: absolute; left: 0; right: 0; top: var(--splice, 38%); height: 2px; background: rgb(255 255 255 / 0.8); }
-  .pj__flash.is-on { opacity: 0.28; }
-
-  .pj__count { position: absolute; left: var(--margin); top: calc(14px + env(safe-area-inset-top)); color: var(--ash); line-height: 44px; }
-  .pj__btn { position: absolute; min-height: 44px; min-width: 44px; padding: 0 4px; color: var(--ash); transition: color 160ms; }
-  .pj__btn:hover { color: var(--beam); }
-  .pj__close { right: var(--margin); top: calc(14px + env(safe-area-inset-top)); }
-  .pj__prev, .pj__next { top: 50%; transform: translateY(-50%); }
-  .pj__prev { left: var(--margin); }
-  .pj__next { right: var(--margin); }
-  .pj__cap { position: absolute; left: var(--margin); right: var(--margin); bottom: calc(18px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 0; pointer-events: none; }
-  .pj__cap :global(.c-frame) { display: none; }
-  .pj__cap :global(.c-room) { color: var(--ash); }
-  .pj__cap :global(.c-title) { font-size: var(--t-head); font-weight: 200; line-height: 1.2; }
-  .pj__cap :global(.c-year), .pj__cap :global(.c-sm) { color: var(--ash); }
-  .pj__more { position: absolute; right: var(--margin); bottom: calc(18px + env(safe-area-inset-bottom)); color: var(--ash); min-height: 44px; display: inline-flex; align-items: center; border-bottom: 1px solid var(--dust); }
-  .pj__more:hover { color: var(--beam); }
-
-  @media (max-width: 760px) {
-    .pj__prev, .pj__next { top: auto; bottom: calc(10px + env(safe-area-inset-bottom)); transform: none; }
-    .pj__prev { left: auto; right: calc(var(--margin) + 64px); }
-    .pj__cap { right: calc(var(--margin) + 130px); }
-    .pj__more { bottom: auto; top: calc(14px + env(safe-area-inset-top)); right: calc(var(--margin) + 64px); border: 0; }
+  /* Ink-bleed reveal: the image appears through a noise-threshold mask (16 frames). */
+  .viewer__fig.is-wait {
+    opacity: 0;
   }
-  @media (hover: none) and (max-width: 760px) {
-    .pj__prev, .pj__next { display: none; }
-    .pj__cap { right: var(--margin); }
+  .viewer__fig.is-bleed {
+    -webkit-mask-image: var(--wash);
+    mask-image: var(--wash);
+    -webkit-mask-size: 1600% 100%;
+    mask-size: 1600% 100%;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    animation: bleed 700ms steps(16, jump-none) both;
+  }
+  @keyframes bleed {
+    from {
+      -webkit-mask-position: 0% 0;
+      mask-position: 0% 0;
+    }
+    to {
+      -webkit-mask-position: 100% 0;
+      mask-position: 100% 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .viewer[open] {
+      animation: none;
+    }
+    .viewer__fig {
+      transition: opacity 260ms ease;
+    }
+    .viewer__fig.is-bleed {
+      -webkit-mask-image: none;
+      mask-image: none;
+      animation: none;
+    }
+  }
+  .viewer__video :global(iframe) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+  .viewer__zone {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 50%;
+    z-index: 0;
+    cursor: w-resize;
+  }
+  .viewer__zone--prev {
+    left: 0;
+  }
+  .viewer__zone--next {
+    right: 0;
+    cursor: e-resize;
+  }
+  .viewer__bar {
+    grid-row: 3;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px 32px;
+    padding: 16px var(--gutter) 22px;
+    min-height: 84px;
+  }
+  .viewer__cap {
+    font: 400 14px/1.5 var(--f-ui);
+    max-width: 62ch;
+    padding-bottom: 6px;
+  }
+  .viewer__cap :global(.viewer__title) {
+    font: 400 22px/1.2 var(--f-display);
+    margin-bottom: 4px;
+  }
+  .viewer__cap :global(.viewer__meta) {
+    color: var(--ink-2);
+  }
+  .viewer__ctl {
+    display: flex;
+    align-items: center;
+    gap: 6px 18px;
+    flex-shrink: 0;
+  }
+  .viewer__count {
+    font: 400 14px/1 var(--f-nav);
+    color: var(--ink-2);
+    font-variant-numeric: tabular-nums;
+    min-width: 5.5ch;
+    text-align: right;
+  }
+  .viewer__process {
+    margin-right: 10px;
+  }
+  @media (max-width: 640px) {
+    .viewer__close {
+      margin-right: 12px;
+    }
+    .viewer__bar {
+      flex-direction: column;
+      align-items: stretch;
+      padding: 10px 16px calc(14px + env(safe-area-inset-bottom));
+    }
+    .viewer__ctl {
+      justify-content: space-between;
+      gap: 4px;
+    }
+    .viewer__process {
+      margin-right: auto;
+    }
+    .viewer__cap :global(.viewer__title) {
+      font-size: 20px;
+    }
   }
 </style>

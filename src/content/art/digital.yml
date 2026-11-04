@@ -1,0 +1,42 @@
+# 디지털 — /admin 의 "디지털"에서 편집합니다. 위에서부터 사이트에 보이는 순서입니다.
+bulk: []
+works:
+  - image: /src/assets/media/digital/digital-001.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/digital/digital-002.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/digital/digital-003.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/digital/digital-005.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/digital/digital-006.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/digital/digital-007.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/digital/digital-008.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/digital/digital-009.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/digital/digital-010.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/digital/digital-011.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/digital/digital-012.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/digital/digital-013.jpg
+    display: M
+    hidden: false
+  - image: /src/assets/media/digital/digital-014.jpg
+    display: M
+    hidden: false

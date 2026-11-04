@@ -1,0 +1,234 @@
+---
+/**
+ * Top bar: the small wordmark (inner pages) at the left, the menu at the right,
+ * KR/EN switch. Below 760px the items fold into "Menu", which opens a full-screen
+ * dialog on the same ground.
+ */
+import T from './T.astro';
+import { UI, navItems, wordmarkOf, type NavKey, type Settings } from '../lib/site';
+import { withBase } from '../lib/media';
+
+interface Props {
+  settings: Settings;
+  current?: NavKey;
+  home?: boolean;
+}
+const { settings, current, home = false } = Astro.props;
+const items = navItems(settings);
+const mark = wordmarkOf(settings);
+---
+<header class:list={['top', { 'top--intro': home }]} id="top">
+  {
+    !home && (
+      <a class="top__mark" href={withBase('/')} aria-label={UI.home.en} data-aria-en={UI.home.en} data-aria-ko={UI.home.ko}>
+        {mark}
+      </a>
+    )
+  }
+  <nav class="nav" aria-label={UI.mainNav.en} data-aria-en={UI.mainNav.en} data-aria-ko={UI.mainNav.ko}>
+    <ul class="nav__list">
+      {
+        items.map((i) => (
+          <li>
+            <a class="nav__a" href={withBase(i.path)} aria-current={current === i.key ? 'page' : undefined}>
+              <T en={i.en} ko={i.ko} />
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+    <button class="nav__menu" type="button" aria-haspopup="dialog" aria-controls="menu" aria-expanded="false" data-menu-open>
+      <T t={UI.menu} />
+    </button>
+    <button class="nav__lang" type="button" data-lang-toggle aria-label={UI.toKo.en} data-aria-en={UI.toKo.en} data-aria-ko={UI.toEn.ko}>
+      <span data-l="en" aria-hidden="true">KR</span><span data-l="ko" aria-hidden="true">EN</span>
+    </button>
+  </nav>
+</header>
+
+<dialog class="menu" id="menu" aria-label={UI.menu.en} data-aria-en={UI.menu.en} data-aria-ko={UI.menu.ko}>
+  <div class="menu__bar">
+    <a class="top__mark" href={withBase('/')} aria-label={UI.home.en} data-aria-en={UI.home.en} data-aria-ko={UI.home.ko}>{mark}</a>
+    <button class="tbtn" type="button" data-menu-close><T t={UI.close} /></button>
+  </div>
+  <ul class="menu__list">
+    {
+      items.map((i) => (
+        <li>
+          <a href={withBase(i.path)} aria-current={current === i.key ? 'page' : undefined}>
+            <T en={i.en} ko={i.ko} />
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+  <button class="menu__lang tbtn" type="button" data-lang-toggle aria-label={UI.toKo.en} data-aria-en={UI.toKo.en} data-aria-ko={UI.toEn.ko}>
+    <span data-l="en" aria-hidden="true">한국어</span><span data-l="ko" aria-hidden="true">English</span>
+  </button>
+</dialog>
+
+<style>
+  .top {
+    position: absolute;
+    z-index: 20;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--top-h);
+    padding: 0 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    pointer-events: none;
+  }
+  .top > * {
+    pointer-events: auto;
+  }
+  .top--intro {
+    justify-content: flex-end;
+    transition:
+      opacity 900ms ease,
+      transform 900ms ease;
+  }
+  :global(.js) .top--intro:not(.is-on) {
+    opacity: 0;
+    transform: translateY(-4px);
+    animation: top-late 900ms ease 6s forwards; /* safety net if the motion never starts */
+  }
+  @keyframes top-late {
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  .top__mark {
+    font: 400 26px/1 var(--f-mark);
+    letter-spacing: 0.005em;
+    padding: 6px 0;
+    color: var(--ink);
+  }
+  .nav {
+    display: flex;
+    align-items: baseline;
+    gap: 28px;
+    font: 500 14px/1 var(--f-nav);
+    letter-spacing: 0.01em;
+  }
+  .nav__list {
+    display: flex;
+    gap: 28px;
+  }
+  .nav__a {
+    position: relative;
+    display: inline-block;
+    padding: 8px 0;
+  }
+  .nav__a::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 3px;
+    height: 1px;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 260ms ease;
+  }
+  .nav__a:hover::after,
+  .nav__a[aria-current='page']::after {
+    transform: scaleX(1);
+  }
+  .nav__lang {
+    color: var(--ink-2);
+    font-weight: 400;
+    padding: 8px 0 8px 4px;
+  }
+  .nav__lang:hover {
+    color: var(--ink);
+  }
+  .nav__menu {
+    display: none;
+    padding: 8px 0;
+  }
+  @media (max-width: 760px) {
+    .top {
+      padding: 0 16px;
+    }
+    .nav {
+      gap: 16px;
+    }
+    .nav__list {
+      display: none;
+    }
+    .nav__menu {
+      display: inline-block;
+    }
+    .top__mark {
+      font-size: 24px;
+    }
+  }
+
+  /* Mobile menu */
+  .menu {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 0 16px 32px;
+    border: 0;
+    background: var(--ground);
+    color: var(--ink);
+    flex-direction: column;
+  }
+  .menu[open] {
+    display: flex;
+    animation: menu-in 260ms ease;
+  }
+  .menu::backdrop {
+    background: var(--ground);
+  }
+  @keyframes menu-in {
+    from {
+      opacity: 0;
+    }
+  }
+  .menu__bar {
+    height: var(--top-h);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .menu__list {
+    margin-top: 6vh;
+    display: grid;
+    gap: 4px;
+  }
+  .menu__list a {
+    display: inline-block;
+    font: 500 30px/1.25 var(--f-nav);
+    letter-spacing: -0.005em;
+    padding: 6px 0;
+  }
+  .menu__list a[aria-current='page'] {
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 0.18em;
+  }
+  .menu__lang {
+    margin-top: auto;
+    align-self: flex-start;
+    color: var(--ink-2);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .top--intro {
+      transition: none;
+    }
+    .menu[open] {
+      animation: none;
+    }
+  }
+</style>
