@@ -103,7 +103,7 @@ const capKo = a?.video_caption_ko ?? capEn;
   }
   @media (max-width: 860px) {
     .about {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
     }
     .about__img {
       max-width: 420px;

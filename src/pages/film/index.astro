@@ -116,7 +116,7 @@ const films = await Promise.all(
   }
   @media (max-width: 760px) {
     .film__text {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
     }
     .film__title {
       grid-row: auto;
