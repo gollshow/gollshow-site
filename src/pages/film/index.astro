@@ -94,6 +94,12 @@ const films = await Promise.all(
     filter: blur(38px);
     opacity: 0.6;
   }
+  .film:nth-child(2n) .film__still--card::before {
+    transform: scale(-1, 1);
+  }
+  .film:nth-child(3n) .film__still--card::before {
+    transform: scale(-1, -1);
+  }
   .film__card {
     position: relative;
     font: 400 clamp(64px, 13vw, 220px) / 0.8 var(--f-display);
