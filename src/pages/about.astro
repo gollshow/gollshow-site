@@ -1,112 +1,321 @@
 ---
-/** About: bio (EN/KR), the KBS clip as a lite embed, Instagram and contact. */
+/**
+ * About: the name in ink across the wash, a statement set large, the bio beside the
+ * 2002 poster, the three practices (each leads to its room), the record, the KBS
+ * clip, and contact. Every text here is edited in /admin → 소개.
+ */
 import Base from '../layouts/Base.astro';
+import Band from '../components/Band.astro';
 import T from '../components/T.astro';
 import Lite from '../components/Lite.astro';
 import { getEntry } from 'astro:content';
 import { getSettings, navItems, UI } from '../lib/site';
-import { pic, resolveImage } from '../lib/media';
+import { pic, resolveImage, withBase } from '../lib/media';
 
 const s = await getSettings();
-const nav = navItems(s).find((n) => n.key === 'about')!;
+const nav = navItems(s);
+const about = nav.find((n) => n.key === 'about')!;
 const a = (await getEntry('pages', 'about'))?.data;
 const pm = resolveImage(a?.portrait);
 const portrait = pm ? await pic(pm) : undefined;
 const capEn = a?.video_caption_en ?? a?.video_caption_ko ?? 'Video';
 const capKo = a?.video_caption_ko ?? capEn;
+const heading = a?.heading || 'goll';
+const linkOf = (k?: string) => nav.find((n) => n.key === k);
 ---
-<Base title={{ en: nav.en, ko: nav.ko }} current="about" page="about">
-  <div class="page">
-    <h1 class="page-title"><T en={nav.en} ko={nav.ko} /></h1>
-    <div class="about">
-      <div class="about__text">
-        {
-          (s.name_en || s.name_ko) && (
-            <p class="about__name">
-              <T en={s.name_en ?? s.name_ko} ko={s.name_ko || s.name_en} />
-            </p>
-          )
-        }
-        {(s.roles_en || s.roles_ko) && <T as="p" class="about__roles" en={s.roles_en} ko={s.roles_ko} />}
-        {(a?.bio_en || a?.bio_ko) && <T block class="about__bio" en={a?.bio_en} ko={a?.bio_ko} />}
+<Base title={{ en: about.en, ko: about.ko }} current="about" page="about">
+  <Band en={heading} ko={heading} seed={7}>
+    {s.name_en && <span>{s.name_en}</span>}
+    {(s.roles_en || s.roles_ko) && <T en={s.roles_en} ko={s.roles_ko} />}
+  </Band>
 
-        <section class="about__contact">
-          <h2 class="section-title"><T t={UI.contact} /></h2>
-          <ul>
-            {s.email && <li><a class="text-link" href={`mailto:${s.email}`}>{s.email}</a></li>}
-            {s.instagram && <li><a class="text-link" href={s.instagram} target="_blank" rel="me noopener">Instagram</a></li>}
-            {s.youtube && <li><a class="text-link" href={s.youtube} target="_blank" rel="me noopener">YouTube</a></li>}
-            {s.links.map((l) => <li><a class="text-link" href={l.url} target="_blank" rel="noopener">{l.label ?? l.url}</a></li>)}
-          </ul>
-        </section>
-      </div>
+  <div class="page page--band about">
+    {(a?.statement_en || a?.statement_ko) && <T as="p" class="statement" en={a?.statement_en} ko={a?.statement_ko} />}
+
+    <section class="intro">
+      {(a?.bio_en || a?.bio_ko) && <T block class="bio" en={a?.bio_en} ko={a?.bio_ko} />}
       {
         portrait && (
-          <figure class="about__img">
-            <img src={portrait.src} srcset={portrait.srcset} sizes="(max-width: 860px) 100vw, 34vw" width={portrait.w} height={portrait.h} alt="gollshow, 2002" decoding="async" />
+          <figure class="poster">
+            <img
+              src={portrait.src}
+              srcset={portrait.srcset}
+              sizes="(max-width: 860px) 80vw, 30vw"
+              width={portrait.w}
+              height={portrait.h}
+              alt={a?.portrait_caption_en ?? 'gollshow'}
+              data-alt-en={a?.portrait_caption_en ?? 'gollshow'}
+              data-alt-ko={a?.portrait_caption_ko ?? a?.portrait_caption_en ?? 'gollshow'}
+              style={`--nw:${portrait.w}`}
+              decoding="async"
+            />
+            {(a?.portrait_caption_en || a?.portrait_caption_ko) && (
+              <T as="figcaption" class="meta" en={a?.portrait_caption_en} ko={a?.portrait_caption_ko} />
+            )}
           </figure>
         )
       }
-    </div>
+    </section>
+
+    {
+      a && a.practices.length > 0 && (
+        <section class="practices" aria-label="Practice">
+          {a.practices.map((p) => {
+            const l = linkOf(p.link);
+            const body = (
+              <>
+                <T as="h2" class="practice__t" en={p.title_en ?? p.title_ko} ko={p.title_ko ?? p.title_en} />
+                {(p.text_en || p.text_ko) && <T as="p" class="practice__p" en={p.text_en} ko={p.text_ko} />}
+              </>
+            );
+            return l ? (
+              <a class="practice" href={withBase(l.path)}>
+                {body}
+              </a>
+            ) : (
+              <div class="practice">{body}</div>
+            );
+          })}
+        </section>
+      )
+    }
+
+    {
+      a && a.notes.length > 0 && (
+        <section class="record">
+          <h2 class="section-title">
+            <T en="Record" ko="기록" />
+          </h2>
+          <ol class="record__list">
+            {a.notes.map((n) => (
+              <li>
+                <T as="span" class="record__y" en={n.label_en ?? n.label_ko} ko={n.label_ko ?? n.label_en} />
+                <T as="span" class="record__t" en={n.text_en ?? n.text_ko} ko={n.text_ko ?? n.text_en} />
+              </li>
+            ))}
+          </ol>
+        </section>
+      )
+    }
+
     {
       a?.video && (
-        <figure class="about__clip">
+        <figure class="clip">
           <Lite url={a.video} label={{ en: `${UI.play.en} — ${capEn}`, ko: `${UI.play.ko} — ${capKo}` }} title={capEn} />
           <T as="figcaption" class="meta" en={capEn} ko={capKo} />
         </figure>
       )
     }
+
+    <section class="contact">
+      <h2 class="section-title"><T t={UI.contact} /></h2>
+      {s.email && <a class="contact__mail" href={`mailto:${s.email}`}>{s.email}</a>}
+      <ul class="contact__links">
+        {s.instagram && <li><a class="text-link" href={s.instagram} target="_blank" rel="me noopener">Instagram</a></li>}
+        {s.youtube && <li><a class="text-link" href={s.youtube} target="_blank" rel="me noopener">YouTube</a></li>}
+        {s.links.map((l) => <li><a class="text-link" href={l.url} target="_blank" rel="noopener">{l.label ?? l.url}</a></li>)}
+      </ul>
+      {a?.address && <p class="contact__addr">{a.address}</p>}
+    </section>
   </div>
 </Base>
 
 <style>
+  .page--band {
+    padding-top: clamp(40px, 6vw, 96px);
+  }
   .about {
     display: grid;
-    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
-    gap: 48px clamp(40px, 7vw, 120px);
-    align-items: start;
+    gap: clamp(72px, 10vw, 160px);
   }
-  .about__name {
-    font: 400 clamp(28px, 3vw, 40px) / 1.15 var(--f-display);
+  /* A statement set large, the one typographic moment of the page */
+  .statement {
+    font: 400 clamp(34px, 5.2vw, 84px) / 1.04 var(--f-display);
+    letter-spacing: -0.012em;
+    max-width: 17ch;
+    margin-left: calc(100% / 12);
+    text-wrap: balance;
   }
-  .about__roles {
-    margin-top: 8px;
+  html[data-lang='ko'] .statement {
+    font-size: clamp(28px, 4vw, 62px);
+    line-height: 1.22;
+    letter-spacing: -0.02em;
+    max-width: 20ch;
+  }
+  .intro {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: clamp(14px, 2vw, 32px);
+    align-items: end;
+  }
+  .bio {
+    grid-column: 1 / span 6;
+    font-size: 18px;
+    line-height: 1.72;
+    max-width: 58ch;
+  }
+  .bio :global(p + p) {
+    margin-top: 1.1em;
+  }
+  .bio :global(p:first-child)::first-line {
+    font-weight: 500;
+  }
+  .poster {
+    grid-column: 9 / span 4;
+    margin-bottom: clamp(-48px, -3vw, 0px);
+  }
+  .poster img {
+    width: 100%;
+    max-width: calc(var(--nw) * 1.5px);
+  }
+  .poster figcaption {
+    margin-top: 10px;
+  }
+  /* The three practices */
+  .practices {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border-top: 1px solid var(--line);
+  }
+  .practice {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 28px clamp(16px, 2.4vw, 40px) 30px 0;
+    min-height: 15rem;
+  }
+  .practice + .practice {
+    padding-left: clamp(16px, 2.4vw, 40px);
+    border-left: 1px solid var(--line);
+  }
+  .practice__t {
+    font: 400 clamp(34px, 3.4vw, 52px) / 1 var(--f-display);
+  }
+  .practice__p {
+    max-width: 34ch;
     color: var(--ink-2);
   }
-  .about__bio {
-    margin-top: 32px;
-    max-width: 52ch;
-    font-size: 17px;
-    line-height: 1.7;
-    white-space: pre-line;
+  .practice__go {
+    margin-top: auto;
+    font: 500 14px/1 var(--f-nav);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.3em;
+    text-decoration-color: var(--line);
+    transition: text-decoration-color 160ms ease;
   }
-  .about__bio :global(p + p) {
-    margin-top: 1em;
+  a.practice:hover .practice__go {
+    text-decoration-color: currentColor;
   }
-  .about__contact {
-    margin-top: 48px;
+  a.practice .practice__t {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.14em;
+    text-decoration-color: transparent;
+    transition: text-decoration-color 200ms ease;
   }
-  .about__contact ul {
+  a.practice:hover .practice__t {
+    text-decoration-color: currentColor;
+  }
+  /* Record */
+  .record {
     display: grid;
-    gap: 6px;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: clamp(14px, 2vw, 32px);
   }
-  .about__img img {
-    width: 100%;
-    max-width: calc(var(--nw, 600) * 1.5px);
+  .record .section-title {
+    grid-column: 1 / span 3;
   }
-  .about__clip {
-    margin-top: clamp(64px, 9vw, 130px);
-    max-width: 980px;
+  .record__list {
+    grid-column: 4 / span 9;
+    display: grid;
   }
-  .about__clip figcaption {
+  .record__list li {
+    display: grid;
+    grid-template-columns: 9rem minmax(0, 1fr);
+    gap: 24px;
+    padding: 16px 0;
+    border-top: 1px solid var(--line);
+    font-size: 17px;
+    line-height: 1.5;
+  }
+  .record__list li:last-child {
+    border-bottom: 1px solid var(--line);
+  }
+  .record__y {
+    font: 400 22px/1.15 var(--f-display);
+    font-variant-numeric: tabular-nums;
+  }
+  .clip {
+    width: min(100%, 980px);
+    margin-left: auto;
+  }
+  .clip figcaption {
     margin-top: 12px;
   }
+  /* Contact closes the page, the address set like a studio stamp */
+  .contact {
+    display: grid;
+    gap: 18px;
+    justify-items: start;
+  }
+  .contact__mail {
+    font: 400 clamp(32px, 5vw, 76px) / 1 var(--f-display);
+    letter-spacing: -0.01em;
+    overflow-wrap: anywhere;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.12em;
+    text-decoration-color: var(--line);
+  }
+  .contact__mail:hover {
+    text-decoration-color: currentColor;
+  }
+  .contact__links {
+    display: flex;
+    gap: 22px;
+    font: 500 15px/1 var(--f-nav);
+  }
+  .contact__addr {
+    margin-top: 18px;
+    white-space: pre-line;
+    color: var(--ink-2);
+    font: 400 14px/1.6 var(--f-nav);
+  }
   @media (max-width: 860px) {
-    .about {
+    .statement {
+      margin-left: 0;
+    }
+    .intro,
+    .record {
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: 40px;
+    }
+    .bio,
+    .poster,
+    .record .section-title,
+    .record__list {
+      grid-column: 1;
+    }
+    .poster {
+      max-width: 360px;
+      margin-bottom: 0;
+    }
+    .practices {
       grid-template-columns: minmax(0, 1fr);
     }
-    .about__img {
-      max-width: 420px;
+    .practice,
+    .practice + .practice {
+      padding: 24px 0;
+      border-left: 0;
+      min-height: 0;
+    }
+    .practice + .practice {
+      border-top: 1px solid var(--line);
+    }
+    .record__list li {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 4px;
     }
   }
 </style>

@@ -1,7 +1,7 @@
 ---
 # 예시 영화 — 어떻게 채우는지 보여 주는 견본입니다. "공개"가 꺼져 있어 사이트에는 나오지 않습니다.
 published: false
-order: 1
+order: 99
 title_en: "Example Film (placeholder)"
 title_ko: "예시 영화 (자리표시)"
 year: "0000"

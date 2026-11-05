@@ -3,6 +3,7 @@
 import Base from '../../layouts/Base.astro';
 import T from '../../components/T.astro';
 import Lite from '../../components/Lite.astro';
+import Band from '../../components/Band.astro';
 import Viewer from '../../components/Viewer.astro';
 import { publishedFilms, runtimeOf, UI } from '../../lib/site';
 import { pic, resolveImage, withBase } from '../../lib/media';
@@ -24,9 +25,11 @@ const still = sm ? await pic(sm) : undefined;
 const stills = await stillsToItems(d.stills, { en: d.title_en, ko: d.title_ko });
 const hasTrailer = !!embedFor(d.trailer);
 const S = 1;
+const bandHead = !hasTrailer && !still;
 ---
 <Base title={{ en, ko }} current="film" page="film-page" description={d.logline_en ?? d.logline_ko} image={still?.large} noindex={!d.published}>
-  <article class="page film">
+  {bandHead && <Band en={en} ko={ko} seed={11} />}
+  <article class:list={['page film', { 'page--band': bandHead }]}>
     {!d.published && <T as="p" class="draft" t={UI.draft} />}
     <div class="film__head">
       {
@@ -47,11 +50,20 @@ const S = 1;
       }
     </div>
 
-    <header class="film__intro">
-      <h1 class="film__title">
-        <span data-l="en">{en}{d.title_ko && d.title_ko !== en && <span class="film__alt" lang="ko">{d.title_ko}</span>}</span>
-        <span data-l="ko" lang="ko">{ko}{d.title_en && d.title_en !== ko && <span class="film__alt" lang="en">{d.title_en}</span>}</span>
-      </h1>
+    <header class:list={['film__intro', { 'film__intro--solo': bandHead && !(d.title_ko && d.title_en && d.title_ko !== d.title_en) }]}>
+      {
+        bandHead ? (
+          <p class="film__title film__title--alt">
+            {d.title_ko && d.title_ko !== en && <span data-l="en" class="film__alt" lang="ko">{d.title_ko}</span>}
+            {d.title_en && d.title_en !== ko && <span data-l="ko" class="film__alt" lang="en">{d.title_en}</span>}
+          </p>
+        ) : (
+          <h1 class="film__title">
+            <span data-l="en">{en}{d.title_ko && d.title_ko !== en && <span class="film__alt" lang="ko">{d.title_ko}</span>}</span>
+            <span data-l="ko" lang="ko">{ko}{d.title_en && d.title_en !== ko && <span class="film__alt" lang="en">{d.title_en}</span>}</span>
+          </h1>
+        )
+      }
       <div class="film__facts">
         <p class="meta"><T en={meta('en')} ko={meta('ko')} /></p>
         {(d.logline_en || d.logline_ko) && <T as="p" class="film__log" en={d.logline_en} ko={d.logline_ko} />}
@@ -137,6 +149,9 @@ const S = 1;
 </Base>
 
 <style>
+  .page--band {
+    padding-top: clamp(32px, 4vw, 64px);
+  }
   .draft {
     font: 500 13px/1.4 var(--f-nav);
     color: var(--ink-2);
@@ -162,6 +177,12 @@ const S = 1;
   }
   .film__title {
     font: 400 clamp(36px, 4.6vw, 64px) / 1.04 var(--f-display);
+  }
+  .film__intro--solo {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .film__intro--solo .film__title--alt {
+    display: none;
   }
   .film__alt {
     display: block;

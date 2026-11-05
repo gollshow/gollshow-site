@@ -144,6 +144,7 @@ if (dlg) {
     if (!a || e.metaKey || e.ctrlKey || e.shiftKey || (e as MouseEvent).button > 0) return;
     e.preventDefault();
     open(Number(a.dataset.view), a);
+    if (a.hasAttribute('data-process-open')) process();
   });
   dlg.querySelector('[data-close]')!.addEventListener('click', close);
   dlg.querySelectorAll('[data-prev]').forEach((b) => b.addEventListener('click', () => show(i - 1)));

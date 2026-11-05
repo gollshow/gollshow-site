@@ -1,14 +1,17 @@
 ---
 /**
- * Painting / Conté & Pastel / Digital: a loose salon hang. Works at their true
- * proportions in justified rows with generous gutters; S/M/L (set in /admin) changes
- * a work's share of its row. No cards, borders, shadows or hover zoom. Calm ground.
+ * Painting / Conté & Pastel / Digital. A wash across the top with the room's name in
+ * ink, then the works hung like the spreads of an art book (src/lib/hang.ts): L works
+ * alone with a wall label, the rest in stepped pairs and trios. Calm ground behind the
+ * art; no cards, borders, shadows or hover zoom.
  */
 import Base from '../layouts/Base.astro';
+import Band from '../components/Band.astro';
 import Viewer from '../components/Viewer.astro';
 import T from '../components/T.astro';
 import { ART } from '../content.config';
 import { getWorks, viewerData } from '../lib/art';
+import { hang } from '../lib/hang';
 import { getSettings, navItems, type NavKey } from '../lib/site';
 
 export function getStaticPaths() {
@@ -18,89 +21,189 @@ const { category } = Astro.params as { category: (typeof ART)[number] };
 const s = await getSettings();
 const nav = navItems(s).find((n) => n.key === category)!;
 const works = await getWorks(category);
-const S = { S: 0.78, M: 1, L: 1.38 } as const;
+const rows = hang(works);
+const seed = ART.indexOf(category) + 1;
+const years = works.map((w) => Number(w.meta[0])).filter((y) => y > 1900 && y < 2100);
 ---
 <Base title={{ en: nav.en, ko: nav.ko }} current={category as NavKey} page="art">
-  <div class="page">
-    <h1 class="page-title"><T en={nav.en} ko={nav.ko} /></h1>
-    <ul class="salon">
+  <Band en={nav.en} ko={nav.ko} seed={seed}>
+    <span><span data-l="en" lang="ko">{nav.ko}</span><span data-l="ko">{nav.en}</span></span>
+    <span><T en={`${works.length} works`} ko={`${works.length}점`} /></span>
+  </Band>
+  <div class="page page--band">
+    <div class="hang">
       {
-        works.map((w, i) => (
-          <li
-            class:list={['salon__item', `is-${w.display}`]}
-            style={`--a:${(w.w / w.h).toFixed(4)};--s:${S[w.display]};--nw:${w.w}`}
-          >
-            <a class="salon__link" href={w.pic.large} data-view={i}>
-              <img
-                class="salon__img"
-                src={w.src}
-                srcset={w.srcset}
-                sizes={w.display === 'L' ? '(max-width: 640px) calc(100vw - 32px), 44vw' : '(max-width: 640px) calc(100vw - 32px), (max-width: 1100px) 40vw, 30vw'}
-                width={w.w}
-                height={w.h}
-                alt={w.alt.en}
-                data-alt-en={w.alt.en}
-                data-alt-ko={w.alt.ko}
-                loading={i < 8 ? 'eager' : 'lazy'}
-                decoding="async"
-              />
-            </a>
-            {w.title && <T as="p" class="salon__cap" en={w.title.en} ko={w.title.ko} />}
-          </li>
+        rows.map((row) => (
+          <div class={`row row--${row.kind}`}>
+            {row.cells.map((c) => {
+              const w = works[c.i];
+              return (
+                <>
+                  <figure
+                    class="cell"
+                    data-align={c.align}
+                    data-justify={c.justify}
+                    style={`--c:${c.start} / span ${c.span};--a:${(w.w / w.h).toFixed(4)};--nw:${w.w};--drop:${c.drop}`}
+                  >
+                    <a class="cell__link" href={w.pic.large} data-view={c.i}>
+                      <img
+                        src={w.src}
+                        srcset={w.srcset}
+                        sizes={`(max-width: 700px) calc(100vw - 32px), ${Math.round((c.span / 12) * 100)}vw`}
+                        width={w.w}
+                        height={w.h}
+                        alt={w.alt.en}
+                        data-alt-en={w.alt.en}
+                        data-alt-ko={w.alt.ko}
+                        loading={c.i < 6 ? 'eager' : 'lazy'}
+                        decoding="async"
+                      />
+                    </a>
+                    {c.label === 'below' && w.title && (
+                      <figcaption class="lab lab--below">
+                        <T as="span" class="lab__t" en={w.title.en} ko={w.title.ko} />
+                        {w.meta[0] && <span class="lab__m">{w.meta[0]}</span>}
+                      </figcaption>
+                    )}
+                  </figure>
+                  {typeof c.label === 'object' && w.title && (
+                    <div class="lab lab--side" style={`--c:${c.label.start} / span ${c.label.span}`}>
+                      <T as="p" class="lab__t" en={w.title.en} ko={w.title.ko} />
+                      {w.meta.length > 0 && (
+                        <ul class="lab__list">
+                          {w.meta.map((m) => (
+                            <li>{m}</li>
+                          ))}
+                        </ul>
+                      )}
+                      {w.process && (
+                        <button class="lab__proc" type="button" data-view={c.i} data-process-open>
+                          <T en="Watch the process" ko="과정 영상 보기" />
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </>
+              );
+            })}
+          </div>
         ))
       }
-    </ul>
+    </div>
   </div>
   <Viewer items={viewerData(works)} label={{ en: nav.en, ko: nav.ko }} />
 </Base>
 
 <style>
-  .salon {
-    --H: clamp(170px, 21vw, 330px);
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    column-gap: clamp(28px, 4.2vw, 68px);
-    row-gap: clamp(56px, 7.5vw, 120px);
+  .page--band {
+    padding-top: clamp(48px, 7vw, 104px);
   }
-  /* Keeps the last row at its natural size instead of stretching it. */
-  .salon::after {
-    content: '';
-    flex: 999 1 0;
+  .hang {
+    display: grid;
+    row-gap: clamp(60px, 7.5vw, 128px);
   }
-  .salon__item {
-    flex: calc(var(--a) * var(--s)) 1 calc(var(--a) * var(--s) * var(--H));
+  .row {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: clamp(14px, 2vw, 32px);
+    align-items: start;
+  }
+  .cell {
+    grid-column: var(--c);
+    grid-row: 1;
     min-width: 0;
+    width: 100%;
     /* never more than 1.5× the image's natural width */
-    max-width: min(100%, calc(var(--nw) * 1.5px));
+    max-width: calc(var(--nw) * 1.5px);
+    margin-top: calc(var(--drop) * clamp(32px, 7vw, 116px));
   }
-  .salon__link {
+  .cell[data-align='center'] {
+    align-self: center;
+  }
+  .cell[data-align='end'] {
+    align-self: end;
+  }
+  .cell[data-justify='end'] {
+    justify-self: end;
+  }
+  .cell__link {
     display: block;
     cursor: zoom-in;
   }
-  .salon__img {
+  .cell__link img {
     width: 100%;
     height: auto;
     aspect-ratio: var(--a);
   }
-  .salon__link:focus-visible {
+  .cell__link:focus-visible {
     outline-offset: 6px;
   }
-  .salon__cap {
-    margin-top: 12px;
-    font: 400 13px/1.4 var(--f-ui);
+  /* Wall labels */
+  .lab--below {
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+    margin-top: 14px;
+  }
+  .lab--below .lab__t {
+    font: 400 18px/1.25 var(--f-display);
+  }
+  .lab__m {
+    font: 400 13px/1 var(--f-nav);
+    color: var(--ink-2);
+    font-variant-numeric: tabular-nums;
+  }
+  .lab--side {
+    grid-column: var(--c);
+    grid-row: 1;
+    align-self: end;
+    padding-bottom: 4px;
+  }
+  .lab--side .lab__t {
+    font: 400 clamp(26px, 2.4vw, 36px) / 1.08 var(--f-display);
+    text-wrap: balance;
+  }
+  .lab__list {
+    margin-top: 14px;
+    display: grid;
+    gap: 2px;
+    font: 400 14px/1.45 var(--f-nav);
     color: var(--ink-2);
   }
-  @media (max-width: 640px) {
-    .salon {
+  .lab__proc {
+    margin-top: 16px;
+    font: 500 14px/1 var(--f-nav);
+    padding: 8px 0;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.3em;
+    text-decoration-color: var(--line);
+  }
+  .lab__proc:hover {
+    text-decoration-color: currentColor;
+  }
+  @media (max-width: 700px) {
+    .hang {
+      row-gap: 56px;
+    }
+    .row {
       display: grid;
-      gap: 56px;
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: 56px;
     }
-    .salon::after {
-      display: none;
+    .cell,
+    .lab--side {
+      grid-column: 1;
+      grid-row: auto;
+      margin-top: 0;
+      justify-self: stretch;
+      max-width: 100%;
     }
-    .salon__item {
-      width: 100%;
+    .lab--side {
+      margin-top: -36px;
+    }
+    .lab--side .lab__t {
+      font-size: 24px;
     }
   }
 </style>

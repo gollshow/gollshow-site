@@ -1,0 +1,113 @@
+---
+/**
+ * The head of every inner page: a watercolour wash across the top of the sheet in the
+ * site's four pigments, with the page's name written in ink (src/scripts/band.ts).
+ * The slot holds a short line under it (the count of works, the other-language name).
+ */
+import T from './T.astro';
+import { getSettings } from '../lib/site';
+
+interface Props {
+  en: string;
+  ko?: string;
+  seed?: number; // gives each page its own wash
+}
+const { en, ko = en, seed = 0 } = Astro.props;
+const s = await getSettings();
+const p = s.pigments;
+const pig = [p.ultramarine, p.vermilion, p.viridian, p.ochre];
+---
+<section
+  class="band"
+  data-band
+  data-en={en}
+  data-ko={ko}
+  data-seed={seed}
+  data-pigments={pig.join(',')}
+  style={`--p0:${pig[0]};--p1:${pig[1]};--p2:${pig[2]};--p3:${pig[3]}`}
+>
+  <div class="band__wash" aria-hidden="true"></div>
+  <h1 class="band__word"><T en={en} ko={ko} /></h1>
+  <canvas class="band__cv" aria-hidden="true"></canvas>
+</section>
+{
+  Astro.slots.has('default') && (
+    <div class="band__after">
+      <slot />
+    </div>
+  )
+}
+
+<script>
+  import '../scripts/band';
+</script>
+
+<style>
+  .band {
+    position: relative;
+    height: clamp(300px, 54vh, 580px);
+    overflow: hidden;
+  }
+  .band__cv {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    opacity: 0;
+  }
+  .band.is-gl .band__cv {
+    opacity: 1;
+  }
+  /* Static version (no JS / no WebGL): a CSS wash with the name in ink. */
+  .band__wash {
+    position: absolute;
+    left: -6%;
+    right: -6%;
+    top: 16%;
+    bottom: 12%;
+    background:
+      radial-gradient(40% 70% at 18% 50%, color-mix(in srgb, var(--p0) 60%, transparent), transparent 72%),
+      radial-gradient(34% 80% at 46% 56%, color-mix(in srgb, var(--p2) 55%, transparent), transparent 72%),
+      radial-gradient(30% 70% at 70% 44%, color-mix(in srgb, var(--p1) 55%, transparent), transparent 72%),
+      radial-gradient(26% 60% at 90% 60%, color-mix(in srgb, var(--p3) 60%, transparent), transparent 70%);
+    filter: blur(36px);
+    opacity: 0.55;
+  }
+  .band__word {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 70%;
+    display: flex;
+    align-items: flex-end;
+    padding: 0 var(--gutter);
+    font: 400 min(26.4vh, 15vw) / 0.78 var(--f-display);
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  :global(.js) .band:not(.is-static) .band__wash,
+  :global(.js) .band:not(.is-static) .band__word {
+    opacity: 0;
+  }
+  .band__after {
+    width: 100%;
+    max-width: var(--max);
+    margin: 0 auto;
+    padding: 6px var(--gutter) 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 22px;
+    align-items: baseline;
+    font: 400 14px/1.5 var(--f-nav);
+    color: var(--ink-2);
+  }
+  @media (max-width: 700px) {
+    .band {
+      height: clamp(240px, 38vh, 330px);
+    }
+  }
+</style>

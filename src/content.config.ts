@@ -98,12 +98,26 @@ const pages = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/pages' }),
   schema: z.object({
     // about
+    heading: text(),
+    statement_en: text(),
+    statement_ko: text(),
     bio_en: text(),
     bio_ko: text(),
     portrait: text(),
+    portrait_caption_en: text(),
+    portrait_caption_ko: text(),
+    practices: z
+      .array(z.object({ title_en: text(), title_ko: text(), text_en: text(), text_ko: text(), link: text() }).nullish())
+      .nullish()
+      .transform((v) => (v ?? []).filter((x): x is NonNullable<typeof x> => !!x && !!(x.title_en || x.title_ko))),
+    notes: z
+      .array(z.object({ label_en: text(), label_ko: text(), text_en: text(), text_ko: text() }).nullish())
+      .nullish()
+      .transform((v) => (v ?? []).filter((x): x is NonNullable<typeof x> => !!x && !!(x.text_en || x.text_ko))),
     video: text(),
     video_caption_en: text(),
     video_caption_ko: text(),
+    address: text(),
     // music
     name: text(),
     intro_en: text(),

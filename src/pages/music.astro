@@ -3,6 +3,7 @@
 import Base from '../layouts/Base.astro';
 import T from '../components/T.astro';
 import Lite from '../components/Lite.astro';
+import Band from '../components/Band.astro';
 import { getEntry } from 'astro:content';
 import { getSettings, navItems, UI } from '../lib/site';
 import { embedFor } from '../lib/embed';
@@ -18,8 +19,10 @@ const players = links.filter((l) => {
 const host = (u: string) => u.replace(/^https?:\/\/(www\.|open\.|music\.)?/, '').replace(/\/$/, '');
 ---
 <Base title={{ en: nav.en, ko: nav.ko }} current="music" page="music">
-  <div class="page">
-    <h1 class="page-title"><T en={nav.en} ko={nav.ko} /></h1>
+  <Band en={nav.en} ko={nav.ko} seed={5}>
+    <span><span data-l="en" lang="ko">{nav.ko}</span><span data-l="ko">{nav.en}</span></span>
+  </Band>
+  <div class="page page--band">
     <div class="music">
       <div class="music__who">
         <p class="music__name">{m?.name ?? 'gogolala'}</p>
@@ -49,6 +52,9 @@ const host = (u: string) => u.replace(/^https?:\/\/(www\.|open\.|music\.)?/, '')
 </Base>
 
 <style>
+  .page--band {
+    padding-top: clamp(40px, 6vw, 96px);
+  }
   .music {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);

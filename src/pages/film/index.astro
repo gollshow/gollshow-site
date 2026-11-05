@@ -2,10 +2,12 @@
 /** Film list: one film per row — a wide still (2.39:1), titles, year, role, runtime, logline. */
 import Base from '../../layouts/Base.astro';
 import T from '../../components/T.astro';
+import Band from '../../components/Band.astro';
 import { getSettings, navItems, publishedFilms, runtimeOf, UI } from '../../lib/site';
 import { pic, resolveImage, withBase } from '../../lib/media';
 
 const s = await getSettings();
+const pg = s.pigments;
 const nav = navItems(s).find((n) => n.key === 'film')!;
 const films = await Promise.all(
   (await publishedFilms()).map(async (f) => {
@@ -15,8 +17,10 @@ const films = await Promise.all(
 );
 ---
 <Base title={{ en: nav.en, ko: nav.ko }} current="film" page="film-list">
-  <div class="page">
-    <h1 class="page-title"><T en={nav.en} ko={nav.ko} /></h1>
+  <Band en={nav.en} ko={nav.ko} seed={4}>
+    <span><span data-l="en" lang="ko">{nav.ko}</span><span data-l="ko">{nav.en}</span></span>
+  </Band>
+  <div class="page page--band">
     {
       films.length === 0 ? (
         <T as="p" class="soon" t={UI.filmsSoon} />
@@ -31,7 +35,13 @@ const films = await Promise.all(
               <li class="film">
                 <a class="film__link" href={withBase(`/film/${f.id}/`)}>
                   {!d.published && <T as="p" class="draft" t={UI.draft} />}
-                  <div class="film__still">
+                  <div class:list={['film__still', { 'film__still--card': !still }]} style={`--p0:${pg.ultramarine};--p1:${pg.vermilion};--p2:${pg.viridian};--p3:${pg.ochre}`}>
+                    {!still && (
+                      <span class="film__card" aria-hidden="true">
+                        <span data-l="en">{en}</span>
+                        <span data-l="ko" lang="ko">{ko}</span>
+                      </span>
+                    )}
                     {still && (
                       <img
                         src={still.src}
@@ -63,6 +73,33 @@ const films = await Promise.all(
 </Base>
 
 <style>
+  .page--band {
+    padding-top: clamp(40px, 6vw, 96px);
+  }
+  .film__still--card {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    padding: 0 clamp(16px, 3vw, 48px) clamp(14px, 2.4vw, 36px);
+  }
+  .film__still--card::before {
+    content: '';
+    position: absolute;
+    inset: -10%;
+    background:
+      radial-gradient(38% 62% at 22% 46%, color-mix(in srgb, var(--p0) 68%, transparent), transparent 72%),
+      radial-gradient(30% 70% at 52% 58%, color-mix(in srgb, var(--p2) 58%, transparent), transparent 72%),
+      radial-gradient(30% 60% at 76% 40%, color-mix(in srgb, var(--p1) 60%, transparent), transparent 72%),
+      radial-gradient(22% 50% at 92% 66%, color-mix(in srgb, var(--p3) 64%, transparent), transparent 70%);
+    filter: blur(38px);
+    opacity: 0.6;
+  }
+  .film__card {
+    position: relative;
+    font: 400 clamp(64px, 13vw, 220px) / 0.8 var(--f-display);
+    letter-spacing: -0.015em;
+    color: var(--ink);
+  }
   .soon {
     font: 400 clamp(20px, 2.2vw, 26px) / 1.4 var(--f-display);
     color: var(--ink-2);
@@ -78,7 +115,7 @@ const films = await Promise.all(
   .film__still {
     aspect-ratio: 2.39;
     overflow: hidden;
-    background: color-mix(in srgb, var(--ink) 6%, var(--ground));
+    background: color-mix(in srgb, var(--ink) 4%, var(--ground));
   }
   .film__still img {
     width: 100%;
