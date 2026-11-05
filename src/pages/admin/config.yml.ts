@@ -21,7 +21,7 @@ const folder = (sub: string) => ({ media_folder: `/src/assets/media/${sub}`, pub
 const art = (name: string, label: string) => ({
   name,
   label,
-  description: `${label} 작품. 위에서부터 사이트에 보이는 순서입니다.`,
+  description: `${label} 작품. 위에서부터 사이트에 보이는 순서이고, 맨 위 10점은 페이지 위쪽 "최근 작품" 띠에 흘러갑니다.`,
   files: [
     {
       name: 'works',
@@ -66,7 +66,7 @@ const art = (name: string, label: string) => ({
                 { label: 'M — 보통', value: 'M' },
                 { label: 'L — 크게', value: 'L' },
               ],
-              hint: '작품 목록 화면에서 이 작품이 얼마나 크게 걸릴지 정합니다.',
+              hint: '페이지 맨 위 "최근 작품" 띠에서 이 작품이 얼마나 크게 보일지 정합니다.',
             },
             { name: 'hidden', label: '숨기기', widget: 'boolean', default: false, required: false, hint: '켜면 사이트에서 보이지 않습니다 (지워지지 않아요).' },
             {

@@ -1,17 +1,20 @@
 ---
 /**
- * Painting / Conté & Pastel / Digital. A wash across the top with the room's name in
- * ink, then the works hung like the spreads of an art book (src/lib/hang.ts): L works
- * alone with a wall label, the rest in stepped pairs and trios. Calm ground behind the
- * art; no cards, borders, shadows or hover zoom.
+ * Painting / Conté & Pastel / Digital.
+ *   1. a wash across the top with the room's name in ink
+ *   2. "Latest": the first ten works of the list in /admin, at true proportions, drifting
+ *      slowly sideways like film through a gate (drag, swipe, scroll; stops on hover)
+ *   3. "All works": a tidy index, every work standing on the same baseline in equal cells,
+ *      each developing in ink as it comes into view
+ * S/M/L (set in /admin) changes a work's height in the Latest strip.
+ * Any work opens the full-screen viewer. Calm ground behind the art.
  */
 import Base from '../layouts/Base.astro';
 import Band from '../components/Band.astro';
 import Viewer from '../components/Viewer.astro';
 import T from '../components/T.astro';
 import { ART } from '../content.config';
-import { getWorks, viewerData } from '../lib/art';
-import { hang } from '../lib/hang';
+import { getWorks, viewerData, type Work } from '../lib/art';
 import { getSettings, navItems, type NavKey } from '../lib/site';
 
 export function getStaticPaths() {
@@ -21,189 +24,265 @@ const { category } = Astro.params as { category: (typeof ART)[number] };
 const s = await getSettings();
 const nav = navItems(s).find((n) => n.key === category)!;
 const works = await getWorks(category);
-const rows = hang(works);
+const latest = works.slice(0, 10);
 const seed = ART.indexOf(category) + 1;
-const years = works.map((w) => Number(w.meta[0])).filter((y) => y > 1900 && y < 2100);
+const year = (w: Work) => w.meta.find((m) => /^\d{4}(\s*[–-]\s*\d{2,4})?$/.test(m));
 ---
 <Base title={{ en: nav.en, ko: nav.ko }} current={category as NavKey} page="art">
-  <Band en={nav.en} ko={nav.ko} seed={seed}>
+  <Band en={nav.en} ko={nav.ko} seed={seed} short>
     <span><span data-l="en" lang="ko">{nav.ko}</span><span data-l="ko">{nav.en}</span></span>
     <span><T en={`${works.length} works`} ko={`${works.length}점`} /></span>
   </Band>
-  <div class="page page--band">
-    <div class="hang">
+
+  {
+    latest.length > 0 && (
+      <section class="latest" aria-labelledby="latest-h">
+        <div class="head">
+          <h2 class="head__t" id="latest-h">
+            <T en="Latest" ko="최근 작품" />
+          </h2>
+          <p class="head__hint">
+            <T en="Drag or swipe sideways" ko="옆으로 끌거나 밀어 보세요" />
+          </p>
+        </div>
+        <div
+          class="strip"
+          data-strip
+          tabindex="0"
+          aria-label={`${nav.en}, latest ${latest.length} works`}
+          data-aria-en={`${nav.en}, latest ${latest.length} works`}
+          data-aria-ko={`${nav.ko}, 최근 작품 ${latest.length}점`}
+        >
+          {['a', 'b'].map((set) => (
+            <ul class="strip__set" data-set={set} aria-hidden={set === 'b' ? 'true' : undefined}>
+              {latest.map((w, i) => (
+                <li class="strip__item" style={`--a:${(w.w / w.h).toFixed(4)};--nh:${w.h};--k:${w.display === 'L' ? 1.14 : w.display === 'S' ? 0.78 : 1}`}>
+                  <a class="strip__link" href={w.pic.large} data-view={i} tabindex={set === 'b' ? -1 : undefined} data-reveal="bleed">
+                    <img
+                      src={w.src}
+                      srcset={w.srcset}
+                      sizes="(max-width: 700px) 70vw, 36vw"
+                      width={w.w}
+                      height={w.h}
+                      alt={set === 'b' ? '' : w.alt.en}
+                      data-alt-en={set === 'b' ? undefined : w.alt.en}
+                      data-alt-ko={set === 'b' ? undefined : w.alt.ko}
+                      loading={i < 4 && set === 'a' ? 'eager' : 'lazy'}
+                      decoding="async"
+                      draggable="false"
+                    />
+                  </a>
+                  <p class="strip__cap" aria-hidden={w.title ? undefined : 'true'}>
+                    {w.title && <T en={w.title.en} ko={w.title.ko} />}
+                    {w.title && year(w) && <span class="strip__y">{year(w)}</span>}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  <section class="index" aria-labelledby="all-h">
+    <div class="head">
+      <h2 class="head__t" id="all-h">
+        <T en="All works" ko="전체 작품" />
+      </h2>
+      <p class="head__hint"><T en={`${works.length}`} ko={`${works.length}점`} /></p>
+    </div>
+    <ul class="grid">
       {
-        rows.map((row) => (
-          <div class={`row row--${row.kind}`}>
-            {row.cells.map((c) => {
-              const w = works[c.i];
-              return (
-                <>
-                  <figure
-                    class="cell"
-                    data-align={c.align}
-                    data-justify={c.justify}
-                    style={`--c:${c.start} / span ${c.span};--a:${(w.w / w.h).toFixed(4)};--nw:${w.w};--drop:${c.drop}`}
-                  >
-                    <a class="cell__link" href={w.pic.large} data-view={c.i}>
-                      <img
-                        src={w.src}
-                        srcset={w.srcset}
-                        sizes={`(max-width: 700px) calc(100vw - 32px), ${Math.round((c.span / 12) * 100)}vw`}
-                        width={w.w}
-                        height={w.h}
-                        alt={w.alt.en}
-                        data-alt-en={w.alt.en}
-                        data-alt-ko={w.alt.ko}
-                        loading={c.i < 6 ? 'eager' : 'lazy'}
-                        decoding="async"
-                      />
-                    </a>
-                    {c.label === 'below' && w.title && (
-                      <figcaption class="lab lab--below">
-                        <T as="span" class="lab__t" en={w.title.en} ko={w.title.ko} />
-                        {w.meta[0] && <span class="lab__m">{w.meta[0]}</span>}
-                      </figcaption>
-                    )}
-                  </figure>
-                  {typeof c.label === 'object' && w.title && (
-                    <div class="lab lab--side" style={`--c:${c.label.start} / span ${c.label.span}`}>
-                      <T as="p" class="lab__t" en={w.title.en} ko={w.title.ko} />
-                      {w.meta.length > 0 && (
-                        <ul class="lab__list">
-                          {w.meta.map((m) => (
-                            <li>{m}</li>
-                          ))}
-                        </ul>
-                      )}
-                      {w.process && (
-                        <button class="lab__proc" type="button" data-view={c.i} data-process-open>
-                          <T en="Watch the process" ko="과정 영상 보기" />
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </>
-              );
-            })}
-          </div>
+        works.map((w, i) => (
+          <li class="tile">
+            <a class="tile__frame" href={w.pic.large} data-view={i} data-reveal="bleed" style={`--d:${(i % 6) * 60}`}>
+              <img
+                src={w.src}
+                srcset={w.srcset}
+                sizes="(max-width: 700px) 46vw, 15vw"
+                width={w.w}
+                height={w.h}
+                alt={w.alt.en}
+                data-alt-en={w.alt.en}
+                data-alt-ko={w.alt.ko}
+                loading="lazy"
+                decoding="async"
+              />
+            </a>
+            {w.title ? (
+              <p class="tile__cap">
+                <T en={w.title.en} ko={w.title.ko} />
+                {year(w) && <span class="tile__y">{year(w)}</span>}
+              </p>
+            ) : (
+              <p class="tile__cap" aria-hidden="true" />
+            )}
+          </li>
         ))
       }
-    </div>
-  </div>
+    </ul>
+  </section>
+
   <Viewer items={viewerData(works)} label={{ en: nav.en, ko: nav.ko }} />
 </Base>
 
+<script>
+  import '../scripts/strip';
+  import '../scripts/reveal';
+</script>
+
 <style>
-  .page--band {
-    padding-top: clamp(48px, 7vw, 104px);
-  }
-  .hang {
-    display: grid;
-    row-gap: clamp(60px, 7.5vw, 128px);
-  }
-  .row {
-    display: grid;
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-    column-gap: clamp(14px, 2vw, 32px);
-    align-items: start;
-  }
-  .cell {
-    grid-column: var(--c);
-    grid-row: 1;
-    min-width: 0;
+  .head {
     width: 100%;
-    /* never more than 1.5× the image's natural width */
-    max-width: calc(var(--nw) * 1.5px);
-    margin-top: calc(var(--drop) * clamp(32px, 7vw, 116px));
+    max-width: var(--max);
+    margin: 0 auto;
+    padding: 0 var(--gutter);
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px 24px;
   }
-  .cell[data-align='center'] {
-    align-self: center;
+  .head__t {
+    font: 400 clamp(26px, 2.6vw, 38px) / 1 var(--f-display);
   }
-  .cell[data-align='end'] {
-    align-self: end;
+  .head__hint {
+    font: 400 13px/1.4 var(--f-nav);
+    color: var(--ink-2);
   }
-  .cell[data-justify='end'] {
-    justify-self: end;
+
+  /* 2. Latest: one long line of works, fading into the paper at both ends */
+  .latest {
+    margin-top: clamp(36px, 5vw, 72px);
+    --sh: clamp(240px, 46vh, 520px);
   }
-  .cell__link {
+  .strip {
+    margin-top: 22px;
+    display: flex;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+    cursor: grab;
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 6%, #000 90%, transparent 100%);
+    mask-image: linear-gradient(90deg, transparent 0, #000 6%, #000 90%, transparent 100%);
+  }
+  .strip::-webkit-scrollbar {
+    display: none;
+  }
+  .strip.is-drag {
+    cursor: grabbing;
+    user-select: none;
+  }
+  .strip:focus-visible {
+    outline-offset: -2px;
+  }
+  .strip__set {
+    display: flex;
+    align-items: flex-end;
+    gap: clamp(22px, 3vw, 52px);
+    padding-left: clamp(22px, 3vw, 52px);
+    flex: none;
+  }
+  .strip__set[data-set='a'] {
+    padding-left: var(--gutter);
+  }
+  .strip__item {
+    flex: none;
+    width: min(calc(var(--sh) * var(--k, 1) * var(--a)), 86vw);
+  }
+  .strip__link {
     display: block;
-    cursor: zoom-in;
   }
-  .cell__link img {
+  .strip__link img {
     width: 100%;
     height: auto;
     aspect-ratio: var(--a);
+    max-height: calc(var(--nh) * 1.5px);
+    object-fit: contain;
+    -webkit-user-drag: none;
   }
-  .cell__link:focus-visible {
-    outline-offset: 6px;
-  }
-  /* Wall labels */
-  .lab--below {
+  .strip__cap {
+    min-height: 1.2em;
+    margin-top: 12px;
     display: flex;
     gap: 10px;
     align-items: baseline;
-    margin-top: 14px;
+    font: 400 18px/1.2 var(--f-display);
   }
-  .lab--below .lab__t {
-    font: 400 18px/1.25 var(--f-display);
-  }
-  .lab__m {
-    font: 400 13px/1 var(--f-nav);
+  .strip__y,
+  .tile__y {
+    font: 400 12px/1 var(--f-nav);
     color: var(--ink-2);
     font-variant-numeric: tabular-nums;
   }
-  .lab--side {
-    grid-column: var(--c);
-    grid-row: 1;
-    align-self: end;
-    padding-bottom: 4px;
+
+  /* 3. All works: equal cells, every work on the same baseline */
+  .index {
+    margin-top: clamp(72px, 9vw, 140px);
+    padding-bottom: clamp(72px, 9vw, 140px);
   }
-  .lab--side .lab__t {
-    font: 400 clamp(26px, 2.4vw, 36px) / 1.08 var(--f-display);
-    text-wrap: balance;
-  }
-  .lab__list {
-    margin-top: 14px;
+  .grid {
+    width: 100%;
+    max-width: var(--max);
+    margin: 28px auto 0;
+    padding: 0 var(--gutter);
     display: grid;
-    gap: 2px;
-    font: 400 14px/1.45 var(--f-nav);
-    color: var(--ink-2);
+    grid-template-columns: repeat(auto-fill, minmax(clamp(140px, 12.4vw, 184px), 1fr));
+    gap: clamp(30px, 3.6vw, 56px) clamp(18px, 2.2vw, 36px);
   }
-  .lab__proc {
-    margin-top: 16px;
-    font: 500 14px/1 var(--f-nav);
-    padding: 8px 0;
-    text-decoration: underline;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 0.3em;
-    text-decoration-color: var(--line);
+  .tile {
+    display: grid;
+    grid-template-rows: 1fr auto;
+    min-width: 0;
+    transition: opacity 320ms ease;
   }
-  .lab__proc:hover {
-    text-decoration-color: currentColor;
+  .tile__frame {
+    display: block;
+    min-height: 0;
+    aspect-ratio: 4 / 5;
+    cursor: zoom-in;
+  }
+  .tile__frame {
+    align-self: end;
+  }
+  .tile__frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: 50% 100%;
+  }
+  .tile__frame:focus-visible {
+    outline-offset: 5px;
+  }
+  .tile__cap {
+    min-height: 1.4em;
+    margin-top: 10px;
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+    justify-content: center;
+    font: 400 15px/1.2 var(--f-display);
+    text-align: center;
+  }
+  /* Pointing at one work quietens the others. */
+  @media (hover: hover) and (pointer: fine) {
+    .grid:has(.tile__frame:hover) .tile:not(:has(.tile__frame:hover)) {
+      opacity: 0.38;
+    }
   }
   @media (max-width: 700px) {
-    .hang {
-      row-gap: 56px;
+    .latest {
+      --sh: clamp(200px, 46vh, 360px);
     }
-    .row {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr);
-      row-gap: 56px;
+    .head__hint {
+      display: none;
     }
-    .cell,
-    .lab--side {
-      grid-column: 1;
-      grid-row: auto;
-      margin-top: 0;
-      justify-self: stretch;
-      max-width: 100%;
+    .index .head__hint {
+      display: block;
     }
-    .lab--side {
-      margin-top: -36px;
-    }
-    .lab--side .lab__t {
-      font-size: 24px;
+    .grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
 </style>

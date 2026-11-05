@@ -281,3 +281,41 @@ body::after {
   background: var(--wash) no-repeat;
   pointer-events: none;
 }
+
+/* Ink reveal (src/scripts/reveal.ts). Without JS, or with reduced motion, nothing is hidden. */
+@media (prefers-reduced-motion: no-preference) {
+  .js [data-reveal='bleed']:not(.is-done) {
+    -webkit-mask-image: var(--wash);
+    mask-image: var(--wash);
+    -webkit-mask-size: 1600% 100%;
+    mask-size: 1600% 100%;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: 0% 0;
+    mask-position: 0% 0;
+  }
+  .js [data-reveal='bleed'].is-in:not(.is-done) {
+    animation: bleed-in 680ms steps(16, jump-none) both;
+    animation-delay: calc(var(--d, 0) * 1ms);
+  }
+  .js [data-reveal='rise'] {
+    transition:
+      opacity 800ms ease,
+      transform 900ms cubic-bezier(0.2, 0.7, 0.2, 1);
+    transition-delay: calc(var(--d, 0) * 1ms);
+  }
+  .js [data-reveal='rise']:not(.is-in) {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+@keyframes bleed-in {
+  from {
+    -webkit-mask-position: 0% 0;
+    mask-position: 0% 0;
+  }
+  to {
+    -webkit-mask-position: 100% 0;
+    mask-position: 100% 0;
+  }
+}

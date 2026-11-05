@@ -22,6 +22,11 @@ const capEn = a?.video_caption_en ?? a?.video_caption_ko ?? 'Video';
 const capKo = a?.video_caption_ko ?? capEn;
 const heading = a?.heading || 'goll';
 const linkOf = (k?: string) => nav.find((n) => n.key === k);
+const pg = s.pigments;
+const pig = `--p0:${pg.ultramarine};--p1:${pg.vermilion};--p2:${pg.viridian};--p3:${pg.ochre}`;
+const words = (t?: string) => (t ?? '').split(/\s+/).filter(Boolean);
+const stEn = a?.statement_en ?? a?.statement_ko;
+const stKo = a?.statement_ko ?? a?.statement_en;
 ---
 <Base title={{ en: about.en, ko: about.ko }} current="about" page="about">
   <Band en={heading} ko={heading} seed={7}>
@@ -29,15 +34,41 @@ const linkOf = (k?: string) => nav.find((n) => n.key === k);
     {(s.roles_en || s.roles_ko) && <T en={s.roles_en} ko={s.roles_ko} />}
   </Band>
 
-  <div class="page page--band about">
-    {(a?.statement_en || a?.statement_ko) && <T as="p" class="statement" en={a?.statement_en} ko={a?.statement_ko} />}
+  <div class="page page--band about" style={pig}>
+    {
+      stEn && (
+        <p class="statement" data-reveal="words">
+          <span data-l={stKo !== stEn ? 'en' : undefined}>
+            {words(stEn).map((w, i) => (
+              <>
+                <span class="w" style={`--i:${i}`}>{w}</span>{' '}
+              </>
+            ))}
+          </span>
+          {stKo !== stEn && (
+            <span data-l="ko" lang="ko">
+              {words(stKo).map((w, i) => (
+                <>
+                  <span class="w" style={`--i:${i}`}>{w}</span>{' '}
+                </>
+              ))}
+            </span>
+          )}
+        </p>
+      )
+    }
 
     <section class="intro">
-      {(a?.bio_en || a?.bio_ko) && <T block class="bio" en={a?.bio_en} ko={a?.bio_ko} />}
+      {(a?.bio_en || a?.bio_ko) && (
+        <div class="bio" data-reveal="rise">
+          <T block en={a?.bio_en} ko={a?.bio_ko} />
+        </div>
+      )}
       {
         portrait && (
-          <figure class="poster">
+          <figure class="poster" data-parallax>
             <img
+              data-reveal="bleed"
               src={portrait.src}
               srcset={portrait.srcset}
               sizes="(max-width: 860px) 80vw, 30vw"
@@ -60,7 +91,7 @@ const linkOf = (k?: string) => nav.find((n) => n.key === k);
     {
       a && a.practices.length > 0 && (
         <section class="practices" aria-label="Practice">
-          {a.practices.map((p) => {
+          {a.practices.map((p, i) => {
             const l = linkOf(p.link);
             const body = (
               <>
@@ -69,11 +100,13 @@ const linkOf = (k?: string) => nav.find((n) => n.key === k);
               </>
             );
             return l ? (
-              <a class="practice" href={withBase(l.path)}>
+              <a class="practice" href={withBase(l.path)} data-reveal="rise" style={`--d:${i * 140};--pc:var(--p${i % 3})`}>
                 {body}
               </a>
             ) : (
-              <div class="practice">{body}</div>
+              <div class="practice" data-reveal="rise" style={`--d:${i * 140};--pc:var(--p${i % 3})`}>
+                {body}
+              </div>
             );
           })}
         </section>
@@ -87,8 +120,8 @@ const linkOf = (k?: string) => nav.find((n) => n.key === k);
             <T en="Record" ko="기록" />
           </h2>
           <ol class="record__list">
-            {a.notes.map((n) => (
-              <li>
+            {a.notes.map((n, i) => (
+              <li data-reveal="rise" style={`--d:${i * 70}`}>
                 <T as="span" class="record__y" en={n.label_en ?? n.label_ko} ko={n.label_ko ?? n.label_en} />
                 <T as="span" class="record__t" en={n.text_en ?? n.text_ko} ko={n.text_ko ?? n.text_en} />
               </li>
@@ -100,7 +133,7 @@ const linkOf = (k?: string) => nav.find((n) => n.key === k);
 
     {
       a?.video && (
-        <figure class="clip">
+        <figure class="clip" data-reveal="bleed">
           <Lite url={a.video} label={{ en: `${UI.play.en} — ${capEn}`, ko: `${UI.play.ko} — ${capKo}` }} title={capEn} />
           <T as="figcaption" class="meta" en={capEn} ko={capKo} />
         </figure>
@@ -109,7 +142,11 @@ const linkOf = (k?: string) => nav.find((n) => n.key === k);
 
     <section class="contact">
       <h2 class="section-title"><T t={UI.contact} /></h2>
-      {s.email && <a class="contact__mail" href={`mailto:${s.email}`}>{s.email}</a>}
+      {s.email && (
+        <a class="contact__mail" href={`mailto:${s.email}`} data-reveal="bleed">
+          {s.email}
+        </a>
+      )}
       <ul class="contact__links">
         {s.instagram && <li><a class="text-link" href={s.instagram} target="_blank" rel="me noopener">Instagram</a></li>}
         {s.youtube && <li><a class="text-link" href={s.youtube} target="_blank" rel="me noopener">YouTube</a></li>}
@@ -119,6 +156,23 @@ const linkOf = (k?: string) => nav.find((n) => n.key === k);
     </section>
   </div>
 </Base>
+
+<script>
+  import '../scripts/reveal';
+  // The poster drifts a little slower than the page.
+  const fig = document.querySelector<HTMLElement>('[data-parallax]');
+  if (fig && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    let ticking = false;
+    const move = () => {
+      ticking = false;
+      const r = fig.getBoundingClientRect();
+      const off = (r.top + r.height / 2 - innerHeight / 2) / innerHeight;
+      fig.style.transform = `translate3d(0, ${(off * -48).toFixed(1)}px, 0)`;
+    };
+    addEventListener('scroll', () => !ticking && (ticking = requestAnimationFrame(move) > 0), { passive: true });
+    move();
+  }
+</script>
 
 <style>
   .page--band {
@@ -281,6 +335,87 @@ const linkOf = (k?: string) => nav.find((n) => n.key === k);
     white-space: pre-line;
     color: var(--ink-2);
     font: 400 14px/1.6 var(--f-nav);
+  }
+  /* ── motion ── */
+  .practice {
+    position: relative;
+    isolation: isolate;
+  }
+  .practice::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    inset: -8% -4% 10% -10%;
+    background: radial-gradient(closest-side, color-mix(in srgb, var(--pc) 62%, transparent), transparent);
+    filter: blur(26px);
+    opacity: 0;
+    transform: scale(0.4);
+    transition:
+      opacity 700ms ease,
+      transform 1100ms cubic-bezier(0.2, 0.7, 0.2, 1);
+    pointer-events: none;
+  }
+  a.practice:hover::before,
+  a.practice:focus-visible::before {
+    opacity: 0.85;
+    transform: scale(1);
+  }
+  .record__list li {
+    position: relative;
+    border-top: 0;
+  }
+  .record__list li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 1px;
+    background: var(--line);
+    transform-origin: left;
+    transition: transform 1100ms cubic-bezier(0.2, 0.7, 0.2, 1);
+    transition-delay: calc(var(--d, 0) * 1ms);
+  }
+  .poster {
+    will-change: transform;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.js) .statement[data-reveal] .w {
+      display: inline-block;
+      -webkit-mask-image: var(--wash);
+      mask-image: var(--wash);
+      -webkit-mask-size: 1600% 100%;
+      mask-size: 1600% 100%;
+      -webkit-mask-repeat: no-repeat;
+      mask-repeat: no-repeat;
+      -webkit-mask-position: 0% 0;
+      mask-position: 0% 0;
+    }
+    :global(.js) .statement[data-reveal]:global(.is-in) .w {
+      animation: bleed-in 620ms steps(16, jump-none) both;
+      animation-delay: calc(var(--i) * 95ms + 120ms);
+    }
+    :global(.js) .practice[data-reveal]:global(.is-in)::before {
+      animation: bloom-once 2600ms ease both;
+      animation-delay: calc(var(--d, 0) * 1ms + 300ms);
+    }
+    :global(.js) .record__list li[data-reveal]:not(:global(.is-in))::before {
+      transform: scaleX(0);
+    }
+  }
+  @keyframes bloom-once {
+    0% {
+      opacity: 0;
+      transform: scale(0.4);
+    }
+    45% {
+      opacity: 0.8;
+      transform: scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(1.12);
+    }
   }
   @media (max-width: 860px) {
     .statement {

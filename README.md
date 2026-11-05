@@ -13,11 +13,11 @@ Built with [Astro](https://astro.build) (static output) and [Sveltia CMS](https:
 - **Home** — a WebGL pigment flow: four pigments (set in /admin → 사이트 설정) swirl and settle while the wordmark gathers out of them as ink. The pointer stirs the pigment. No artwork on this screen. Code: `src/scripts/hero.ts`.
 - **Ground** — every visit opens on white paper (`#F2F0EB`, ink `#1E1D1B`) or black (`#0C0C0D`, ink `#ECE9E2`), picked once per browser session; `?bg=white` or `?bg=black` forces one. Colour lives only in the pigment and the paintings.
 - **Language** — English by default; **KR** switches every label and every text that has a Korean version, and the browser remembers it.
-- **Painting / Conté & Pastel / Digital** — hung like the spreads of an art book (`src/lib/hang.ts`): an L work gets a row to itself with a wall label beside it; the rest come in stepped pairs and trios. S/M/L is set per work in /admin. Click a work for the full-screen viewer (ink-bleed reveal, ←/→, swipe, Esc, "12 / 63", a **Process** button when there is a process video). Images are never shown larger than 1.5× their natural size.
+- **Painting / Conté & Pastel / Digital** — "Latest": the first ten works of the list, at true proportions, drifting slowly sideways like film through a gate (drag, swipe or scroll; stops on hover; S/M/L sets their height; `src/scripts/strip.ts`). Below, "All works": a tidy index of equal cells, every work on the same baseline, each developing in ink as it comes into view (`src/scripts/reveal.ts`). Click a work for the full-screen viewer (ink-bleed reveal, ←/→, swipe, Esc, "12 / 63", a **Process** button when there is a process video). Images are never shown larger than 1.5× their natural size.
 - **Film** — one film per row (2.39:1 still, titles, year, role, runtime, logline) and a page per film (trailer as a lite embed, synopsis, stills, credits, festivals, links). Until a film is published the page says "Films are on their way." An unpublished example entry shows how to fill one in (visible in `npm run dev` only).
 - **Inner pages** open with a watercolour wash across the top in the same four pigments, the page name written in ink (`src/scripts/band.ts`); it settles in ~2.4 s and stops, so the works below sit on a calm ground.
-- **Music** and **About** — gogolala's platforms (Spotify as a click-to-load player); the bio, the record, the three practices, the KBS clip, contact.
-- Page changes use one ink-wash transition (View Transitions API with a noise mask, `public/fx/wash.webp`).
+- **Music** and **About** — gogolala's platforms (Spotify as a click-to-load player). About: the statement inks in word by word, the poster drifts slower than the page, each practice blooms in its own pigment, the record draws in line by line.
+- Page changes use one ink-wash transition (View Transitions API with a noise mask, `public/fx/wash.webp`). Reduced motion turns every movement off.
 
 ## How updates reach the site
 

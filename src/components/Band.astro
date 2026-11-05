@@ -11,14 +11,15 @@ interface Props {
   en: string;
   ko?: string;
   seed?: number; // gives each page its own wash
+  short?: boolean; // a lower wash, for pages whose content should show sooner
 }
-const { en, ko = en, seed = 0 } = Astro.props;
+const { en, ko = en, seed = 0, short = false } = Astro.props;
 const s = await getSettings();
 const p = s.pigments;
 const pig = [p.ultramarine, p.vermilion, p.viridian, p.ochre];
 ---
 <section
-  class="band"
+  class:list={['band', { 'band--short': short }]}
   data-band
   data-en={en}
   data-ko={ko}
@@ -47,6 +48,9 @@ const pig = [p.ultramarine, p.vermilion, p.viridian, p.ochre];
     position: relative;
     height: clamp(300px, 54vh, 580px);
     overflow: hidden;
+  }
+  .band--short {
+    height: clamp(230px, 36vh, 400px);
   }
   .band__cv {
     position: absolute;
@@ -106,8 +110,9 @@ const pig = [p.ultramarine, p.vermilion, p.viridian, p.ochre];
     color: var(--ink-2);
   }
   @media (max-width: 700px) {
-    .band {
-      height: clamp(240px, 38vh, 330px);
+    .band,
+    .band--short {
+      height: clamp(220px, 34vh, 300px);
     }
   }
 </style>
