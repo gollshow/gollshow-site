@@ -5,7 +5,7 @@ import { SITE, BASE, GITHUB_OWNER, GITHUB_REPO } from '../../../site.config.mjs'
  * Sveltia CMS configuration, generated so the site URL and base path always match
  * site.config.mjs. Everything the owner sees is in Korean.
  *
- * Sidebar order: 사이트 설정, 회화, 콩테·파스텔, 디지털, 영화, 음악, 소개.
+ * Sidebar order: 사이트 설정, 영화, 회화, 콩테·파스텔, 디지털, 음악, 소개 (film leads).
  *
  * Art categories are ONE file each (src/content/art/<category>.yml) holding the list
  * of works, because that is what gives drag-and-drop ordering of the works in
@@ -21,7 +21,7 @@ const folder = (sub: string) => ({ media_folder: `/src/assets/media/${sub}`, pub
 const art = (name: string, label: string) => ({
   name,
   label,
-  description: `${label} 작품. 위에서부터 사이트에 보이는 순서이고, 맨 위 10점은 페이지 위쪽 "최근 작품" 띠에 흘러갑니다.`,
+  description: `${label} 작품. 위에서부터 사이트에 보이는 순서이고, 맨 위 10점은 페이지 위쪽 배너에 한 점씩 크게 나옵니다.`,
   files: [
     {
       name: 'works',
@@ -66,7 +66,21 @@ const art = (name: string, label: string) => ({
                 { label: 'M — 보통', value: 'M' },
                 { label: 'L — 크게', value: 'L' },
               ],
-              hint: '페이지 맨 위 "최근 작품" 띠에서 이 작품이 얼마나 크게 보일지 정합니다.',
+              hint: '지금 화면에서는 쓰이지 않습니다 (나중을 위해 남겨 둔 값).',
+            },
+            {
+              name: 'focus',
+              label: '배너에서 보일 부분',
+              widget: 'select',
+              required: false,
+              default: 'auto',
+              options: [
+                { label: '자동 (조금 위)', value: 'auto' },
+                { label: '위', value: 'top' },
+                { label: '가운데', value: 'center' },
+                { label: '아래', value: 'bottom' },
+              ],
+              hint: '맨 위 배너는 그림을 확대해 넓게 잘라 보여 줍니다. 어느 쪽을 남길지 고르세요.',
             },
             { name: 'hidden', label: '숨기기', widget: 'boolean', default: false, required: false, hint: '켜면 사이트에서 보이지 않습니다 (지워지지 않아요).' },
             {
@@ -186,14 +200,11 @@ const config = {
         },
       ],
     },
-    art('painting', '회화'),
-    art('conte-pastel', '콩테·파스텔'),
-    art('digital', '디지털'),
     {
       name: 'films',
       label: '영화',
       label_singular: '영화',
-      description: '영화 한 편이 항목 하나입니다. "공개"를 켜야 사이트에 나옵니다. "예시 영화"를 열어 보면 어떻게 채우는지 알 수 있어요.',
+      description: '영화 한 편이 항목 하나입니다. "공개"를 켜야 사이트에 나옵니다. 메뉴에서 맨 앞에 나오는 페이지예요. "순서 바꾸기"로 끌어서 순서를 정하세요 (위가 최신).',
       folder: 'src/content/films',
       create: true,
       extension: 'md',
@@ -209,12 +220,23 @@ const config = {
         { name: 'title_en', label: '제목 (영어)', widget: 'string', hint: '꼭 적어 주세요. 영화 페이지 주소(URL)도 이 제목으로 만들어집니다.' },
         { name: 'title_ko', label: '제목 (한국어)', widget: 'string', required: false },
         { name: 'year', label: '연도', widget: 'string', required: false, hint: '예: 2025' },
+        {
+          name: 'format',
+          label: '형식',
+          widget: 'select',
+          required: false,
+          options: [
+            { label: '장편 Feature', value: 'feature' },
+            { label: '단편 Short', value: 'short' },
+            { label: '뮤직 필름 Music film', value: 'mv' },
+          ],
+        },
         { name: 'runtime', label: '상영 시간 (분)', widget: 'string', required: false, hint: '숫자만 적으면 "98 min / 98분"으로 나옵니다.' },
         { name: 'role_en', label: '맡은 일 (영어)', widget: 'string', required: false, hint: '예: Director · Writer' },
         { name: 'role_ko', label: '맡은 일 (한국어)', widget: 'string', required: false, hint: '예: 감독 · 각본' },
         { name: 'logline_en', label: '한 줄 소개 (영어)', widget: 'string', required: false },
         { name: 'logline_ko', label: '한 줄 소개 (한국어)', widget: 'string', required: false },
-        { name: 'still', label: '대표 스틸', widget: 'image', required: false, ...folder('film'), hint: `영화 목록에 가로로 길게(2.39:1) 잘려 보입니다. ${UPLOAD_HINT}` },
+        { name: 'still', label: '대표 이미지 (키아트·스틸)', widget: 'image', required: false, ...folder('film'), hint: `영화 목록에는 화면 폭 가득 가로로 길게(2.39:1), 영화 페이지 맨 위에는 16:9로 보입니다. 1920px 이상 권장. ${UPLOAD_HINT}` },
         {
           name: 'focus',
           label: '대표 스틸에서 살릴 부분',
@@ -233,7 +255,8 @@ const config = {
           ],
           hint: '가로로 길게 잘릴 때 어느 쪽을 남길지 고릅니다.',
         },
-        { name: 'trailer', label: '예고편 주소', widget: 'string', required: false, hint: 'YouTube 또는 Vimeo 주소. 누르기 전까지는 대표 스틸과 재생 버튼만 보입니다.' },
+        { name: 'trailer', label: '예고편·영상 주소', widget: 'string', required: false, hint: 'YouTube 또는 Vimeo 주소. 영화 페이지 맨 위에 대표 이미지와 재생 버튼으로 크게 나오고, 누르면 재생됩니다.' },
+        { name: 'full_film', label: '예고편이 아니라 영화 전체 영상', widget: 'boolean', default: false, required: false, hint: '켜면 버튼이 "Play the trailer" 대신 "Watch the film"(영화 보기)으로 나옵니다.' },
         { name: 'synopsis_en', label: '시놉시스 (영어)', widget: 'text', required: false, hint: '빈 줄을 넣으면 새 문단이 됩니다.' },
         { name: 'synopsis_ko', label: '시놉시스 (한국어)', widget: 'text', required: false },
         { name: 'stills', label: '스틸 (여러 장)', widget: 'image', multiple: true, required: false, ...folder('film'), hint: `여러 장을 한꺼번에 올리고 끌어서 순서를 바꿀 수 있어요. ${UPLOAD_HINT}` },
@@ -280,6 +303,9 @@ const config = {
         },
       ],
     },
+    art('painting', '회화'),
+    art('conte-pastel', '콩테·파스텔'),
+    art('digital', '디지털'),
     {
       name: 'music',
       label: '음악',

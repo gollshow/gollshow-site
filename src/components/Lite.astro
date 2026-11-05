@@ -11,8 +11,9 @@ interface Props {
   label: { en: string; ko?: string };
   title?: string; // iframe title
   class?: string;
+  sizes?: string;
 }
-const { url, poster, label, title = label.en, class: cls } = Astro.props;
+const { url, poster, label, title = label.en, class: cls, sizes = '(max-width: 900px) 100vw, 900px' } = Astro.props;
 const e = embedFor(url);
 const ko = label.ko ?? label.en;
 ---
@@ -25,7 +26,7 @@ const ko = label.ko ?? label.en;
       style={e.ratio ? `aspect-ratio:${e.ratio}` : `aspect-ratio:auto;height:${e.height}px`}
     >
       {poster && (
-        <img src={poster.src} srcset={poster.srcset} sizes="(max-width: 900px) 100vw, 900px" alt="" loading="lazy" decoding="async" style={poster.position ? `object-position:${poster.position}` : undefined} />
+        <img src={poster.src} srcset={poster.srcset} sizes={sizes} alt="" decoding="async" style={poster.position ? `object-position:${poster.position}` : undefined} />
       )}
       <button class="lite__play" type="button" aria-label={label.en} data-aria-en={label.en} data-aria-ko={ko}>
         <span class="lite__btn" aria-hidden="true">

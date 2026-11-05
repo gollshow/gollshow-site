@@ -6,7 +6,7 @@ import { UI } from '../lib/site';
 import { withBase } from '../lib/media';
 ---
 <Base title={{ en: '404', ko: '404' }} page="lost" noindex>
-  <Band en="404" ko="404" seed={9} />
+  <Band en="404" ko="404" seed={9} shape="pool" short />
   <div class="page lost">
     <T as="p" class="lost__t" t={UI.lost} />
     <p><a class="text-link" href={withBase('/')}><T t={UI.backHome} /></a></p>

@@ -48,6 +48,7 @@ const work = z.object({
     .pipe(z.enum(['S', 'M', 'L']).catch('M')),
   hidden: bool(false),
   process: text(),
+  focus: text(), // which part stays in the cropped banner: top | center | bottom
 });
 
 const art = defineCollection({
@@ -70,6 +71,7 @@ const films = defineCollection({
     title_en: text(),
     title_ko: text(),
     year: text(),
+    format: text(), // feature | short | other
     runtime: text(),
     role_en: text(),
     role_ko: text(),
@@ -78,6 +80,7 @@ const films = defineCollection({
     still: text(),
     focus: text(),
     trailer: text(),
+    full_film: bool(false), // the video is the whole film, not a trailer
     synopsis_en: text(),
     synopsis_ko: text(),
     stills: strings(),

@@ -12,11 +12,12 @@ export type Settings = Awaited<ReturnType<typeof getSettings>>;
 /** The wordmark text, used by the home motion and the small top-left mark. */
 export const wordmarkOf = (s: Settings) => s.wordmark || 'gollshow';
 
+// Film comes first: it is now the centre of the work.
 export const NAV = [
+  { key: 'film', path: '/film/', en: 'Film', ko: '영화', m: 'film' },
   { key: 'painting', path: '/painting/', en: 'Painting', ko: '회화', m: 'painting' },
   { key: 'conte-pastel', path: '/conte-pastel/', en: 'Conté & Pastel', ko: '콩테·파스텔', m: 'conte' },
   { key: 'digital', path: '/digital/', en: 'Digital', ko: '디지털', m: 'digital' },
-  { key: 'film', path: '/film/', en: 'Film', ko: '영화', m: 'film' },
   { key: 'music', path: '/music/', en: 'Music', ko: '음악', m: 'music' },
   { key: 'about', path: '/about/', en: 'About', ko: '소개', m: 'about' },
 ] as const;
@@ -53,6 +54,15 @@ export const UI = {
   min: { en: 'min', ko: '분' },
   draft: { en: 'Draft — not published. Visible only on the local preview.', ko: '초안 — 공개 전입니다. 로컬 미리보기에서만 보입니다.' },
   allFilms: { en: 'All films', ko: '영화 목록' },
+  watchFilm: { en: 'Watch the film', ko: '영화 보기' },
+  viewFilm: { en: 'About the film', ko: '영화 자세히' },
+  nextFilm: { en: 'Next film', ko: '다음 영화' },
+  year: { en: 'Year', ko: '연도' },
+  format: { en: 'Format', ko: '형식' },
+  runtime: { en: 'Running time', ko: '상영 시간' },
+  role: { en: 'Role', ko: '역할' },
+  latest: { en: 'Latest', ko: '최근 작품' },
+  allWorks: { en: 'All works', ko: '전체 작품' },
   listen: { en: 'Listen', ko: '듣기' },
   loadPlayer: { en: 'Load the Spotify player', ko: 'Spotify 플레이어 열기' },
   contact: { en: 'Contact', ko: '연락' },
@@ -84,8 +94,27 @@ export function sizeOf(s?: string) {
     .replace(/(\d)\s*(mm|cm|in)\b/gi, (_, d, u) => `${d} ${u.toLowerCase()}`);
 }
 
+export const FORMAT: Record<string, Bi> = {
+  feature: { en: 'Feature', ko: '장편' },
+  short: { en: 'Short', ko: '단편' },
+  mv: { en: 'Music film', ko: '뮤직 필름' },
+};
+
 export async function publishedFilms() {
   const all = await getCollection('films');
   const show = import.meta.env.DEV ? all : all.filter((f) => f.data.published);
   return show.sort((a, b) => a.data.order - b.data.order || String(b.data.year ?? '').localeCompare(String(a.data.year ?? '')));
+}
+
+/** "Festival — Award" entries become laurels; anything else stays a plain line. */
+export function laurelsOf(list: { year?: string; text_en?: string; text_ko?: string }[]) {
+  const laurels: { name: string; award: Bi; year?: string }[] = [];
+  const lines: { year?: string; en?: string; ko?: string }[] = [];
+  for (const f of list) {
+    const [nameEn, awardEn] = (f.text_en ?? '').split(/\s+[—–-]\s+/);
+    const [, awardKo] = (f.text_ko ?? '').split(/\s+[—–-]\s+/);
+    if (nameEn && awardEn) laurels.push({ name: nameEn.trim(), award: { en: awardEn.trim(), ko: (awardKo ?? awardEn).trim() }, year: f.year });
+    else lines.push({ year: f.year, en: f.text_en ?? f.text_ko, ko: f.text_ko ?? f.text_en });
+  }
+  return { laurels, lines };
 }

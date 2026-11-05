@@ -102,27 +102,17 @@ const { items, label } = Astro.props;
     user-select: none;
     -webkit-user-drag: none;
   }
-  /* Ink-bleed reveal: the image appears through a noise-threshold mask (16 frames). */
+  /* The image appears with a calm fade. */
   .viewer__fig.is-wait {
     opacity: 0;
   }
   .viewer__fig.is-bleed {
-    -webkit-mask-image: var(--wash);
-    mask-image: var(--wash);
-    -webkit-mask-size: 1600% 100%;
-    mask-size: 1600% 100%;
-    -webkit-mask-repeat: no-repeat;
-    mask-repeat: no-repeat;
-    animation: bleed 700ms steps(16, jump-none) both;
+    animation: v-in 560ms ease both;
   }
-  @keyframes bleed {
+  @keyframes v-in {
     from {
-      -webkit-mask-position: 0% 0;
-      mask-position: 0% 0;
-    }
-    to {
-      -webkit-mask-position: 100% 0;
-      mask-position: 100% 0;
+      opacity: 0;
+      transform: scale(0.988);
     }
   }
   @media (prefers-reduced-motion: reduce) {
@@ -133,8 +123,6 @@ const { items, label } = Astro.props;
       transition: opacity 260ms ease;
     }
     .viewer__fig.is-bleed {
-      -webkit-mask-image: none;
-      mask-image: none;
       animation: none;
     }
   }

@@ -1,87 +1,146 @@
 ---
-/** One film: trailer (lite embed) at the top, then the facts, synopsis, stills, credits, festivals, links. */
+/**
+ * One film. The trailer (or the whole film) fills the width at the top, on the key art,
+ * and only loads when played. Then the title set large with the facts beside it, the
+ * laurels, the synopsis (first paragraph as a lead), stills, credits, links, and the
+ * next film.
+ */
 import Base from '../../layouts/Base.astro';
 import T from '../../components/T.astro';
 import Lite from '../../components/Lite.astro';
 import Band from '../../components/Band.astro';
+import Laurel from '../../components/Laurel.astro';
 import Viewer from '../../components/Viewer.astro';
-import { publishedFilms, runtimeOf, UI } from '../../lib/site';
+import { FORMAT, laurelsOf, publishedFilms, runtimeOf, UI } from '../../lib/site';
 import { pic, resolveImage, withBase } from '../../lib/media';
 import { stillsToItems, viewerData } from '../../lib/art';
 import { embedFor } from '../../lib/embed';
 
 export async function getStaticPaths() {
-  return (await publishedFilms()).map((f) => ({ params: { slug: f.id }, props: { f } }));
+  const films = await publishedFilms();
+  return films.map((f, i) => ({ params: { slug: f.id }, props: { f, next: films.length > 1 ? films[(i + 1) % films.length] : undefined } }));
 }
-const { f } = Astro.props;
+const { f, next } = Astro.props;
 const d = f.data;
 const en = d.title_en ?? d.title_ko ?? f.id;
 const ko = d.title_ko ?? d.title_en ?? f.id;
 const rt = runtimeOf(d.runtime);
-const meta = (l: 'en' | 'ko') => [d.year, rt?.[l], l === 'en' ? (d.role_en ?? d.role_ko) : (d.role_ko ?? d.role_en)].filter(Boolean).join(' · ');
-const stillRef = d.still ?? d.stills[0];
-const sm = resolveImage(stillRef);
+const fmt = d.format ? FORMAT[d.format] : undefined;
+const sm = resolveImage(d.still ?? d.stills[0]);
 const still = sm ? await pic(sm) : undefined;
 const stills = await stillsToItems(d.stills, { en: d.title_en, ko: d.title_ko });
-const hasTrailer = !!embedFor(d.trailer);
+const video = embedFor(d.trailer);
+const { laurels, lines } = laurelsOf(d.festivals);
+const paras = (t?: string) => (t ?? '').split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
+const synEn = paras(d.synopsis_en ?? d.synopsis_ko);
+const synKo = paras(d.synopsis_ko ?? d.synopsis_en);
+const nm = next ? resolveImage(next.data.still ?? next.data.stills[0]) : undefined;
+const nextStill = nm ? await pic(nm) : undefined;
 const S = 1;
-const bandHead = !hasTrailer && !still;
 ---
 <Base title={{ en, ko }} current="film" page="film-page" description={d.logline_en ?? d.logline_ko} image={still?.large} noindex={!d.published}>
-  {bandHead && <Band en={en} ko={ko} seed={11} />}
-  <article class:list={['page film', { 'page--band': bandHead }]}>
-    {!d.published && <T as="p" class="draft" t={UI.draft} />}
-    <div class="film__head">
-      {
-        hasTrailer ? (
-          <Lite
-            url={d.trailer}
-            poster={still ? { src: still.src, srcset: still.srcset, position: d.focus } : undefined}
-            label={{ en: UI.playTrailer.en, ko: UI.playTrailer.ko }}
-            title={`${en} — trailer`}
-          />
-        ) : (
-          still && (
-            <div class="film__still">
-              <img src={still.src} srcset={still.srcset} sizes="100vw" alt="" style={`object-position:${d.focus ?? 'center'}`} />
-            </div>
-          )
-        )
-      }
-    </div>
+  <section class="hero" id="watch">
+    {
+      video ? (
+        <Lite
+          class="hero__lite"
+          url={d.trailer}
+          sizes="100vw"
+          poster={still ? { src: still.src, srcset: still.srcset, position: d.focus } : undefined}
+          label={d.full_film ? { en: UI.watchFilm.en, ko: UI.watchFilm.ko } : { en: UI.playTrailer.en, ko: UI.playTrailer.ko }}
+          title={`${en} — ${d.full_film ? 'film' : 'trailer'}`}
+        />
+      ) : still ? (
+        <div class="hero__still">
+          <img src={still.src} srcset={still.srcset} sizes="100vw" alt={en} style={`object-position:${d.focus ?? 'center'}`} />
+        </div>
+      ) : (
+        <Band en={en} ko={ko} seed={11} shape="veil" />
+      )
+    }
+  </section>
 
-    <header class:list={['film__intro', { 'film__intro--solo': bandHead && !(d.title_ko && d.title_en && d.title_ko !== d.title_en) }]}>
-      {
-        bandHead ? (
-          <p class="film__title film__title--alt">
-            {d.title_ko && d.title_ko !== en && <span data-l="en" class="film__alt" lang="ko">{d.title_ko}</span>}
-            {d.title_en && d.title_en !== ko && <span data-l="ko" class="film__alt" lang="en">{d.title_en}</span>}
-          </p>
-        ) : (
-          <h1 class="film__title">
-            <span data-l="en">{en}{d.title_ko && d.title_ko !== en && <span class="film__alt" lang="ko">{d.title_ko}</span>}</span>
-            <span data-l="ko" lang="ko">{ko}{d.title_en && d.title_en !== ko && <span class="film__alt" lang="en">{d.title_en}</span>}</span>
+  <article class="page film">
+    {!d.published && <T as="p" class="draft" t={UI.draft} />}
+    <header class="head" data-reveal="fade">
+      <div class="head__names">
+        {video || still ? (
+          <h1 class="head__t">
+            <span data-l="en">{en}</span>
+            <span data-l="ko" lang="ko">{ko}</span>
           </h1>
-        )
-      }
-      <div class="film__facts">
-        <p class="meta"><T en={meta('en')} ko={meta('ko')} /></p>
-        {(d.logline_en || d.logline_ko) && <T as="p" class="film__log" en={d.logline_en} ko={d.logline_ko} />}
+        ) : null}
+        {d.title_ko && d.title_en && d.title_ko !== d.title_en && (
+          <p class="head__alt">
+            <span data-l="en" lang="ko">{d.title_ko}</span>
+            <span data-l="ko">{d.title_en}</span>
+          </p>
+        )}
+        {(d.logline_en || d.logline_ko) && <T as="p" class="head__log" en={d.logline_en} ko={d.logline_ko} />}
       </div>
+      <dl class="facts">
+        {d.year && (
+          <div>
+            <dt><T t={UI.year} /></dt>
+            <dd>{d.year}</dd>
+          </div>
+        )}
+        {fmt && (
+          <div>
+            <dt><T t={UI.format} /></dt>
+            <dd><T t={fmt} /></dd>
+          </div>
+        )}
+        {rt && (
+          <div>
+            <dt><T t={UI.runtime} /></dt>
+            <dd><T t={rt} /></dd>
+          </div>
+        )}
+        {(d.role_en || d.role_ko) && (
+          <div>
+            <dt><T t={UI.role} /></dt>
+            <dd><T en={d.role_en ?? d.role_ko} ko={d.role_ko ?? d.role_en} /></dd>
+          </div>
+        )}
+      </dl>
     </header>
 
     {
-      (d.synopsis_en || d.synopsis_ko) && (
-        <section class="film__sec">
+      (laurels.length > 0 || lines.length > 0) && (
+        <section class="honours" data-reveal="fade">
+          {laurels.map((l) => (
+            <Laurel name={l.name} award={l.award} year={l.year} />
+          ))}
+          {lines.map((x) => (
+            <p class="honours__line">
+              {x.year && <span class="honours__y">{x.year}</span>}
+              <T en={x.en} ko={x.ko} />
+            </p>
+          ))}
+        </section>
+      )
+    }
+
+    {
+      synEn.length > 0 && (
+        <section class="syn" data-reveal="fade">
           <h2 class="section-title"><T t={UI.synopsis} /></h2>
-          <T block class="prose film__syn" en={d.synopsis_en} ko={d.synopsis_ko} />
+          <div class="syn__text" data-l={synKo.join() !== synEn.join() ? 'en' : undefined}>
+            {synEn.map((p, k) => <p class:list={{ syn__lead: k === 0 }}>{p}</p>)}
+          </div>
+          {synKo.join() !== synEn.join() && (
+            <div class="syn__text" data-l="ko" lang="ko">
+              {synKo.map((p, k) => <p class:list={{ syn__lead: k === 0 }}>{p}</p>)}
+            </div>
+          )}
         </section>
       )
     }
 
     {
       stills.length > 0 && (
-        <section class="film__sec film__sec--wide">
+        <section class="block" data-reveal="fade">
           <h2 class="section-title"><T t={UI.stills} /></h2>
           <ul class="stills">
             {stills.map((st, i) => (
@@ -98,7 +157,7 @@ const bandHead = !hasTrailer && !still;
 
     {
       d.credits.length > 0 && (
-        <section class="film__sec">
+        <section class="block block--two" data-reveal="fade">
           <h2 class="section-title"><T t={UI.credits} /></h2>
           <dl class="credits">
             {d.credits.map((c) => (
@@ -113,24 +172,8 @@ const bandHead = !hasTrailer && !still;
     }
 
     {
-      d.festivals.length > 0 && (
-        <section class="film__sec">
-          <h2 class="section-title"><T t={UI.festivals} /></h2>
-          <ul class="fest">
-            {d.festivals.map((x) => (
-              <li>
-                <span class="fest__y">{x.year}</span>
-                <T en={x.text_en ?? x.text_ko} ko={x.text_ko ?? x.text_en} />
-              </li>
-            ))}
-          </ul>
-        </section>
-      )
-    }
-
-    {
       d.links.length > 0 && (
-        <section class="film__sec">
+        <section class="block block--two" data-reveal="fade">
           <h2 class="section-title"><T t={UI.links} /></h2>
           <ul class="links">
             {d.links.map((l) => (
@@ -142,82 +185,178 @@ const bandHead = !hasTrailer && !still;
         </section>
       )
     }
-
-    <p class="back"><a class="text-link" href={withBase('/film/')}><T t={UI.allFilms} /></a></p>
   </article>
+
+  {
+    next && (
+      <a class="next" href={withBase(`/film/${next.id}/`)}>
+        <span class="next__k"><T t={UI.nextFilm} /></span>
+        <span class="next__t">
+          <span data-l="en">{next.data.title_en ?? next.data.title_ko}</span>
+          <span data-l="ko" lang="ko">{next.data.title_ko ?? next.data.title_en}</span>
+        </span>
+        {nextStill && <img class="next__img" src={nextStill.src} srcset={nextStill.srcset} sizes="(max-width: 640px) 60vw, 28vw" alt="" loading="lazy" decoding="async" />}
+      </a>
+    )
+  }
+  <p class="back"><a class="text-link" href={withBase('/film/')}><T t={UI.allFilms} /></a></p>
   {stills.length > 0 && <Viewer items={viewerData(stills)} label={{ en, ko }} />}
 </Base>
 
+<script>
+  import '../../scripts/reveal';
+</script>
+
 <style>
-  .page--band {
-    padding-top: clamp(32px, 4vw, 64px);
+  .hero {
+    margin-top: var(--top-h);
   }
-  .draft {
-    font: 500 13px/1.4 var(--f-nav);
-    color: var(--ink-2);
-    margin-bottom: 14px;
+  .hero :global(.hero__lite),
+  .hero__still {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    max-height: calc(100svh - var(--top-h) - 40px);
+    min-height: 220px;
   }
-  .film__head {
-    margin: 0 auto;
-  }
-  .film__still {
-    aspect-ratio: 2.39;
+  .hero__still {
     overflow: hidden;
   }
-  .film__still img {
+  .hero__still img,
+  .hero :global(.hero__lite img) {
     width: 100%;
     height: 100%;
     object-fit: cover;
   }
-  .film__intro {
+  @media (prefers-reduced-motion: no-preference) {
+    .hero__still img,
+    .hero :global(.hero__lite img) {
+      animation: settle 2400ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    }
+  }
+  @keyframes settle {
+    from {
+      opacity: 0;
+      transform: scale(1.035);
+    }
+  }
+  /* the play button sits in the lower left, off the key art */
+  .hero :global(.hero__lite .lite__play) {
+    place-items: end start;
+    padding: 0 var(--gutter) clamp(18px, 3vw, 40px);
+  }
+  .hero :global(.hero__lite .lite__btn) {
+    padding: 15px 24px 15px 20px;
+    font-size: 15px;
+  }
+  .film {
+    padding-top: clamp(36px, 4.4vw, 64px);
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 16px 48px;
-    margin: clamp(32px, 4vw, 52px) 0 clamp(56px, 8vw, 110px);
+    gap: clamp(56px, 7vw, 104px);
   }
-  .film__title {
-    font: 400 clamp(36px, 4.6vw, 64px) / 1.04 var(--f-display);
-  }
-  .film__intro--solo {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .film__intro--solo .film__title--alt {
-    display: none;
-  }
-  .film__alt {
-    display: block;
-    margin-top: 10px;
-    font: 400 18px/1.4 var(--f-ui);
+  .draft {
+    font: 500 13px/1.4 var(--f-nav);
     color: var(--ink-2);
   }
-  .film__facts {
+  /* title and facts */
+  .head {
     display: grid;
-    gap: 12px;
-    align-content: start;
-    padding-top: 10px;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: clamp(14px, 2vw, 32px);
+    row-gap: 28px;
+    align-items: start;
   }
-  .film__log {
-    font-size: 18px;
-    line-height: 1.5;
-    max-width: 46ch;
-  }
-  .film__sec {
+  .head__names {
+    grid-column: 1 / span 8;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 3fr);
-    gap: 12px 48px;
-    padding: 28px 0 clamp(48px, 6vw, 80px);
+    gap: 14px;
+  }
+  .head__t {
+    font: 400 clamp(52px, 8vw, 132px) / 0.9 var(--f-display);
+    letter-spacing: -0.018em;
+    text-wrap: balance;
+  }
+  .head__alt {
+    font: 400 20px/1.3 var(--f-ui);
+    color: var(--ink-2);
+  }
+  .head__log {
+    margin-top: 10px;
+    font: 400 clamp(19px, 1.6vw, 23px) / 1.5 var(--f-ui);
+    max-width: 44ch;
+  }
+  .facts {
+    grid-column: 10 / span 3;
+    display: grid;
+    gap: 16px;
+    padding-top: 14px;
     border-top: 1px solid var(--line);
   }
-  .film__sec--wide {
-    grid-template-columns: 1fr;
+  .facts dt {
+    font: 400 12px/1.2 var(--f-nav);
+    color: var(--ink-2);
   }
-  .film__syn {
-    max-width: 62ch;
+  .facts dd {
+    margin-top: 3px;
+    font: 400 16px/1.4 var(--f-ui);
+  }
+  /* laurels */
+  .honours {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 20px clamp(28px, 4vw, 64px);
+    padding: clamp(28px, 3vw, 44px) 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .honours__line {
+    display: flex;
+    gap: 12px;
+    align-items: baseline;
+    font: 400 20px/1.3 var(--f-display);
+  }
+  .honours__y {
+    font: 400 12px/1 var(--f-nav);
+    color: var(--ink-2);
+  }
+  /* synopsis */
+  .syn {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: clamp(14px, 2vw, 32px);
+  }
+  .syn .section-title {
+    grid-column: 1 / span 3;
+  }
+  .syn__text {
+    grid-column: 4 / span 8;
+    max-width: 66ch;
     font-size: 17px;
-    line-height: 1.7;
+    line-height: 1.75;
   }
-  .film__syn :global(p + p) {
-    margin-top: 1em;
+  .syn__text p + p {
+    margin-top: 1.1em;
+  }
+  .syn__lead {
+    font: 400 clamp(23px, 2.1vw, 31px) / 1.38 var(--f-display);
+    letter-spacing: -0.004em;
+    margin-bottom: 0.5em;
+  }
+  html[data-lang='ko'] .syn__lead {
+    font-family: var(--f-ui);
+    font-size: clamp(20px, 1.7vw, 25px);
+    line-height: 1.6;
+  }
+  .block {
+    display: grid;
+    gap: 18px;
+    padding-top: 28px;
+    border-top: 1px solid var(--line);
+  }
+  .block--two {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 3fr);
+    gap: 12px 48px;
   }
   .stills {
     --H: clamp(150px, 17vw, 260px);
@@ -257,40 +396,81 @@ const bandHead = !hasTrailer && !still;
   .credits dd {
     display: grid;
   }
-  .fest {
-    display: grid;
-    gap: 10px;
-  }
-  .fest li {
-    display: grid;
-    grid-template-columns: 5ch 1fr;
-    gap: 16px;
-  }
-  .fest__y {
-    color: var(--ink-2);
-    font-variant-numeric: tabular-nums;
-  }
   .links {
     display: grid;
     gap: 8px;
   }
+  /* the next film */
+  .next {
+    width: 100%;
+    max-width: var(--max);
+    margin: clamp(72px, 9vw, 140px) auto 0;
+    padding: clamp(28px, 3vw, 44px) var(--gutter) 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 28vw);
+    align-items: end;
+    gap: 8px 32px;
+    border-top: 1px solid var(--line);
+  }
+  .next__k {
+    grid-column: 1;
+    font: 400 13px/1.2 var(--f-nav);
+    color: var(--ink-2);
+  }
+  .next__t {
+    grid-column: 1;
+    font: 400 clamp(40px, 6vw, 96px) / 0.95 var(--f-display);
+    letter-spacing: -0.014em;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.12em;
+    text-decoration-color: transparent;
+    transition: text-decoration-color 300ms ease;
+  }
+  .next:hover .next__t {
+    text-decoration-color: currentColor;
+  }
+  .next__img {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+  }
   .back {
-    margin-top: 24px;
+    width: 100%;
+    max-width: var(--max);
+    margin: 32px auto clamp(56px, 7vw, 96px);
+    padding: 0 var(--gutter);
     font: 500 14px/1 var(--f-nav);
   }
-  @media (max-width: 760px) {
-    .film__intro,
-    .film__sec {
+  @media (max-width: 960px) {
+    .head__names {
+      grid-column: 1 / -1;
+    }
+    .facts {
+      grid-column: 1 / -1;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    }
+    .syn .section-title,
+    .syn__text {
+      grid-column: 1 / -1;
+    }
+  }
+  @media (max-width: 640px) {
+    .hero :global(.hero__lite),
+    .hero__still {
+      aspect-ratio: 4 / 3 !important;
+    }
+    .block--two {
       grid-template-columns: minmax(0, 1fr);
     }
-    .film__facts {
-      padding-top: 0;
+    .next {
+      grid-template-columns: minmax(0, 1fr);
     }
-    .stills {
-      display: grid;
-    }
-    .stills::after {
-      display: none;
+    .next__img {
+      grid-column: 1;
+      grid-row: auto;
     }
     .credits div {
       grid-template-columns: 1fr 1.6fr;

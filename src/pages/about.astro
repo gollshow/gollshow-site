@@ -24,12 +24,11 @@ const heading = a?.heading || 'goll';
 const linkOf = (k?: string) => nav.find((n) => n.key === k);
 const pg = s.pigments;
 const pig = `--p0:${pg.ultramarine};--p1:${pg.vermilion};--p2:${pg.viridian};--p3:${pg.ochre}`;
-const words = (t?: string) => (t ?? '').split(/\s+/).filter(Boolean);
 const stEn = a?.statement_en ?? a?.statement_ko;
 const stKo = a?.statement_ko ?? a?.statement_en;
 ---
 <Base title={{ en: about.en, ko: about.ko }} current="about" page="about">
-  <Band en={heading} ko={heading} seed={7}>
+  <Band en={heading} ko={heading} seed={7} shape="pour">
     {s.name_en && <span>{s.name_en}</span>}
     {(s.roles_en || s.roles_ko) && <T en={s.roles_en} ko={s.roles_ko} />}
   </Band>
@@ -37,30 +36,15 @@ const stKo = a?.statement_ko ?? a?.statement_en;
   <div class="page page--band about" style={pig}>
     {
       stEn && (
-        <p class="statement" data-reveal="words">
-          <span data-l={stKo !== stEn ? 'en' : undefined}>
-            {words(stEn).map((w, i) => (
-              <>
-                <span class="w" style={`--i:${i}`}>{w}</span>{' '}
-              </>
-            ))}
-          </span>
-          {stKo !== stEn && (
-            <span data-l="ko" lang="ko">
-              {words(stKo).map((w, i) => (
-                <>
-                  <span class="w" style={`--i:${i}`}>{w}</span>{' '}
-                </>
-              ))}
-            </span>
-          )}
-        </p>
+        <div data-reveal="fade">
+          <T as="p" class="statement" en={stEn} ko={stKo} />
+        </div>
       )
     }
 
     <section class="intro">
       {(a?.bio_en || a?.bio_ko) && (
-        <div class="bio" data-reveal="rise">
+        <div class="bio" data-reveal="fade">
           <T block en={a?.bio_en} ko={a?.bio_ko} />
         </div>
       )}
@@ -68,7 +52,7 @@ const stKo = a?.statement_ko ?? a?.statement_en;
         portrait && (
           <figure class="poster" data-parallax>
             <img
-              data-reveal="bleed"
+              data-reveal="fade"
               src={portrait.src}
               srcset={portrait.srcset}
               sizes="(max-width: 860px) 80vw, 30vw"
@@ -100,11 +84,11 @@ const stKo = a?.statement_ko ?? a?.statement_en;
               </>
             );
             return l ? (
-              <a class="practice" href={withBase(l.path)} data-reveal="rise" style={`--d:${i * 140};--pc:var(--p${i % 3})`}>
+              <a class="practice" href={withBase(l.path)} data-reveal="fade" style={`--d:${i * 140};--pc:var(--p${i % 3})`}>
                 {body}
               </a>
             ) : (
-              <div class="practice" data-reveal="rise" style={`--d:${i * 140};--pc:var(--p${i % 3})`}>
+              <div class="practice" data-reveal="fade" style={`--d:${i * 140};--pc:var(--p${i % 3})`}>
                 {body}
               </div>
             );
@@ -121,7 +105,7 @@ const stKo = a?.statement_ko ?? a?.statement_en;
           </h2>
           <ol class="record__list">
             {a.notes.map((n, i) => (
-              <li data-reveal="rise" style={`--d:${i * 70}`}>
+              <li data-reveal="fade" style={`--d:${i * 70}`}>
                 <T as="span" class="record__y" en={n.label_en ?? n.label_ko} ko={n.label_ko ?? n.label_en} />
                 <T as="span" class="record__t" en={n.text_en ?? n.text_ko} ko={n.text_ko ?? n.text_en} />
               </li>
@@ -133,7 +117,7 @@ const stKo = a?.statement_ko ?? a?.statement_en;
 
     {
       a?.video && (
-        <figure class="clip" data-reveal="bleed">
+        <figure class="clip" data-reveal="fade">
           <Lite url={a.video} label={{ en: `${UI.play.en} — ${capEn}`, ko: `${UI.play.ko} — ${capKo}` }} title={capEn} />
           <T as="figcaption" class="meta" en={capEn} ko={capKo} />
         </figure>
@@ -143,7 +127,7 @@ const stKo = a?.statement_ko ?? a?.statement_en;
     <section class="contact">
       <h2 class="section-title"><T t={UI.contact} /></h2>
       {s.email && (
-        <a class="contact__mail" href={`mailto:${s.email}`} data-reveal="bleed">
+        <a class="contact__mail" href={`mailto:${s.email}`} data-reveal="fade">
           {s.email}
         </a>
       )}
@@ -380,41 +364,8 @@ const stKo = a?.statement_ko ?? a?.statement_en;
     will-change: transform;
   }
   @media (prefers-reduced-motion: no-preference) {
-    :global(.js) .statement[data-reveal] .w {
-      display: inline-block;
-      -webkit-mask-image: var(--wash);
-      mask-image: var(--wash);
-      -webkit-mask-size: 1600% 100%;
-      mask-size: 1600% 100%;
-      -webkit-mask-repeat: no-repeat;
-      mask-repeat: no-repeat;
-      -webkit-mask-position: 0% 0;
-      mask-position: 0% 0;
-    }
-    :global(.js) .statement[data-reveal]:global(.is-in) .w {
-      animation: bleed-in 620ms steps(16, jump-none) both;
-      animation-delay: calc(var(--i) * 95ms + 120ms);
-    }
-    :global(.js) .practice[data-reveal]:global(.is-in)::before {
-      animation: bloom-once 2600ms ease both;
-      animation-delay: calc(var(--d, 0) * 1ms + 300ms);
-    }
     :global(.js) .record__list li[data-reveal]:not(:global(.is-in))::before {
       transform: scaleX(0);
-    }
-  }
-  @keyframes bloom-once {
-    0% {
-      opacity: 0;
-      transform: scale(0.4);
-    }
-    45% {
-      opacity: 0.8;
-      transform: scale(1);
-    }
-    100% {
-      opacity: 0;
-      transform: scale(1.12);
     }
   }
   @media (max-width: 860px) {

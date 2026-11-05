@@ -19,7 +19,7 @@ const players = links.filter((l) => {
 const host = (u: string) => u.replace(/^https?:\/\/(www\.|open\.|music\.)?/, '').replace(/\/$/, '');
 ---
 <Base title={{ en: nav.en, ko: nav.ko }} current="music" page="music">
-  <Band en={nav.en} ko={nav.ko} seed={5}>
+  <Band en={nav.en} ko={nav.ko} seed={5} shape="ring">
     <span><span data-l="en" lang="ko">{nav.ko}</span><span data-l="ko">{nav.en}</span></span>
   </Band>
   <div class="page page--band">

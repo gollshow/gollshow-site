@@ -1,8 +1,8 @@
 ---
 /**
- * The head of every inner page: a watercolour wash across the top of the sheet in the
- * site's four pigments, with the page's name written in ink (src/scripts/band.ts).
- * The slot holds a short line under it (the count of works, the other-language name).
+ * The head of every inner page: a still watercolour shape in the site's four pigments
+ * (each page its own shape and seed, src/scripts/band.ts), with the page's name in ink.
+ * Both fade in calmly. The slot holds a short line under it.
  */
 import T from './T.astro';
 import { getSettings } from '../lib/site';
@@ -10,26 +10,26 @@ import { getSettings } from '../lib/site';
 interface Props {
   en: string;
   ko?: string;
-  seed?: number; // gives each page its own wash
-  short?: boolean; // a lower wash, for pages whose content should show sooner
+  seed?: number;
+  shape?: 'stroke' | 'pool' | 'diagonal' | 'veil' | 'ring' | 'pour';
+  short?: boolean;
 }
-const { en, ko = en, seed = 0, short = false } = Astro.props;
+const { en, ko = en, seed = 0, shape = 'stroke', short = false } = Astro.props;
 const s = await getSettings();
 const p = s.pigments;
 const pig = [p.ultramarine, p.vermilion, p.viridian, p.ochre];
 ---
 <section
-  class:list={['band', { 'band--short': short }]}
+  class:list={['band', `band--${shape}`, { 'band--short': short }]}
   data-band
-  data-en={en}
-  data-ko={ko}
   data-seed={seed}
+  data-shape={shape}
   data-pigments={pig.join(',')}
   style={`--p0:${pig[0]};--p1:${pig[1]};--p2:${pig[2]};--p3:${pig[3]}`}
 >
+  <canvas class="band__cv" aria-hidden="true"></canvas>
   <div class="band__wash" aria-hidden="true"></div>
   <h1 class="band__word"><T en={en} ko={ko} /></h1>
-  <canvas class="band__cv" aria-hidden="true"></canvas>
 </section>
 {
   Astro.slots.has('default') && (
@@ -46,7 +46,7 @@ const pig = [p.ultramarine, p.vermilion, p.viridian, p.ochre];
 <style>
   .band {
     position: relative;
-    height: clamp(300px, 54vh, 580px);
+    height: clamp(300px, 50vh, 560px);
     overflow: hidden;
   }
   .band--short {
@@ -59,43 +59,67 @@ const pig = [p.ultramarine, p.vermilion, p.viridian, p.ochre];
     height: 100%;
     display: block;
     opacity: 0;
+    transition: opacity 1600ms ease;
   }
   .band.is-gl .band__cv {
     opacity: 1;
   }
-  /* Static version (no JS / no WebGL): a CSS wash with the name in ink. */
+  /* Static version (no JS / no WebGL) */
   .band__wash {
     position: absolute;
-    left: -6%;
+    left: 30%;
     right: -6%;
-    top: 16%;
-    bottom: 12%;
+    top: 14%;
+    bottom: 10%;
     background:
-      radial-gradient(40% 70% at 18% 50%, color-mix(in srgb, var(--p0) 60%, transparent), transparent 72%),
-      radial-gradient(34% 80% at 46% 56%, color-mix(in srgb, var(--p2) 55%, transparent), transparent 72%),
-      radial-gradient(30% 70% at 70% 44%, color-mix(in srgb, var(--p1) 55%, transparent), transparent 72%),
-      radial-gradient(26% 60% at 90% 60%, color-mix(in srgb, var(--p3) 60%, transparent), transparent 70%);
+      radial-gradient(40% 70% at 30% 50%, color-mix(in srgb, var(--p0) 60%, transparent), transparent 72%),
+      radial-gradient(34% 80% at 56% 56%, color-mix(in srgb, var(--p2) 55%, transparent), transparent 72%),
+      radial-gradient(30% 70% at 76% 44%, color-mix(in srgb, var(--p1) 55%, transparent), transparent 72%),
+      radial-gradient(26% 60% at 92% 60%, color-mix(in srgb, var(--p3) 60%, transparent), transparent 70%);
     filter: blur(36px);
     opacity: 0.55;
+    display: none;
+  }
+  .band.is-static .band__wash,
+  :global(html:not(.js)) .band__wash {
+    display: block;
   }
   .band__word {
     position: absolute;
     left: 0;
     right: 0;
     top: 0;
-    height: 70%;
+    height: 72%;
     display: flex;
     align-items: flex-end;
     padding: 0 var(--gutter);
-    font: 400 min(26.4vh, 15vw) / 0.78 var(--f-display);
-    letter-spacing: -0.01em;
+    font: 400 min(24vh, 13.5vw) / 0.8 var(--f-display);
+    letter-spacing: -0.012em;
     color: var(--ink);
     white-space: nowrap;
-    overflow: hidden;
   }
-  :global(.js) .band:not(.is-static) .band__wash,
-  :global(.js) .band:not(.is-static) .band__word {
-    opacity: 0;
+  :global(html[data-lang='ko']) .band__word {
+    font-size: min(18vh, 11vw);
+    letter-spacing: -0.03em;
+  }
+  .band--short .band__word {
+    font-size: min(17vh, 12vw);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .band__word {
+      animation: band-word 1200ms cubic-bezier(0.2, 0.7, 0.2, 1) 200ms both;
+    }
+  }
+  @keyframes band-word {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .band__cv {
+      transition: none;
+    }
   }
   .band__after {
     width: 100%;
@@ -112,7 +136,11 @@ const pig = [p.ultramarine, p.vermilion, p.viridian, p.ochre];
   @media (max-width: 700px) {
     .band,
     .band--short {
-      height: clamp(220px, 34vh, 300px);
+      height: clamp(200px, 30vh, 280px);
+    }
+    .band__word,
+    .band--short .band__word {
+      font-size: min(15vw, 22vh);
     }
   }
 </style>

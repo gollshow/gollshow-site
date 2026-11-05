@@ -14,7 +14,7 @@ export type ViewerItem = {
   process?: string;
 };
 
-export type Work = ViewerItem & { pic: Pic; display: 'S' | 'M' | 'L' };
+export type Work = ViewerItem & { pic: Pic; display: 'S' | 'M' | 'L'; focus?: string };
 
 const key = (s: string) => s.split('?')[0].normalize('NFC').toLowerCase();
 
@@ -42,6 +42,7 @@ export async function getWorks(category: string): Promise<Work[]> {
     out.push({
       pic: p,
       display: w.display,
+      focus: w.focus,
       src: p.src,
       srcset: p.srcset,
       w: p.w,

@@ -26,11 +26,11 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const fonts =
   'https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500&family=Instrument+Serif&family=IBM+Plex+Sans+KR:wght@400;500&display=swap';
 const year = new Date().getFullYear();
-const vt = `:root{--wash:url('${base}/fx/wash.webp')}
-@view-transition{navigation:auto}
-::view-transition-old(root){animation:none}
-::view-transition-new(root){animation:vt-wash 620ms steps(16,jump-none) both;-webkit-mask-image:var(--wash);mask-image:var(--wash);-webkit-mask-size:1600% 100%;mask-size:1600% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
-@keyframes vt-wash{from{-webkit-mask-position:0% 0;mask-position:0% 0}to{-webkit-mask-position:100% 0;mask-position:100% 0}}
+const vt = `@view-transition{navigation:auto}
+::view-transition-old(root){animation:vt-out 320ms ease both}
+::view-transition-new(root){animation:vt-in 520ms ease 80ms both}
+@keyframes vt-out{to{opacity:0}}
+@keyframes vt-in{from{opacity:0}}
 @media (prefers-reduced-motion:reduce){@view-transition{navigation:none}}`;
 ---
 <!doctype html>

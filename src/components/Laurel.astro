@@ -1,0 +1,100 @@
+---
+/**
+ * A festival laurel, the film world's own mark for a selection or an award: two
+ * branches of leaves (computed along an arc, not hand-drawn) around the award, the
+ * festival and the year, in ink.
+ */
+interface Props {
+  award?: { en?: string; ko?: string };
+  name: string;
+  year?: string;
+  size?: 'small' | 'large';
+}
+const { award, name, year, size = 'large' } = Astro.props;
+const cx = 34, cy = 42, r = 28;
+const rad = (d: number) => (d * Math.PI) / 180;
+const leaves = Array.from({ length: 9 }, (_, k) => {
+  const a = 104 + k * 18.5; // from the bottom of the branch round to the top
+  const x = cx + r * Math.cos(rad(a));
+  const y = cy + r * Math.sin(rad(a));
+  return { x: x.toFixed(2), y: y.toFixed(2), rot: (a + 90 - 32).toFixed(1), s: (1 - k * 0.035).toFixed(3) };
+});
+const p1 = { x: cx + r * Math.cos(rad(100)), y: cy + r * Math.sin(rad(100)) };
+const p2 = { x: cx + r * Math.cos(rad(262)), y: cy + r * Math.sin(rad(262)) };
+const stem = `M${p1.x.toFixed(2)} ${p1.y.toFixed(2)} A${r} ${r} 0 0 1 ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`;
+---
+<figure class:list={['laurel', `laurel--${size}`]}>
+  <svg class="laurel__b" viewBox="0 0 30 84" aria-hidden="true">
+    <path d={stem} fill="none" stroke="currentColor" stroke-width="0.9" />
+    {leaves.map((l) => <ellipse cx={l.x} cy={l.y} rx={2.3 * Number(l.s)} ry={6.2 * Number(l.s)} transform={`rotate(${l.rot} ${l.x} ${l.y})`} fill="currentColor" />)}
+  </svg>
+  <figcaption class="laurel__t">
+    {
+      award && (
+        <span class="laurel__award">
+          <span data-l={award.ko && award.ko !== award.en ? 'en' : undefined}>{award.en ?? award.ko}</span>
+          {award.ko && award.ko !== award.en && (
+            <span data-l="ko" lang="ko">
+              {award.ko}
+            </span>
+          )}
+        </span>
+      )
+    }
+    <span class="laurel__name">{name}</span>
+    {year && <span class="laurel__year">{year}</span>}
+  </figcaption>
+  <svg class="laurel__b laurel__b--r" viewBox="0 0 30 84" aria-hidden="true">
+    <path d={stem} fill="none" stroke="currentColor" stroke-width="0.9" />
+    {leaves.map((l) => <ellipse cx={l.x} cy={l.y} rx={2.3 * Number(l.s)} ry={6.2 * Number(l.s)} transform={`rotate(${l.rot} ${l.x} ${l.y})`} fill="currentColor" />)}
+  </svg>
+</figure>
+
+<style>
+  .laurel {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    color: var(--ink);
+  }
+  .laurel__b {
+    width: 30px;
+    height: 84px;
+    flex: none;
+    overflow: visible;
+  }
+  .laurel__b--r {
+    transform: scaleX(-1);
+  }
+  .laurel__t {
+    display: grid;
+    justify-items: center;
+    text-align: center;
+    gap: 4px;
+    max-width: 15rem;
+  }
+  .laurel__award {
+    font: 500 11px/1.2 var(--f-nav);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .laurel__name {
+    font: 400 19px/1.1 var(--f-display);
+    text-wrap: balance;
+  }
+  .laurel__year {
+    font: 400 12px/1 var(--f-nav);
+    color: var(--ink-2);
+    font-variant-numeric: tabular-nums;
+  }
+  .laurel--small .laurel__b {
+    width: 21px;
+    height: 59px;
+  }
+  .laurel--small .laurel__name {
+    font-size: 15px;
+  }
+  .laurel--small .laurel__award {
+    font-size: 10px;
+  }
+</style>
