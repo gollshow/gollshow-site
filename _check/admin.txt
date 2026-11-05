@@ -9,10 +9,10 @@ Error
 Couldn’t load the ⁨Korean⁩ translation. Please try again later.
 ---
 error: Failed to load resource: net::ERR_TUNNEL_CONNECTION_FAILED
-error: Failed to load resource: net::ERR_TUNNEL_CONNECTION_FAILED
-error: Failed to load resource: net::ERR_TUNNEL_CONNECTION_FAILED
 info: For a better developer experience, you can validate your configuration file against the JSON schema of Sveltia CMS. See ⁨https://sveltiacms.app/en/docs/config-basics#validation-and-autocomplete⁩ for details.
 debug: CMS configuration: {backend: Object, app_title: gollshow 관리자, site_url: https://gollshow.github.io/gollshow-site/, display_url: https://gollshow.github.io/gollshow-site/, logo: Object}
+error: Failed to load resource: net::ERR_TUNNEL_CONNECTION_FAILED
+error: Failed to load resource: net::ERR_TUNNEL_CONNECTION_FAILED
 error: Failed to load resource: net::ERR_TUNNEL_CONNECTION_FAILED
 error: Failed to load resource: net::ERR_TUNNEL_CONNECTION_FAILED
 error: Failed to load resource: net::ERR_TUNNEL_CONNECTION_FAILED

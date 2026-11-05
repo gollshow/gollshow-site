@@ -1,15 +1,17 @@
 ---
 /**
- * About: the name in ink across the wash, a statement set large, the bio beside the
- * 2002 poster, the three practices (each leads to its room), the record, the KBS
- * clip, and contact. Every text here is edited in /admin → 소개.
+ * About, a director's page: the name in a still pour of pigment; the statement and bio
+ * together with the 2002 poster beside them; film first (the three films, from the
+ * Film collection), then painting and music; the record, newest first, grouped by year;
+ * the KBS News Plaza clip (2003), played on the page; contact. Every text is edited in
+ * /admin → 소개; the films come from /admin → 영화.
  */
 import Base from '../layouts/Base.astro';
 import Band from '../components/Band.astro';
 import T from '../components/T.astro';
 import Lite from '../components/Lite.astro';
 import { getEntry } from 'astro:content';
-import { getSettings, navItems, UI } from '../lib/site';
+import { FORMAT, getSettings, navItems, publishedFilms, UI } from '../lib/site';
 import { pic, resolveImage, withBase } from '../lib/media';
 
 const s = await getSettings();
@@ -26,6 +28,25 @@ const pg = s.pigments;
 const pig = `--p0:${pg.ultramarine};--p1:${pg.vermilion};--p2:${pg.viridian};--p3:${pg.ochre}`;
 const stEn = a?.statement_en ?? a?.statement_ko;
 const stKo = a?.statement_ko ?? a?.statement_en;
+
+const practices = a?.practices ?? [];
+const filmPractice = practices.find((p) => p.link === 'film');
+const others = practices.filter((p) => p !== filmPractice);
+const films = await Promise.all(
+  (await publishedFilms()).slice(0, 3).map(async (f) => {
+    const m = resolveImage(f.data.still ?? f.data.stills[0]);
+    return { f, still: m ? await pic(m) : undefined };
+  }),
+);
+
+// The record, grouped: consecutive entries with the same year share one label.
+type Note = NonNullable<typeof a>['notes'][number];
+const groups: { en?: string; ko?: string; items: Note[] }[] = [];
+for (const n of a?.notes ?? []) {
+  const last = groups[groups.length - 1];
+  if (last && last.en === n.label_en && last.ko === n.label_ko) last.items.push(n);
+  else groups.push({ en: n.label_en, ko: n.label_ko, items: [n] });
+}
 ---
 <Base title={{ en: about.en, ko: about.ko }} current="about" page="about">
   <Band en={heading} ko={heading} seed={7} shape="pour">
@@ -34,34 +55,24 @@ const stKo = a?.statement_ko ?? a?.statement_en;
   </Band>
 
   <div class="page page--band about" style={pig}>
-    {
-      stEn && (
-        <div data-reveal="fade">
-          <T as="p" class="statement" en={stEn} ko={stKo} />
-        </div>
-      )
-    }
-
+    <!-- statement and bio, with the 2002 poster beside them -->
     <section class="intro">
-      {(a?.bio_en || a?.bio_ko) && (
-        <div class="bio" data-reveal="fade">
-          <T block en={a?.bio_en} ko={a?.bio_ko} />
-        </div>
-      )}
+      <div class="intro__text" data-reveal="fade">
+        {stEn && <T as="p" class="statement" en={stEn} ko={stKo} />}
+        {(a?.bio_en || a?.bio_ko) && <T block class="bio" en={a?.bio_en} ko={a?.bio_ko} />}
+      </div>
       {
         portrait && (
-          <figure class="poster" data-parallax>
+          <figure class="poster" data-reveal="fade" style="--d:200">
             <img
-              data-reveal="fade"
               src={portrait.src}
               srcset={portrait.srcset}
-              sizes="(max-width: 860px) 80vw, 30vw"
+              sizes="(max-width: 860px) 60vw, 24vw"
               width={portrait.w}
               height={portrait.h}
               alt={a?.portrait_caption_en ?? 'gollshow'}
               data-alt-en={a?.portrait_caption_en ?? 'gollshow'}
               data-alt-ko={a?.portrait_caption_ko ?? a?.portrait_caption_en ?? 'gollshow'}
-              style={`--nw:${portrait.w}`}
               decoding="async"
             />
             {(a?.portrait_caption_en || a?.portrait_caption_ko) && (
@@ -72,10 +83,58 @@ const stKo = a?.statement_ko ?? a?.statement_en;
       }
     </section>
 
+    <!-- film first -->
     {
-      a && a.practices.length > 0 && (
+      (filmPractice || films.length > 0) && (
+        <section class="lead" data-reveal="fade">
+          <div class="lead__head">
+            <h2 class="lead__t">
+              <a href={withBase('/film/')}>
+                <T en={filmPractice?.title_en ?? 'Film'} ko={filmPractice?.title_ko ?? '영화'} />
+              </a>
+            </h2>
+            {filmPractice && (filmPractice.text_en || filmPractice.text_ko) && (
+              <T as="p" class="lead__p" en={filmPractice.text_en} ko={filmPractice.text_ko} />
+            )}
+          </div>
+          {films.length > 0 && (
+            <ul class="reel">
+              {films.map(({ f, still }, i) => {
+                const d = f.data;
+                const fmt = d.format ? FORMAT[d.format] : undefined;
+                return (
+                  <li data-reveal="fade" style={`--d:${i * 120}`}>
+                    <a class="reel__a" href={withBase(`/film/${f.id}/`)}>
+                      <span class="reel__img">
+                        {still && <img src={still.src} srcset={still.srcset} sizes="(max-width: 860px) 92vw, 30vw" alt="" loading="lazy" decoding="async" style={`object-position:${d.focus ?? 'center'}`} />}
+                      </span>
+                      <span class="reel__t">
+                        <span data-l="en">{d.title_en ?? d.title_ko}</span>
+                        <span data-l="ko" lang="ko">{d.title_ko ?? d.title_en}</span>
+                      </span>
+                      <span class="reel__m">
+                        {[d.year].filter(Boolean).join('')}
+                        {fmt && (
+                          <>
+                            {d.year && ' · '}
+                            <T t={fmt} />
+                          </>
+                        )}
+                      </span>
+                    </a>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
+      )
+    }
+
+    {
+      others.length > 0 && (
         <section class="practices" aria-label="Practice">
-          {a.practices.map((p, i) => {
+          {others.map((p, i) => {
             const l = linkOf(p.link);
             const body = (
               <>
@@ -84,11 +143,11 @@ const stKo = a?.statement_ko ?? a?.statement_en;
               </>
             );
             return l ? (
-              <a class="practice" href={withBase(l.path)} data-reveal="fade" style={`--d:${i * 140};--pc:var(--p${i % 3})`}>
+              <a class="practice" href={withBase(l.path)} data-reveal="fade" style={`--d:${i * 120};--pc:var(--p${(i + 1) % 3})`}>
                 {body}
               </a>
             ) : (
-              <div class="practice" data-reveal="fade" style={`--d:${i * 140};--pc:var(--p${i % 3})`}>
+              <div class="practice" data-reveal="fade" style={`--d:${i * 120};--pc:var(--p${(i + 1) % 3})`}>
                 {body}
               </div>
             );
@@ -97,17 +156,24 @@ const stKo = a?.statement_ko ?? a?.statement_en;
       )
     }
 
+    <!-- the record, newest first -->
     {
-      a && a.notes.length > 0 && (
+      groups.length > 0 && (
         <section class="record">
           <h2 class="section-title">
             <T en="Record" ko="기록" />
           </h2>
           <ol class="record__list">
-            {a.notes.map((n, i) => (
-              <li data-reveal="fade" style={`--d:${i * 70}`}>
-                <T as="span" class="record__y" en={n.label_en ?? n.label_ko} ko={n.label_ko ?? n.label_en} />
-                <T as="span" class="record__t" en={n.text_en ?? n.text_ko} ko={n.text_ko ?? n.text_en} />
+            {groups.map((g, i) => (
+              <li class="record__row" data-reveal="fade" style={`--d:${Math.min(i, 6) * 60}`}>
+                <T as="span" class="record__y" en={g.en ?? g.ko} ko={g.ko ?? g.en} />
+                <ul class="record__items">
+                  {g.items.map((n) => (
+                    <li>
+                      <T en={n.text_en ?? n.text_ko} ko={n.text_ko ?? n.text_en} />
+                    </li>
+                  ))}
+                </ul>
               </li>
             ))}
           </ol>
@@ -115,22 +181,32 @@ const stKo = a?.statement_ko ?? a?.statement_en;
       )
     }
 
+    <!-- press: the KBS clip -->
     {
-      a?.video && (
-        <figure class="clip" data-reveal="fade">
-          <Lite url={a.video} label={{ en: `${UI.play.en} — ${capEn}`, ko: `${UI.play.ko} — ${capKo}` }} title={capEn} />
-          <T as="figcaption" class="meta" en={capEn} ko={capKo} />
-        </figure>
+      (a?.video_file || a?.video) && (
+        <section class="press" data-reveal="fade">
+          <div class="press__media">
+            {a?.video_file ? (
+              <video class="press__video" controls preload="none" playsinline poster={withBase(a.video_poster)} src={withBase(a.video_file)}>
+                <a href={withBase(a.video_file)}>{capEn}</a>
+              </video>
+            ) : (
+              <Lite url={a?.video} label={{ en: `${UI.play.en} — ${capEn}`, ko: `${UI.play.ko} — ${capKo}` }} title={capEn} />
+            )}
+          </div>
+          <div class="press__text">
+            <h2 class="section-title">
+              <T en="Press" ko="보도" />
+            </h2>
+            <T as="p" class="press__cap" en={capEn} ko={capKo} />
+          </div>
+        </section>
       )
     }
 
-    <section class="contact">
+    <section class="contact" data-reveal="fade">
       <h2 class="section-title"><T t={UI.contact} /></h2>
-      {s.email && (
-        <a class="contact__mail" href={`mailto:${s.email}`} data-reveal="fade">
-          {s.email}
-        </a>
-      )}
+      {s.email && <a class="contact__mail" href={`mailto:${s.email}`}>{s.email}</a>}
       <ul class="contact__links">
         {s.instagram && <li><a class="text-link" href={s.instagram} target="_blank" rel="me noopener">Instagram</a></li>}
         {s.youtube && <li><a class="text-link" href={s.youtube} target="_blank" rel="me noopener">YouTube</a></li>}
@@ -143,107 +219,155 @@ const stKo = a?.statement_ko ?? a?.statement_en;
 
 <script>
   import '../scripts/reveal';
-  // The poster drifts a little slower than the page.
-  const fig = document.querySelector<HTMLElement>('[data-parallax]');
-  if (fig && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    let ticking = false;
-    const move = () => {
-      ticking = false;
-      const r = fig.getBoundingClientRect();
-      const off = (r.top + r.height / 2 - innerHeight / 2) / innerHeight;
-      fig.style.transform = `translate3d(0, ${(off * -48).toFixed(1)}px, 0)`;
-    };
-    addEventListener('scroll', () => !ticking && (ticking = requestAnimationFrame(move) > 0), { passive: true });
-    move();
-  }
 </script>
 
 <style>
   .page--band {
-    padding-top: clamp(40px, 6vw, 96px);
+    padding-top: clamp(40px, 5.5vw, 88px);
   }
   .about {
     display: grid;
-    gap: clamp(72px, 10vw, 160px);
+    gap: clamp(80px, 10vw, 160px);
   }
-  /* A statement set large, the one typographic moment of the page */
+  .section-title {
+    margin-bottom: 0;
+  }
+
+  /* statement and bio */
+  .intro {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: clamp(14px, 2vw, 32px);
+    align-items: start;
+  }
+  .intro__text {
+    grid-column: 1 / span 8;
+    display: grid;
+    gap: clamp(32px, 4vw, 56px);
+  }
   .statement {
-    font: 400 clamp(34px, 5.2vw, 84px) / 1.04 var(--f-display);
+    font: 400 clamp(36px, 4.8vw, 76px) / 1.04 var(--f-display);
     letter-spacing: -0.012em;
-    max-width: 17ch;
-    margin-left: calc(100% / 12);
+    max-width: 18ch;
     text-wrap: balance;
   }
-  html[data-lang='ko'] .statement {
-    font-size: clamp(28px, 4vw, 62px);
-    line-height: 1.22;
+  :global(html[data-lang='ko']) .statement {
+    font-size: clamp(28px, 3.6vw, 56px);
+    line-height: 1.24;
     letter-spacing: -0.02em;
-    max-width: 20ch;
+    max-width: 21ch;
   }
-  .intro {
+  .bio {
+    max-width: 60ch;
+    font-size: 18px;
+    line-height: 1.72;
+    margin-left: calc((100% / 8) * 1);
+  }
+  .bio :global(p + p) {
+    margin-top: 1.1em;
+  }
+  .poster {
+    grid-column: 10 / span 3;
+    padding-top: 10px;
+  }
+  .poster img {
+    width: 100%;
+  }
+  .poster figcaption {
+    margin-top: 10px;
+  }
+
+  /* film first */
+  .lead {
+    display: grid;
+    gap: clamp(28px, 3.4vw, 48px);
+    padding-top: 28px;
+    border-top: 1px solid var(--line);
+  }
+  .lead__head {
     display: grid;
     grid-template-columns: repeat(12, minmax(0, 1fr));
     column-gap: clamp(14px, 2vw, 32px);
     align-items: end;
   }
-  .bio {
-    grid-column: 1 / span 6;
+  .lead__t {
+    grid-column: 1 / span 5;
+    font: 400 clamp(56px, 7vw, 116px) / 0.86 var(--f-display);
+    letter-spacing: -0.016em;
+  }
+  .lead__t a {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.1em;
+    text-decoration-color: transparent;
+    transition: text-decoration-color 300ms ease;
+  }
+  .lead__t a:hover {
+    text-decoration-color: currentColor;
+  }
+  .lead__p {
+    grid-column: 7 / span 6;
+    max-width: 48ch;
     font-size: 18px;
-    line-height: 1.72;
-    max-width: 58ch;
+    line-height: 1.6;
   }
-  .bio :global(p + p) {
-    margin-top: 1.1em;
-  }
-  .bio :global(p:first-child)::first-line {
-    font-weight: 500;
-  }
-  .poster {
-    grid-column: 9 / span 4;
-    margin-bottom: clamp(-48px, -3vw, 0px);
-  }
-  .poster img {
-    width: 100%;
-    max-width: calc(var(--nw) * 1.5px);
-  }
-  .poster figcaption {
-    margin-top: 10px;
-  }
-  /* The three practices */
-  .practices {
+  .reel {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(16px, 2vw, 32px);
+  }
+  .reel__a {
+    display: grid;
+    gap: 10px;
+  }
+  .reel__img {
+    display: block;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--ink) 6%, var(--ground));
+  }
+  .reel__img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 1600ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  .reel__a:hover .reel__img img {
+    transform: scale(1.025);
+  }
+  .reel__t {
+    font: 400 clamp(22px, 2vw, 30px) / 1.1 var(--f-display);
+  }
+  .reel__m {
+    font: 400 13px/1.3 var(--f-nav);
+    color: var(--ink-2);
+  }
+
+  /* painting and music */
+  .practices {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     border-top: 1px solid var(--line);
+    margin-top: calc(clamp(80px, 10vw, 160px) * -0.5);
   }
   .practice {
+    position: relative;
+    isolation: isolate;
     display: flex;
     flex-direction: column;
-    gap: 14px;
-    padding: 28px clamp(16px, 2.4vw, 40px) 30px 0;
-    min-height: 15rem;
+    gap: 12px;
+    padding: 26px clamp(16px, 2.4vw, 40px) 30px 0;
   }
   .practice + .practice {
     padding-left: clamp(16px, 2.4vw, 40px);
     border-left: 1px solid var(--line);
   }
   .practice__t {
-    font: 400 clamp(34px, 3.4vw, 52px) / 1 var(--f-display);
+    font: 400 clamp(30px, 3vw, 44px) / 1 var(--f-display);
   }
   .practice__p {
-    max-width: 34ch;
+    max-width: 40ch;
     color: var(--ink-2);
-  }
-  .practice__go {
-    margin-top: auto;
-    font: 500 14px/1 var(--f-nav);
-    text-decoration: underline;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 0.3em;
-    text-decoration-color: var(--line);
-    transition: text-decoration-color 160ms ease;
-  }
-  a.practice:hover .practice__go {
-    text-decoration-color: currentColor;
   }
   a.practice .practice__t {
     text-decoration: underline;
@@ -255,7 +379,23 @@ const stKo = a?.statement_ko ?? a?.statement_en;
   a.practice:hover .practice__t {
     text-decoration-color: currentColor;
   }
-  /* Record */
+  .practice::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    inset: -8% -4% 10% -10%;
+    background: radial-gradient(closest-side, color-mix(in srgb, var(--pc) 55%, transparent), transparent);
+    filter: blur(26px);
+    opacity: 0;
+    transition: opacity 900ms ease;
+    pointer-events: none;
+  }
+  a.practice:hover::before,
+  a.practice:focus-visible::before {
+    opacity: 0.7;
+  }
+
+  /* record, newest first */
   .record {
     display: grid;
     grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -263,39 +403,69 @@ const stKo = a?.statement_ko ?? a?.statement_en;
   }
   .record .section-title {
     grid-column: 1 / span 3;
+    padding-top: 22px;
   }
   .record__list {
     grid-column: 4 / span 9;
     display: grid;
   }
-  .record__list li {
+  .record__row {
     display: grid;
-    grid-template-columns: 9rem minmax(0, 1fr);
+    grid-template-columns: 10rem minmax(0, 1fr);
     gap: 24px;
-    padding: 16px 0;
+    padding: 20px 0 22px;
     border-top: 1px solid var(--line);
-    font-size: 17px;
-    line-height: 1.5;
   }
-  .record__list li:last-child {
+  .record__row:last-child {
     border-bottom: 1px solid var(--line);
   }
   .record__y {
-    font: 400 22px/1.15 var(--f-display);
+    font: 400 clamp(26px, 2.4vw, 34px) / 1 var(--f-display);
     font-variant-numeric: tabular-nums;
   }
-  .clip {
-    width: min(100%, 980px);
-    margin-left: auto;
+  .record__items {
+    display: grid;
+    gap: 10px;
+    font-size: 17px;
+    line-height: 1.5;
+    padding-top: 4px;
   }
-  .clip figcaption {
-    margin-top: 12px;
+
+  /* press */
+  .press {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: clamp(14px, 2vw, 32px);
+    row-gap: 20px;
+    align-items: end;
   }
-  /* Contact closes the page, the address set like a studio stamp */
+  .press__media {
+    grid-column: 1 / span 6;
+  }
+  .press__video {
+    display: block;
+    width: 100%;
+    max-width: 640px;
+    aspect-ratio: 4 / 3;
+    background: #000;
+  }
+  .press__text {
+    grid-column: 8 / span 5;
+    display: grid;
+    gap: 14px;
+    padding-bottom: 6px;
+  }
+  .press__cap {
+    font: 400 clamp(22px, 2vw, 30px) / 1.25 var(--f-display);
+    text-wrap: balance;
+  }
+
+  /* contact */
   .contact {
     display: grid;
     gap: 18px;
     justify-items: start;
+    padding-bottom: 24px;
   }
   .contact__mail {
     font: 400 clamp(32px, 5vw, 76px) / 1 var(--f-display);
@@ -315,93 +485,55 @@ const stKo = a?.statement_ko ?? a?.statement_en;
     font: 500 15px/1 var(--f-nav);
   }
   .contact__addr {
-    margin-top: 18px;
+    margin-top: 14px;
     white-space: pre-line;
     color: var(--ink-2);
     font: 400 14px/1.6 var(--f-nav);
   }
-  /* ── motion ── */
-  .practice {
-    position: relative;
-    isolation: isolate;
-  }
-  .practice::before {
-    content: '';
-    position: absolute;
-    z-index: -1;
-    inset: -8% -4% 10% -10%;
-    background: radial-gradient(closest-side, color-mix(in srgb, var(--pc) 62%, transparent), transparent);
-    filter: blur(26px);
-    opacity: 0;
-    transform: scale(0.4);
-    transition:
-      opacity 700ms ease,
-      transform 1100ms cubic-bezier(0.2, 0.7, 0.2, 1);
-    pointer-events: none;
-  }
-  a.practice:hover::before,
-  a.practice:focus-visible::before {
-    opacity: 0.85;
-    transform: scale(1);
-  }
-  .record__list li {
-    position: relative;
-    border-top: 0;
-  }
-  .record__list li::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
-    height: 1px;
-    background: var(--line);
-    transform-origin: left;
-    transition: transform 1100ms cubic-bezier(0.2, 0.7, 0.2, 1);
-    transition-delay: calc(var(--d, 0) * 1ms);
-  }
-  .poster {
-    will-change: transform;
-  }
-  @media (prefers-reduced-motion: no-preference) {
-    :global(.js) .record__list li[data-reveal]:not(:global(.is-in))::before {
-      transform: scaleX(0);
-    }
-  }
+
   @media (max-width: 860px) {
-    .statement {
-      margin-left: 0;
-    }
     .intro,
-    .record {
+    .lead__head,
+    .record,
+    .press {
       grid-template-columns: minmax(0, 1fr);
-      row-gap: 40px;
+      row-gap: 28px;
     }
-    .bio,
+    .intro__text,
     .poster,
+    .lead__t,
+    .lead__p,
     .record .section-title,
-    .record__list {
+    .record__list,
+    .press__media,
+    .press__text {
       grid-column: 1;
     }
+    .bio {
+      margin-left: 0;
+    }
     .poster {
-      max-width: 360px;
-      margin-bottom: 0;
+      max-width: 300px;
+    }
+    .reel {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 32px;
     }
     .practices {
       grid-template-columns: minmax(0, 1fr);
+      margin-top: 0;
     }
     .practice,
     .practice + .practice {
       padding: 24px 0;
       border-left: 0;
-      min-height: 0;
     }
     .practice + .practice {
       border-top: 1px solid var(--line);
     }
-    .record__list li {
+    .record__row {
       grid-template-columns: minmax(0, 1fr);
-      gap: 4px;
+      gap: 8px;
     }
   }
 </style>

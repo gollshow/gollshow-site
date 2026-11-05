@@ -118,6 +118,8 @@ const pages = defineCollection({
       .nullish()
       .transform((v) => (v ?? []).filter((x): x is NonNullable<typeof x> => !!x && !!(x.text_en || x.text_ko))),
     video: text(),
+    video_file: text(), // a video file in public/media/video, played on the page itself
+    video_poster: text(),
     video_caption_en: text(),
     video_caption_ko: text(),
     address: text(),
