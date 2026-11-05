@@ -35,7 +35,7 @@ const others = practices.filter((p) => p !== filmPractice);
 const films = await Promise.all(
   (await publishedFilms()).slice(0, 3).map(async (f) => {
     const m = resolveImage(f.data.still ?? f.data.stills[0]);
-    return { f, still: m ? await pic(m) : undefined };
+    return { f, m, still: m ? await pic(m) : undefined };
   }),
 );
 
@@ -253,8 +253,8 @@ for (const n of a?.notes ?? []) {
   }
   :global(html[data-lang='ko']) .statement {
     font-size: clamp(28px, 3.6vw, 56px);
-    line-height: 1.24;
-    letter-spacing: -0.02em;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
     max-width: 21ch;
   }
   .bio {

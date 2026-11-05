@@ -1,5 +1,6 @@
 import { getEntry } from 'astro:content';
-import { pic, resolveImage, type Pic } from './media';
+import { pic, resolveImage, type Media, type Pic } from './media';
+import { accentOf } from './palette';
 import { CATEGORY_WORD, sizeOf } from './site';
 import { embedFor } from './embed';
 
@@ -14,7 +15,7 @@ export type ViewerItem = {
   process?: string;
 };
 
-export type Work = ViewerItem & { pic: Pic; display: 'S' | 'M' | 'L'; focus?: string };
+export type Work = ViewerItem & { pic: Pic; media: Media; color: string; display: 'S' | 'M' | 'L'; focus?: string };
 
 const key = (s: string) => s.split('?')[0].normalize('NFC').toLowerCase();
 
@@ -41,6 +42,8 @@ export async function getWorks(category: string): Promise<Work[]> {
     const tKo = w.title_ko ?? w.title_en;
     out.push({
       pic: p,
+      media: m,
+      color: await accentOf(m),
       display: w.display,
       focus: w.focus,
       src: p.src,

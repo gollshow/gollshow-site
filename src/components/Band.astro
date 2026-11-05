@@ -13,11 +13,12 @@ interface Props {
   seed?: number;
   shape?: 'stroke' | 'pool' | 'diagonal' | 'veil' | 'ring' | 'pour';
   short?: boolean;
+  pigments?: string[]; // the room's own colours; default: the four set in /admin
 }
 const { en, ko = en, seed = 0, shape = 'stroke', short = false } = Astro.props;
 const s = await getSettings();
 const p = s.pigments;
-const pig = [p.ultramarine, p.vermilion, p.viridian, p.ochre];
+const pig = Astro.props.pigments?.length === 4 ? Astro.props.pigments : [p.ultramarine, p.vermilion, p.viridian, p.ochre];
 ---
 <section
   class:list={['band', `band--${shape}`, { 'band--short': short }]}
@@ -100,7 +101,7 @@ const pig = [p.ultramarine, p.vermilion, p.viridian, p.ochre];
   }
   :global(html[data-lang='ko']) .band__word {
     font-size: min(18vh, 11vw);
-    letter-spacing: -0.03em;
+    letter-spacing: -0.01em;
   }
   .band--short .band__word {
     font-size: min(17vh, 12vw);

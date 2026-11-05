@@ -3,7 +3,7 @@
 :root {
   /* ONE place for the wordmark font: the home motion's text canvas reads this variable too. */
   --f-mark: 'Instrument Serif', 'Iowan Old Style', Georgia, serif;
-  --f-display: 'Instrument Serif', 'IBM Plex Sans KR', Georgia, serif;
+  --f-display: 'Instrument Serif', 'Gowun Batang', 'IBM Plex Sans KR', Georgia, serif;
   --f-nav: 'Instrument Sans', 'IBM Plex Sans KR', 'Helvetica Neue', Arial, sans-serif;
   --f-ui: 'Instrument Sans', 'IBM Plex Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Helvetica Neue', Arial, sans-serif;
 
@@ -21,8 +21,8 @@
 :root[data-bg='black'] {
   --ground: #0c0c0d;
   --ink: #ece9e2;
-  --ink-2: #a8a49c;
-  --line: rgba(236, 233, 226, 0.22);
+  --ink-2: #aca79e;
+  --line: rgba(236, 233, 226, 0.16);
   --veil: rgba(12, 12, 13, 0.92);
   color-scheme: dark;
 }

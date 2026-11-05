@@ -10,10 +10,12 @@
  * falls back to a static ground + ink wordmark + CSS pigment wash without WebGL.
  */
 
+import { stir } from './stir';
+
 const INTRO = 3.6;
 
 const FS = `precision highp float;
-uniform vec2 R; uniform float T; uniform vec2 M; uniform float V; uniform float I; uniform float D; uniform sampler2D TX;
+uniform vec2 R; uniform float T; uniform vec2 M; uniform float V; uniform float I; uniform float D; uniform float F; uniform sampler2D TX;
 uniform vec3 C0; uniform vec3 C1; uniform vec3 C2; uniform vec3 C3;
 float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
 float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
@@ -37,7 +39,7 @@ void main(){
  float th=1.15-e*1.35;
  float rev=smoothstep(th,th+.15,wb+(nz-.5)*.5);
  float wet=1.-smoothstep(.55,1.,I);
- float wr=mix(w,smoothstep(.15,.85,wb),wet*.65)*rev;
+ float wr=mix(w,smoothstep(.15,.85,wb),wet*.65)*rev*(1.-F);
  vec3 ground=mix(vec3(.949,.941,.922),vec3(.047,.047,.051),D);
  vec3 washC=mix(C0,C1,smoothstep(.25,.75,q.x));
  washC=mix(washC,C2,smoothstep(.4,.9,r.y)*.75);
@@ -48,7 +50,7 @@ void main(){
  float wash=smoothstep(.45,.95,f+.2*length(r)-.1)*mix(.62,.66,D);
  wash=mix(smoothstep(.25,.75,f)*.88,wash,e);
  float pool=smoothstep(.1,.5,f+.25)*.97;
- vec3 col=mix(ground,washC,wash*(1.-wr));
+ vec3 col=mix(ground,washC,wash*(1.-wr)*(1.-.62*F));
  col=mix(col,inkC,pool*wr);
  col+=(h(floor(gl_FragCoord.xy)+fract(T*7.)*61.)-.5)*mix(.035,.03,D);
  col=mix(col*(1.-.06*n(gl_FragCoord.xy*.35)),col+.025*n(gl_FragCoord.xy*.35),D);
@@ -59,7 +61,10 @@ const hero = document.querySelector<HTMLElement>('[data-hero]');
 const cv = hero?.querySelector<HTMLCanvasElement>('canvas');
 const top = document.getElementById('top');
 
-const showMenu = () => top?.classList.add('is-on');
+const showMenu = () => {
+  top?.classList.add('is-on');
+  hero?.classList.add('is-ready');
+};
 const fallback = () => {
   hero?.classList.add('is-static');
   showMenu();
@@ -102,7 +107,7 @@ function start() {
   if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) return fallback();
   gl.useProgram(pr);
   const u: Record<string, WebGLUniformLocation | null> = {};
-  ['R', 'T', 'M', 'V', 'I', 'D', 'TX', 'C0', 'C1', 'C2', 'C3'].forEach((k) => (u[k] = gl.getUniformLocation(pr, k)));
+  ['R', 'T', 'M', 'V', 'I', 'D', 'F', 'TX', 'C0', 'C1', 'C2', 'C3'].forEach((k) => (u[k] = gl.getUniformLocation(pr, k)));
   gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
   gl.enableVertexAttribArray(0);
@@ -167,6 +172,8 @@ function start() {
   }
 
   const dark = document.documentElement.dataset.bg === 'black' ? 1 : 0;
+  // Scrolling down dissolves the wordmark back into the pigment, which sinks into the ground.
+  const fade = () => Math.min(1, Math.max(0, window.scrollY / (window.innerHeight * 0.85)));
   let introT = calm ? INTRO : 0;
   const tm = { x: 0.5, y: 0.5 }, mm = { x: 0.5, y: 0.5 };
   let vel = 0, idle = 99, T = calm ? 14 : 0, last = performance.now(), raf = 0;
@@ -178,6 +185,7 @@ function start() {
     gl!.uniform1f(u.V, vel * Math.min(1, I * 1.5));
     gl!.uniform1f(u.I, I);
     gl!.uniform1f(u.D, dark);
+    gl!.uniform1f(u.F, fade());
     gl!.activeTexture(gl!.TEXTURE0);
     gl!.bindTexture(gl!.TEXTURE_2D, tex);
     gl!.uniform1i(u.TX, 0);
@@ -201,6 +209,7 @@ function start() {
       still();
     }, () => {});
     addEventListener('resize', still);
+    addEventListener('scroll', () => requestAnimationFrame(() => draw(1)), { passive: true });
     return;
   }
 
@@ -212,7 +221,13 @@ function start() {
     idle = 0;
   });
 
+  let skip = 0;
   function frame(now: number) {
+    // Once the page has scrolled past the motion, draw it at a third of the rate.
+    if (fade() > 0.98 && skip++ % 3) {
+      raf = requestAnimationFrame(frame);
+      return;
+    }
     const raw = (now - last) / 1000;
     const dt = Math.min(0.05, raw);
     last = now;
@@ -230,6 +245,10 @@ function start() {
     mm.x += (tm.x - mm.x) * 0.08;
     mm.y += (tm.y - mm.y) * 0.08;
     vel += (Math.min(1, Math.hypot(mm.x - px, mm.y - py) * 40) - vel) * 0.1;
+    stir.x = mm.x;
+    stir.y = mm.y;
+    stir.v = idle > 2.5 ? vel * 0.35 : vel; // the idle drift stirs only gently
+    stir.intro = I;
     draw(I);
     raf = requestAnimationFrame(frame);
   }

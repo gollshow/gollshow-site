@@ -1,12 +1,52 @@
 ---
-/** Home: the pigment flow. No artwork on this screen (owner's rule). */
+/**
+ * Home: the pigment flow (no artwork on this first screen, the owner's rule). Scrolling
+ * down dissolves the wordmark back into the pigment, which sinks into the ground, and the
+ * rooms rise over it: Film first, then the art, music and about. On a desktop, pointing
+ * at a room shows its latest work beside it; on a phone each room carries a small image.
+ */
 import Base from '../layouts/Base.astro';
-import { getSettings, wordmarkOf } from '../lib/site';
+import T from '../components/T.astro';
+import { getEntry } from 'astro:content';
+import { getSettings, navItems, publishedFilms, wordmarkOf } from '../lib/site';
+import { getWorks } from '../lib/art';
+import { pic, resolveImage, withBase } from '../lib/media';
 
 const s = await getSettings();
 const word = wordmarkOf(s);
 const p = s.pigments;
 const pig = [p.ultramarine, p.vermilion, p.viridian, p.ochre];
+const nav = navItems(s);
+
+// what each room shows when pointed at, and how much is in it
+const films = await publishedFilms();
+const filmMedia = films[0] ? resolveImage(films[0].data.still ?? films[0].data.stills[0]) : undefined;
+const art = Object.fromEntries(
+  await Promise.all(['painting', 'conte-pastel', 'digital'].map(async (c) => [c, await getWorks(c)] as const)),
+);
+const about = (await getEntry('pages', 'about'))?.data;
+const music = (await getEntry('pages', 'music'))?.data;
+const aboutMedia = resolveImage(about?.portrait);
+const rooms = await Promise.all(
+  nav.map(async (n) => {
+    let img: Awaited<ReturnType<typeof pic>> | undefined;
+    let meta: { en: string; ko: string } | undefined;
+    if (n.key === 'film') {
+      img = filmMedia ? await pic(filmMedia) : undefined;
+      meta = { en: `${films.length} ${films.length === 1 ? 'film' : 'films'}`, ko: `${films.length}편` };
+    } else if (n.key in art) {
+      const w = art[n.key];
+      img = w[0]?.pic;
+      meta = { en: `${w.length} works`, ko: `${w.length}점` };
+    } else if (n.key === 'music') {
+      meta = { en: music?.name ?? 'gogolala', ko: music?.name ?? 'gogolala' };
+    } else if (n.key === 'about') {
+      img = aboutMedia ? await pic(aboutMedia) : undefined;
+      meta = { en: about?.heading ?? 'goll', ko: about?.heading ?? 'goll' };
+    }
+    return { ...n, img, meta };
+  }),
+);
 ---
 <Base home page="home">
   <section
@@ -19,19 +59,57 @@ const pig = [p.ultramarine, p.vermilion, p.viridian, p.ochre];
     <div class="hero__wash" aria-hidden="true"></div>
     <h1 class="hero__mark">{word}</h1>
     <canvas class="hero__cv" aria-hidden="true"></canvas>
+    <button class="sound" type="button" data-sound aria-pressed="false" hidden>
+      <span class="sound__dot" aria-hidden="true"></span>
+      <span data-l="en">Sound</span><span data-l="ko" lang="ko">소리</span>
+    </button>
+    <a class="cue" href="#rooms" aria-label="Down to the rooms" data-aria-en="Down to the rooms" data-aria-ko="아래 목록으로"><span></span></a>
+  </section>
+
+  <section class="rooms" id="rooms" aria-label="Rooms" data-aria-en="Rooms" data-aria-ko="목록">
+    {(s.roles_en || s.roles_ko) && <T as="p" class="rooms__roles" en={s.roles_en} ko={s.roles_ko} />}
+    <ul class="rooms__list">
+      {
+        rooms.map((r, i) => (
+          <li class="room" data-reveal="fade" style={`--d:${i * 90}`}>
+            <a class="room__a" href={withBase(r.path)}>
+              <span class="room__name">
+                <span data-l="en">{r.en}</span>
+                <span data-l="ko" lang="ko">{r.ko}</span>
+              </span>
+              <span class="room__alt">
+                <span data-l="en" lang="ko">{r.ko}</span>
+                <span data-l="ko">{r.en}</span>
+              </span>
+              {r.meta && <T as="span" class="room__meta" en={r.meta.en} ko={r.meta.ko} />}
+              {r.img && (
+                <span class:list={['room__img', { 'room__img--wide': r.key === 'film' }]} aria-hidden="true">
+                  <img src={r.img.src} srcset={r.img.srcset} sizes="(max-width: 760px) 72px, 28vw" alt="" loading="lazy" decoding="async" />
+                </span>
+              )}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+    <footer class="rooms__foot">
+      <span>© {new Date().getFullYear()} {s.site_title || 'gollshow'}</span>
+      <span class="rooms__links">
+        {s.instagram && <a href={s.instagram} rel="me noopener" target="_blank">Instagram</a>}
+        {s.youtube && <a href={s.youtube} rel="me noopener" target="_blank">YouTube</a>}
+        {s.email && <a href={`mailto:${s.email}`}>{s.email}</a>}
+      </span>
+    </footer>
   </section>
 </Base>
 
 <script>
   import '../scripts/hero';
+  import '../scripts/sound';
+  import '../scripts/reveal';
 </script>
 
 <style>
-  :global(body.home) {
-    overflow: hidden;
-    height: 100vh;
-    height: 100dvh;
-  }
   .hero {
     position: relative;
     height: 100vh;
@@ -39,13 +117,15 @@ const pig = [p.ultramarine, p.vermilion, p.viridian, p.ochre];
     overflow: hidden;
     touch-action: pan-y;
   }
+  /* the pigment stays behind the whole page and sinks as you scroll (src/scripts/hero.ts) */
   .hero__cv {
-    position: absolute;
+    position: fixed;
     inset: 0;
     width: 100%;
     height: 100%;
     display: block;
     opacity: 0;
+    z-index: 0;
   }
   .hero.is-gl .hero__cv {
     opacity: 1;
@@ -76,5 +156,227 @@ const pig = [p.ultramarine, p.vermilion, p.viridian, p.ochre];
   :global(.js) .hero:not(.is-static) .hero__wash,
   :global(.js) .hero:not(.is-static) .hero__mark {
     opacity: 0;
+  }
+
+  /* the optional sound: a quiet switch in the lower left, shown with the menu */
+  .sound {
+    position: absolute;
+    z-index: 2;
+    left: 28px;
+    bottom: calc(22px + env(safe-area-inset-bottom, 0px));
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    font: 400 14px/1 var(--f-nav);
+    letter-spacing: 0.01em;
+    color: var(--ink-2);
+    transition:
+      opacity 900ms ease,
+      color 200ms ease;
+  }
+  .sound:hover,
+  .sound[aria-pressed='true'] {
+    color: var(--ink);
+  }
+  .sound__dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    border: 1px solid currentColor;
+    transition: background-color 300ms ease;
+  }
+  .sound[aria-pressed='true'] .sound__dot {
+    background: currentColor;
+  }
+
+  /* a thin line at the foot of the screen: there is more below */
+  .cue {
+    position: absolute;
+    z-index: 2;
+    left: 50%;
+    bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+    width: 24px;
+    height: 56px;
+    margin-left: -12px;
+    display: grid;
+    justify-items: center;
+    transition: opacity 900ms ease;
+  }
+  .cue span {
+    position: relative;
+    width: 1px;
+    height: 100%;
+    background: color-mix(in srgb, var(--ink) 22%, transparent);
+    overflow: hidden;
+  }
+  .cue span::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1px;
+    height: 40%;
+    background: var(--ink);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .cue span::after {
+      animation: cue 2600ms cubic-bezier(0.65, 0.04, 0.25, 1) infinite;
+    }
+  }
+  @keyframes cue {
+    from {
+      transform: translateY(-100%);
+    }
+    to {
+      transform: translateY(260%);
+    }
+  }
+  :global(.js) .hero:not(.is-ready) .sound,
+  :global(.js) .hero:not(.is-ready) .cue {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* the rooms, rising over the sunken pigment */
+  .rooms {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: var(--max);
+    margin: 0 auto;
+    padding: clamp(64px, 10vh, 120px) var(--gutter) 28px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .rooms__roles {
+    font: 400 14px/1.5 var(--f-nav);
+    color: var(--ink-2);
+    margin-bottom: clamp(20px, 3vw, 36px);
+  }
+  .rooms__list {
+    border-bottom: 1px solid var(--line);
+  }
+  .room__a {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: 'name meta' 'alt meta';
+    align-items: end;
+    column-gap: 24px;
+    padding: clamp(14px, 1.8vw, 26px) 0 clamp(16px, 2vw, 28px);
+    border-top: 1px solid var(--line);
+    transition: opacity 400ms ease;
+  }
+  .room__name {
+    grid-area: name;
+    font: 400 clamp(52px, 8.4vw, 136px) / 0.9 var(--f-display);
+    letter-spacing: -0.016em;
+    transition: transform 700ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  :global(html[data-lang='ko']) .room__name {
+    font-size: clamp(42px, 6.6vw, 106px);
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+  }
+  .room__alt {
+    grid-area: alt;
+    margin-top: 8px;
+    font: 400 14px/1.3 var(--f-ui);
+    color: var(--ink-2);
+  }
+  .room__meta {
+    grid-area: meta;
+    align-self: end;
+    font: 400 14px/1.3 var(--f-nav);
+    color: var(--ink-2);
+    font-variant-numeric: tabular-nums;
+    padding-bottom: 4px;
+  }
+  .room__img {
+    position: absolute;
+    z-index: 3;
+    left: 54%;
+    top: 50%;
+    width: clamp(180px, 17vw, 300px);
+    pointer-events: none;
+    opacity: 0;
+    transform: translate(0, -46%);
+    transition:
+      opacity 500ms ease,
+      transform 900ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  .room__img--wide {
+    width: clamp(260px, 26vw, 440px);
+  }
+  .room__img img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .rooms__list:has(.room__a:hover) .room__a:not(:hover) {
+      opacity: 0.32;
+    }
+    .room__a:hover .room__name {
+      transform: translateX(14px);
+    }
+    .room__a:hover .room__img {
+      opacity: 1;
+      transform: translate(0, -50%);
+    }
+  }
+  .room__a:focus-visible .room__img {
+    opacity: 1;
+    transform: translate(0, -50%);
+  }
+  .rooms__foot {
+    margin-top: auto;
+    padding-top: clamp(48px, 8vh, 96px);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px 24px;
+    font: 400 13px/1.4 var(--f-nav);
+    color: var(--ink-2);
+  }
+  .rooms__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 20px;
+  }
+  .rooms__foot a:hover {
+    color: var(--ink);
+  }
+
+  @media (max-width: 760px) {
+    .sound {
+      left: 16px;
+    }
+    .room__a {
+      grid-template-columns: minmax(0, 1fr) 72px;
+      grid-template-areas: 'name img' 'alt img' 'meta img';
+      align-items: center;
+      row-gap: 4px;
+    }
+    .room__meta {
+      padding-bottom: 0;
+    }
+    .room__img,
+    .room__img--wide {
+      position: static;
+      grid-area: img;
+      width: 72px;
+      height: 72px;
+      opacity: 1;
+      transform: none;
+      overflow: hidden;
+    }
+    .room__img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
   }
 </style>

@@ -18,7 +18,7 @@ const nav = navItems(s).find((n) => n.key === 'film')!;
 const films = await Promise.all(
   (await publishedFilms()).map(async (f) => {
     const m = resolveImage(f.data.still ?? f.data.stills[0]);
-    return { f, still: m ? await pic(m) : undefined, rt: runtimeOf(f.data.runtime), ...laurelsOf(f.data.festivals) };
+    return { f, m, still: m ? await pic(m) : undefined, rt: runtimeOf(f.data.runtime), ...laurelsOf(f.data.festivals) };
   }),
 );
 const count = films.length;
@@ -46,12 +46,24 @@ const count = films.length;
             <article class="film" data-reveal="fade">
               {!d.published && <T as="p" class="draft" t={UI.draft} />}
               <a class="film__shot" href={href} aria-label={en} data-aria-en={en} data-aria-ko={ko} style={`--p0:${pg.ultramarine};--p1:${pg.vermilion};--p2:${pg.viridian};--p3:${pg.ochre}`}>
-                {still ? (
-                  <img src={still.src} srcset={still.srcset} sizes="100vw" alt="" loading="lazy" decoding="async" style={`object-position:${d.focus ?? 'center'}`} />
-                ) : (
-                  <span class="film__card" aria-hidden="true">
-                    <span data-l="en">{en}</span>
-                    <span data-l="ko" lang="ko">{ko}</span>
+                <span class="film__pic">
+                  {still ? (
+                    <img src={still.src} srcset={still.srcset} sizes="100vw" alt="" loading="lazy" decoding="async" style={`object-position:${d.focus ?? 'center'}`} />
+                  ) : (
+                    <span class="film__card" aria-hidden="true">
+                      <span data-l="en">{en}</span>
+                      <span data-l="ko" lang="ko">{ko}</span>
+                    </span>
+                  )}
+                </span>
+                {(d.logline_en || d.logline_ko) && (
+                  <span class="film__sub" aria-hidden="true">
+                    <span data-l={d.logline_ko && d.logline_ko !== d.logline_en ? 'en' : undefined}>{d.logline_en ?? d.logline_ko}</span>
+                    {d.logline_ko && d.logline_ko !== d.logline_en && (
+                      <span data-l="ko" lang="ko">
+                        {d.logline_ko}
+                      </span>
+                    )}
                   </span>
                 )}
               </a>
@@ -157,25 +169,71 @@ const count = films.length;
     font: 500 13px/1.4 var(--f-nav);
     color: var(--ink-2);
   }
-  /* the frame: full width, cinema ratio */
+  /* the screen: a dark 1.85 frame holding the 2.39 picture, the logline as a subtitle below it */
   .film__shot {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    align-content: center;
+    width: 100%;
+    aspect-ratio: 1.85;
+    max-height: 86vh;
+    overflow: hidden;
+    background: #040405;
+  }
+  .film__pic {
     position: relative;
     isolation: isolate;
     display: block;
     width: 100%;
     aspect-ratio: 2.39;
-    max-height: 82vh;
+    max-height: 100%;
     overflow: hidden;
-    background: color-mix(in srgb, var(--ink) 6%, var(--ground));
+    background: color-mix(in srgb, #0b0b0c 80%, var(--p0));
   }
-  .film__shot img {
+  .film__pic:has(.film__card) {
+    background: var(--ground);
+  }
+  .film__pic img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     transition: transform 1800ms cubic-bezier(0.2, 0.7, 0.2, 1);
   }
-  .film__shot:hover img {
+  .film__shot:hover .film__pic img {
     transform: scale(1.018);
+  }
+  .film__sub {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: calc((100% - 100vw / 2.39) / 2);
+    display: grid;
+    place-items: center;
+    padding: 0 var(--gutter);
+    color: #ece9e2;
+    font: 400 clamp(14px, 1.15vw, 18px) / 1.45 var(--f-ui);
+    text-align: center;
+    text-wrap: balance;
+  }
+  .film__sub > span {
+    max-width: 62ch;
+  }
+  /* the picture opens from a line, once, as it comes into view */
+  @media (prefers-reduced-motion: no-preference) {
+    .film__pic {
+      transition: clip-path 1600ms cubic-bezier(0.65, 0.04, 0.25, 1) 150ms;
+    }
+    .film__sub {
+      transition: opacity 900ms ease 1300ms;
+    }
+    :global(.js) .film:not(:global(.is-in)) .film__pic {
+      clip-path: inset(49.6% 0 49.6% 0);
+    }
+    :global(.js) .film:not(:global(.is-in)) .film__sub {
+      opacity: 0;
+    }
   }
   .film__shot:focus-visible {
     outline-offset: -3px;
@@ -260,6 +318,11 @@ const count = films.length;
     font-size: 17px;
     line-height: 1.55;
   }
+  @media (min-width: 900px) {
+    .film__log {
+      display: none; /* it is the subtitle on the screen */
+    }
+  }
   .film__laurels {
     display: flex;
     flex-wrap: wrap;
@@ -284,6 +347,11 @@ const count = films.length;
     }
     .film__side {
       grid-column: 6 / -1;
+    }
+  }
+  @media (max-width: 899px) {
+    .film__sub {
+      display: none;
     }
   }
   @media (max-width: 640px) {
