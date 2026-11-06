@@ -2,8 +2,8 @@
 
 The site of **goll** (Ki Hyoung Oh): film director, painter, composer (as **gogolala**).
 
-- **Live:** https://gollshow.github.io/gollshow-site/
-- **Admin:** https://gollshow.github.io/gollshow-site/admin/ — how to use it, in Korean: **[docs/관리자-사용법.md](./docs/관리자-사용법.md)**
+- **Live:** https://gollshow.com (DNS at Gabia → GitHub Pages; the old address gollshow.github.io/gollshow-site redirects here)
+- **Admin:** https://gollshow.com/admin/ — how to use it, in Korean: **[docs/관리자-사용법.md](./docs/관리자-사용법.md)**
 - Design rules for this round: [DESIGN.md](./DESIGN.md)
 
 Built with [Astro](https://astro.build) (static output) and [Sveltia CMS](https://sveltiacms.app) (Git-based admin, sign-in with a GitHub token), hosted on GitHub Pages.

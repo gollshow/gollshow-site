@@ -9,7 +9,7 @@
  * /gollshow-site base path, and writes the CNAME file GitHub Pages needs.
  * (Do the DNS steps in README.md first.)
  */
-export const CUSTOM_DOMAIN = '';
+export const CUSTOM_DOMAIN = 'gollshow.com';
 
 export const GITHUB_OWNER = 'gollshow';
 export const GITHUB_REPO = 'gollshow-site';
