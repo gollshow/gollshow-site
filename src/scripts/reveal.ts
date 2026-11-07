@@ -15,9 +15,13 @@ function show(el: HTMLElement) {
     el.addEventListener('animationend', (e) => e.target === el && done());
     setTimeout(done, 1600 + Number(el.style.getPropertyValue('--d') || 0));
   };
-  if (img && !img.complete) {
-    img.addEventListener('load', go, { once: true });
-    img.addEventListener('error', go, { once: true });
+  // Wait for an image only if it is actually shown (a hidden lazy image never loads), and never long.
+  if (img && !img.complete && img.getClientRects().length > 0) {
+    let done = false;
+    const once = () => !done && ((done = true), go());
+    img.addEventListener('load', once, { once: true });
+    img.addEventListener('error', once, { once: true });
+    setTimeout(once, 1500);
   } else go();
 }
 
