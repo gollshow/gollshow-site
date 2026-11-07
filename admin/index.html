@@ -1,0 +1,33 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex, nofollow"><title>gollshow 관리자</title><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link href="/admin/config.yml" type="application/yaml" rel="cms-config-url"><script type="module" src="/_astro/page.B3sWyS9n.js"></script></head><body><script src="https://unpkg.com/@sveltia/cms@0.248.1/dist/sveltia-cms.js"></script><script>
+      /*
+       * 회화 · 콩테·파스텔 · 디지털: images dropped into "여러 장 한꺼번에 올리기" become works
+       * at the top of "작품 목록" when the owner presses Save, and the drop field is emptied.
+       * (The site also shows anything left in that field, so nothing is ever lost.)
+       */
+      (function () {
+        if (!window.CMS || !CMS.registerEventListener) return;
+        var ART = ['painting', 'conte-pastel', 'digital'];
+        var plain = function (v) { return v && typeof v.toJS === 'function' ? v.toJS() : v; };
+        CMS.registerEventListener({
+          name: 'preSave',
+          handler: function (args) {
+            var entry = args.entry;
+            if (ART.indexOf(entry.get('collection')) < 0) return;
+            var data = entry.get('data');
+            if (!data || typeof data.set !== 'function') return;
+            var bulk = plain(data.get('bulk'));
+            bulk = (Array.isArray(bulk) ? bulk : bulk ? [bulk] : []).filter(Boolean);
+            if (!bulk.length) return;
+            var works = plain(data.get('works'));
+            works = Array.isArray(works) ? works : [];
+            var have = {};
+            works.forEach(function (w) { if (w && w.image) have[w.image] = true; });
+            var added = [];
+            bulk.forEach(function (src) {
+              if (!have[src]) { have[src] = true; added.push({ image: src, display: 'M', hidden: false }); }
+            });
+            return data.set('works', added.concat(works)).set('bulk', []);
+          },
+        });
+      })();
+    </script></body></html>
