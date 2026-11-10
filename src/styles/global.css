@@ -51,6 +51,8 @@ body {
 }
 main {
   flex: 1 0 auto;
+  /* things waiting to come into focus are a touch larger; they must not widen the page */
+  overflow-x: clip;
 }
 img {
   display: block;
@@ -271,17 +273,24 @@ html[data-lang='ko'] body {
 }
 
 
-/* Calm reveal (src/scripts/reveal.ts): things fade up gently the first time they come
-   into view. Without JS, or with reduced motion, nothing is hidden. */
+/* Focus reveal (src/scripts/reveal.ts): things come into focus, soft to sharp, the first
+   time they scroll into view. Without JS, or with reduced motion, nothing is hidden. */
 @media (prefers-reduced-motion: no-preference) {
   .js [data-reveal] {
     transition:
-      opacity 1100ms ease,
-      transform 1200ms cubic-bezier(0.2, 0.7, 0.2, 1);
+      opacity 1.3s ease,
+      filter 1.6s cubic-bezier(0.2, 0.7, 0.2, 1),
+      transform 1.6s cubic-bezier(0.2, 0.7, 0.2, 1);
     transition-delay: calc(var(--d, 0) * 1ms);
   }
   .js [data-reveal]:not(.is-in) {
     opacity: 0;
-    transform: translateY(14px);
+    filter: blur(16px);
+    transform: scale(var(--from, 1.015));
+  }
+  /* once settled, later changes (hover) answer quickly */
+  .js [data-reveal].is-done {
+    transition-duration: 0.6s;
+    transition-delay: 0s;
   }
 }

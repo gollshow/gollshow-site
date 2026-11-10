@@ -4,6 +4,10 @@
  * while the wordmark gathers out of it as ink ("gather" intro, 3.6 s). The letters
  * grow from their spines via a texture: red = the sharp word, green = a blurred copy.
  * The pointer stirs the pigment; when idle the stir point drifts on its own.
+ * A click or tap lets one drop fall: a ring ripples outwards (the letters sway with it)
+ * and a bloom of one of the four pigments spreads and fades. Left alone, a drop falls
+ * now and then by itself. Pointing at a room in the list below floods the ground with
+ * that room's colours.
  *
  * Ported from the approved motion draft. Renders at 0.6× (DPR capped), pauses when
  * the tab is hidden, shows the settled final frame for prefers-reduced-motion, and
@@ -15,8 +19,9 @@ import { stir } from './stir';
 const INTRO = 3.6;
 
 const FS = `precision highp float;
-uniform vec2 R; uniform float T; uniform vec2 M; uniform float V; uniform float I; uniform float D; uniform float F; uniform sampler2D TX;
+uniform vec2 R; uniform float T; uniform vec2 M; uniform float V; uniform float I; uniform float D; uniform float F; uniform float G; uniform sampler2D TX;
 uniform vec3 C0; uniform vec3 C1; uniform vec3 C2; uniform vec3 C3;
+uniform vec4 DR[5];
 float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
 float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
  return mix(mix(h(i),h(i+vec2(1.,0.)),f.x),mix(h(i+vec2(0.,1.)),h(i+vec2(1.,1.)),f.x),f.y);}
@@ -26,15 +31,21 @@ void main(){
  vec2 uv=gl_FragCoord.xy/R;
  vec2 p0=(gl_FragCoord.xy-.5*R)/R.y;
  float e=I*I*(3.-2.*I);
- vec2 p=rot((1.-e)*2.4*exp(-dot(p0,p0)*1.2))*p0;
- vec2 m=(M-.5)*vec2(R.x/R.y,1.);
+ float sa=R.x/R.y;
+ vec2 disp=vec2(0.);
+ for(int i=0;i<5;i++){vec4 dr=DR[i];if(dr.z>=0.){vec2 v=p0-dr.xy;float l=length(v)+.0001;float rr=dr.z*.42;
+  float ring=exp(-pow((l-rr)/.075,2.))*exp(-dr.z*.5);disp+=v/l*ring*.03*sin((l-rr)*36.);}}
+ vec2 pd=p0+disp;
+ vec2 p=rot((1.-e)*2.4*exp(-dot(pd,pd)*1.2))*pd;
+ vec2 m=(M-.5)*vec2(sa,1.);
  vec2 pr=p-m; float d=length(pr);
  p=rot(exp(-d*d*5.)*(.8+V*7.))*pr+m;
  float t=T*.035;
  vec2 q=vec2(fbm(p*1.5+vec2(0.,t)),fbm(p*1.5+vec2(5.2,1.3)-t));
  vec2 r=vec2(fbm(p*1.5+3.5*q+vec2(1.7,9.2)+t*1.4),fbm(p*1.5+3.5*q+vec2(8.3,2.8)-t));
  float f=fbm(p*1.5+3.5*r);
- vec4 tx=texture2D(TX,vec2(uv.x,1.-uv.y)); float w=tx.r, wb=tx.g;
+ vec2 tu=uv+disp*vec2(1./sa,1.);
+ vec4 tx=texture2D(TX,vec2(tu.x,1.-tu.y)); float w=tx.r, wb=tx.g;
  float nz=fbm(p0*5.+3.1);
  float th=1.15-e*1.35;
  float rev=smoothstep(th,th+.15,wb+(nz-.5)*.5);
@@ -49,8 +60,15 @@ void main(){
  vec3 inkC=mix(inkA,inkB,smoothstep(.35,.85,q.x)*.8);
  float wash=smoothstep(.45,.95,f+.2*length(r)-.1)*mix(.62,.66,D);
  wash=mix(smoothstep(.25,.75,f)*.88,wash,e);
+ wash=mix(wash,smoothstep(.3,.85,f+.1)*.8,G*.6);
  float pool=smoothstep(.1,.5,f+.25)*.97;
- vec3 col=mix(ground,washC,wash*(1.-wr)*(1.-.62*F));
+ vec3 col=mix(ground,washC,wash*(1.-wr)*(1.-.62*F*(1.-.75*G)));
+ float dn=fbm(pd*6.+1.7);
+ for(int i=0;i<5;i++){vec4 dr=DR[i];if(dr.z>=0.){float l=length(pd-dr.xy);float rad=.05+dr.z*.07;
+  float b=exp(-l*l/(rad*rad))*exp(-dr.z*.3)*smoothstep(0.,.25,dr.z)*(.55+.45*dn);
+  vec3 dc=dr.w<.5?C0:(dr.w<1.5?C1:(dr.w<2.5?C2:C3));dc=mix(dc,dc*1.2+.05,D);
+  col=mix(col,dc,clamp(b*.9,0.,1.)*(1.-wr)*(1.-.5*F));
+  float rr=dr.z*.42;col+=exp(-pow((l-rr)/.012,2.))*exp(-dr.z*.9)*mix(-.06,.1,D);}}
  col=mix(col,inkC,pool*wr);
  col+=(h(floor(gl_FragCoord.xy)+fract(T*7.)*61.)-.5)*mix(.035,.03,D);
  col=mix(col*(1.-.06*n(gl_FragCoord.xy*.35)),col+.025*n(gl_FragCoord.xy*.35),D);
@@ -107,7 +125,7 @@ function start() {
   if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) return fallback();
   gl.useProgram(pr);
   const u: Record<string, WebGLUniformLocation | null> = {};
-  ['R', 'T', 'M', 'V', 'I', 'D', 'F', 'TX', 'C0', 'C1', 'C2', 'C3'].forEach((k) => (u[k] = gl.getUniformLocation(pr, k)));
+  ['R', 'T', 'M', 'V', 'I', 'D', 'F', 'G', 'TX', 'C0', 'C1', 'C2', 'C3'].forEach((k) => (u[k] = gl.getUniformLocation(pr, k)));
   gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
   gl.enableVertexAttribArray(0);
@@ -118,7 +136,9 @@ function start() {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  pig.forEach((c, i) => gl.uniform3f(u['C' + i], c[0], c[1], c[2]));
+  u.DR = gl.getUniformLocation(pr, 'DR[0]');
+  // the four pigments ease towards a room's colours while that room is pointed at
+  const pal = pig.map((c) => [c[0], c[1], c[2]]);
 
   const tc = document.createElement('canvas');
   // red = the letters, green = a soft blur of them (lets the letters grow from their spines)
@@ -176,7 +196,16 @@ function start() {
   const fade = () => Math.min(1, Math.max(0, window.scrollY / (window.innerHeight * 0.85)));
   let introT = calm ? INTRO : 0;
   const tm = { x: 0.5, y: 0.5 }, mm = { x: 0.5, y: 0.5 };
-  let vel = 0, idle = 99, T = calm ? 14 : 0, last = performance.now(), raf = 0;
+  let vel = 0, idle = 99, T = calm ? 14 : 0, last = performance.now(), raf = 0, G = 0;
+  // drops: position in the shader's space (x right, y up, in screen heights), birth time, pigment index
+  const drops: { x: number; y: number; t: number; k: number }[] = [];
+  const DRA = new Float32Array(20);
+  let dk = 0, autoT = 4, firstDrop = false;
+  function addDrop(x: number, y: number, quiet = false) {
+    drops.push({ x, y, t: T, k: dk++ % 4 });
+    if (drops.length > 5) drops.shift();
+    stir.onDrop?.(y, quiet);
+  }
 
   function draw(I: number) {
     gl!.uniform2f(u.R, cv!.width, cv!.height);
@@ -186,6 +215,16 @@ function start() {
     gl!.uniform1f(u.I, I);
     gl!.uniform1f(u.D, dark);
     gl!.uniform1f(u.F, fade());
+    gl!.uniform1f(u.G, G);
+    for (let i = 0; i < 4; i++) gl!.uniform3f(u['C' + i], pal[i][0], pal[i][1], pal[i][2]);
+    for (let i = 0; i < 5; i++) {
+      const d = drops[i];
+      DRA[i * 4] = d ? d.x : 0;
+      DRA[i * 4 + 1] = d ? d.y : 0;
+      DRA[i * 4 + 2] = d ? T - d.t : -1;
+      DRA[i * 4 + 3] = d ? d.k : 0;
+    }
+    gl!.uniform4fv(u.DR, DRA);
     gl!.activeTexture(gl!.TEXTURE0);
     gl!.bindTexture(gl!.TEXTURE_2D, tex);
     gl!.uniform1i(u.TX, 0);
@@ -220,11 +259,18 @@ function start() {
     tm.y = 1 - e.clientY / innerHeight;
     idle = 0;
   });
+  // One drop where the visitor clicks or taps (not on links and buttons).
+  addEventListener('click', (e) => {
+    if ((e.target as Element).closest('a, button, dialog')) return;
+    addDrop((e.clientX - innerWidth / 2) / innerHeight, (innerHeight / 2 - e.clientY) / innerHeight);
+    idle = 0;
+    autoT = 6;
+  });
 
   let skip = 0;
   function frame(now: number) {
     // Once the page has scrolled past the motion, draw it at a third of the rate.
-    if (fade() > 0.98 && skip++ % 3) {
+    if (fade() > 0.98 && !stir.hover && G < 0.02 && skip++ % 3) {
       raf = requestAnimationFrame(frame);
       return;
     }
@@ -249,6 +295,21 @@ function start() {
     stir.y = mm.y;
     stir.v = idle > 2.5 ? vel * 0.35 : vel; // the idle drift stirs only gently
     stir.intro = I;
+    // drops: one as the wordmark settles, then one now and then while nobody touches the page
+    if (!firstDrop && I >= 0.97) {
+      firstDrop = true;
+      addDrop(0.16, 0.02, true);
+    }
+    autoT -= dt;
+    if (autoT <= 0 && I >= 1 && idle > 3 && fade() < 0.6) {
+      addDrop((Math.random() - 0.5) * Math.min(1.4, (innerWidth / innerHeight) * 0.8), (Math.random() - 0.5) * 0.6, true);
+      autoT = 5 + Math.random() * 4;
+    }
+    for (let i = drops.length - 1; i >= 0; i--) if (T - drops[i].t > 10) drops.splice(i, 1);
+    // a room pointed at in the list floods the ground with its colours
+    const target = stir.hoverPal ?? pig;
+    for (let i = 0; i < 4; i++) for (let j = 0; j < 3; j++) pal[i][j] += (target[i][j] - pal[i][j]) * 0.045;
+    G += ((stir.hover ? 0.8 : 0) - G) * 0.06;
     draw(I);
     raf = requestAnimationFrame(frame);
   }

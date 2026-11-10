@@ -1,7 +1,8 @@
 /**
  * Home: an optional sound for the pigment, off until the visitor asks for it.
  * A soft open chord breathes slowly; stirring the pigment opens its tone and adds a
- * faint watery texture; now and then a single quiet note falls like a drop.
+ * faint watery texture; every drop that falls on the pigment plays one note, higher
+ * the higher it lands.
  * Fades out when switched off; pauses in a hidden tab.
  */
 import { stir } from './stir';
@@ -9,7 +10,7 @@ import { stir } from './stir';
 const btn = document.querySelector<HTMLButtonElement>('[data-sound]');
 let ctx: AudioContext | undefined;
 let master: GainNode, filter: BiquadFilterNode, pan: StereoPannerNode, waterGain: GainNode, waterBand: BiquadFilterNode;
-let on = false, raf = 0, nextDrop = 0;
+let on = false, raf = 0;
 
 const NOTES = [146.83, 220, 329.63, 369.99]; // D3 A3 E4 F#4
 const DROPS = [587.33, 659.25, 739.99, 880, 987.77]; // D5 E5 F#5 A5 B5
@@ -60,15 +61,17 @@ function build() {
   noise.start();
 }
 
-function drop() {
-  if (!ctx) return;
+function drop(y = 0, quiet = true) {
+  if (!ctx || !on) return;
   const t = ctx.currentTime;
   const o = ctx.createOscillator();
   const g = ctx.createGain();
   o.type = 'sine';
-  o.frequency.value = DROPS[Math.floor(Math.random() * DROPS.length)];
+  const f = DROPS[Math.max(0, Math.min(DROPS.length - 1, Math.floor((y + 0.5) * DROPS.length)))];
+  o.frequency.setValueAtTime(f * 1.5, t);
+  o.frequency.exponentialRampToValueAtTime(f, t + 0.09);
   g.gain.setValueAtTime(0, t);
-  g.gain.linearRampToValueAtTime(0.05, t + 0.02);
+  g.gain.linearRampToValueAtTime(quiet ? 0.05 : 0.11, t + 0.02);
   g.gain.exponentialRampToValueAtTime(0.0001, t + 3.2);
   o.connect(g).connect(pan);
   o.start(t);
@@ -82,10 +85,6 @@ function follow() {
   pan.pan.setTargetAtTime((stir.x - 0.5) * 0.6, t, 0.5);
   waterBand.frequency.setTargetAtTime(520 + stir.v * 1500, t, 0.3);
   waterGain.gain.setTargetAtTime(Math.min(0.05, stir.v * 0.07), t, 0.25);
-  if (performance.now() > nextDrop) {
-    drop();
-    nextDrop = performance.now() + 7000 + Math.random() * 8000;
-  }
   raf = requestAnimationFrame(follow);
 }
 
@@ -97,7 +96,6 @@ async function set(v: boolean) {
     await ctx!.resume();
     master.gain.cancelScheduledValues(ctx!.currentTime);
     master.gain.setTargetAtTime(0.11, ctx!.currentTime, 0.8);
-    nextDrop = performance.now() + 2500;
     cancelAnimationFrame(raf);
     raf = requestAnimationFrame(follow);
   } else if (ctx) {
@@ -107,6 +105,8 @@ async function set(v: boolean) {
     setTimeout(() => !on && ctx?.suspend(), 1200);
   }
 }
+
+stir.onDrop = drop;
 
 if (btn && 'AudioContext' in window) {
   btn.hidden = false;

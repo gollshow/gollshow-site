@@ -11,6 +11,8 @@ if (dlg) {
   const video = dlg.querySelector<HTMLElement>('.viewer__video')!;
   const cap = dlg.querySelector<HTMLElement>('.viewer__cap')!;
   const count = dlg.querySelector<HTMLElement>('.viewer__count')!;
+  const det = dlg.querySelector<HTMLElement>('.viewer__details')!;
+  const more = dlg.querySelector<HTMLButtonElement>('.viewer__more')!;
   const proc = dlg.querySelector<HTMLButtonElement>('[data-process]')!;
   const procA = dlg.querySelector<HTMLElement>('.viewer__process-a')!;
   const procB = dlg.querySelector<HTMLElement>('.viewer__process-b')!;
@@ -73,6 +75,8 @@ if (dlg) {
     stopVideo();
     proc.hidden = !it.process;
     caption();
+    details();
+    dlg!.scrollTop = 0;
     fig.classList.remove('is-bleed');
     fig.classList.add('is-wait');
     img.removeAttribute('src');
@@ -96,6 +100,53 @@ if (dlg) {
       p.srcset = x.srcset;
     });
   }
+
+  // The detail cuts of the work, one under another below the first screen; each comes into focus as it is reached.
+  const dio =
+    'IntersectionObserver' in window
+      ? new IntersectionObserver(
+          (en) =>
+            en.forEach((e) => {
+              if (!e.isIntersecting) return;
+              dio!.unobserve(e.target);
+              e.target.classList.add('is-in');
+            }),
+          { threshold: 0.12 },
+        )
+      : null;
+  function moreText(n: number) {
+    more.textContent = lang() === 'ko' ? `아래에 디테일 ${n}장` : `${n} ${n === 1 ? 'detail' : 'details'} below`;
+  }
+  function details() {
+    const it = items[i];
+    const d = it.details ?? [];
+    det.replaceChildren();
+    det.hidden = more.hidden = !d.length;
+    if (!d.length) return;
+    moreText(d.length);
+    const l = lang();
+    d.forEach((x, k) => {
+      const f = document.createElement('figure');
+      f.className = 'viewer__det';
+      f.style.maxWidth = `${Math.round(x.w * 1.5)}px`; // never more than 1.5× its natural size
+      const im = document.createElement('img');
+      if (x.srcset) {
+        im.srcset = x.srcset;
+        im.sizes = '(max-width: 1100px) 100vw, 1100px';
+      }
+      im.src = x.src;
+      im.width = x.w;
+      im.height = x.h;
+      im.loading = 'lazy';
+      im.decoding = 'async';
+      im.alt = l === 'ko' ? `${it.alt.ko}, 디테일 ${k + 1}` : `${it.alt.en}, detail ${k + 1}`;
+      f.append(im);
+      det.append(f);
+      if (dio && !calm.matches) dio.observe(f);
+      else f.classList.add('is-in');
+    });
+  }
+  more.addEventListener('click', () => det.scrollIntoView({ behavior: calm.matches ? 'auto' : 'smooth', block: 'start' }));
 
   function open(n: number, from?: HTMLElement | null) {
     opener = from ?? null;
@@ -179,7 +230,16 @@ if (dlg) {
   );
 
   addEventListener('resize', () => dlg.open && fit());
-  addEventListener('langchange', () => dlg.open && caption());
+  addEventListener('langchange', () => {
+    if (!dlg.open) return;
+    caption();
+    if (items[i].details?.length) moreText(items[i].details!.length);
+  });
+  // the banner opens a work by its index
+  addEventListener('view-open', (e) => {
+    const d = (e as CustomEvent<{ index: number; from?: HTMLElement }>).detail;
+    if (d && d.index >= 0 && d.index < items.length) open(d.index, d.from);
+  });
 
   // Deep link: /painting/#12 opens the twelfth work.
   const m = location.hash.match(/^#(\d+)$/);

@@ -1,7 +1,7 @@
 ---
 /**
  * Film: the centre of the work. Each film gets the full width of the screen in the
- * cinema ratio (2.39:1; 16:9 on phones), then its titles, the facts (year, format, role),
+ * cinema ratio (2.39:1; 16:9 on phones) and comes into focus as it scrolls into view, then its titles, the facts (year, format, role),
  * the logline, its laurels, and the ways in. Newest first, in the order set in /admin.
  */
 import Base from '../../layouts/Base.astro';
@@ -43,10 +43,10 @@ const count = films.length;
           const fmt = d.format ? FORMAT[d.format] : undefined;
           const video = embedFor(d.trailer);
           return (
-            <article class="film" data-reveal="fade">
+            <article class="film">
               {!d.published && <T as="p" class="draft" t={UI.draft} />}
               <a class="film__shot" href={href} aria-label={en} data-aria-en={en} data-aria-ko={ko} style={`--p0:${pg.ultramarine};--p1:${pg.vermilion};--p2:${pg.viridian};--p3:${pg.ochre}`}>
-                <span class="film__pic">
+                <span class="film__pic" data-reveal="fade">
                   {still ? (
                     <img src={still.src} srcset={still.srcset} sizes="100vw" alt="" loading="lazy" decoding="async" style={`object-position:${d.focus ?? 'center'}`} />
                   ) : (
@@ -67,7 +67,7 @@ const count = films.length;
                   </span>
                 )}
               </a>
-              <div class="film__body">
+              <div class="film__body" data-reveal="fade" style="--d:350">
                 <div class="film__names">
                   <h2 class="film__t">
                     <a href={href}>
@@ -198,10 +198,6 @@ const count = films.length;
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 1800ms cubic-bezier(0.2, 0.7, 0.2, 1);
-  }
-  .film__shot:hover .film__pic img {
-    transform: scale(1.018);
   }
   .film__sub {
     position: absolute;
@@ -220,19 +216,24 @@ const count = films.length;
   .film__sub > span {
     max-width: 62ch;
   }
-  /* the picture opens from a line, once, as it comes into view */
+  /* the picture comes into focus as it scrolls into view, then drifts slowly closer; the subtitle follows */
+  .film__pic {
+    --from: 1.04;
+  }
   @media (prefers-reduced-motion: no-preference) {
-    .film__pic {
-      transition: clip-path 1600ms cubic-bezier(0.65, 0.04, 0.25, 1) 150ms;
-    }
     .film__sub {
-      transition: opacity 900ms ease 1300ms;
+      transition: opacity 1s ease 1.5s;
     }
-    :global(.js) .film:not(:global(.is-in)) .film__pic {
-      clip-path: inset(49.6% 0 49.6% 0);
-    }
-    :global(.js) .film:not(:global(.is-in)) .film__sub {
+    :global(.js) .film__pic:not(.is-in) ~ .film__sub {
       opacity: 0;
+    }
+    .film__pic.is-in img {
+      animation: film-push 24s ease-out 1.7s forwards;
+    }
+  }
+  @keyframes film-push {
+    to {
+      transform: scale(1.06);
     }
   }
   .film__shot:focus-visible {

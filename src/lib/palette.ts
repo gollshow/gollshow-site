@@ -6,6 +6,7 @@ import type { Media } from './media';
  * Colours taken from the works themselves (at build time):
  *  - swatches(m): the main colours of one image (a small k-means over its pixels)
  *  - accentOf(m): its most telling colour, for the soft glow it casts in the index
+ *  - pigmentsOf(m): four pigments from it, for the page head while that work is open
  */
 type RGB = [number, number, number];
 export type Swatch = { rgb: RGB; n: number };
@@ -83,4 +84,22 @@ export async function accentOf(m: Media): Promise<string> {
     .filter(({ c }) => c[2] > 0.12 && c[2] < 0.9)
     .sort((a, b) => b.x.n * (0.15 + b.c[1]) ** 1.6 - a.x.n * (0.15 + a.c[1]) ** 1.6)[0];
   return best ? pigment(best.c) : '#8A8580';
+}
+
+/** Four pigments from one work: its strongest colours that are far enough apart. */
+export async function pigmentsOf(m: Media, fallback: string[]): Promise<string[]> {
+  const cands = (await swatches(m))
+    .map((x) => ({ c: hsl(x.rgb), score: x.n * (0.3 + hsl(x.rgb)[1]) }))
+    .filter(({ c }) => c[2] > 0.13 && c[2] < 0.9)
+    .sort((a, b) => b.score - a.score);
+  const out: number[][] = [];
+  for (const { c } of cands) {
+    const far = out.every((o) => Math.min(Math.abs(o[0] - c[0]), 360 - Math.abs(o[0] - c[0])) > 18 || Math.abs(o[2] - c[2]) > 0.18);
+    if (far) out.push(c);
+    if (out.length === 4) break;
+  }
+  if (!out.length) return fallback;
+  const res = out.map(pigment);
+  while (res.length < 4) res.push(res[res.length % out.length]);
+  return res;
 }

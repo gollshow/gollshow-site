@@ -48,7 +48,8 @@ const work = z.object({
     .pipe(z.enum(['S', 'M', 'L']).catch('M')),
   hidden: bool(false),
   process: text(),
-  focus: text(), // which part stays in the cropped banner: top | center | bottom
+  focus: text(), // not used by the current layout; kept so old entries stay valid
+  details: strings(), // detail cuts uploaded in /admin; shown under the work in the viewer
 });
 
 const art = defineCollection({

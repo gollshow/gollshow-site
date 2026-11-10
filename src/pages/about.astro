@@ -1,6 +1,7 @@
 ---
 /**
- * About, a director's page: the name in a still pour of pigment; the statement and bio
+ * About, a director's page: the name over a slow pour of pigment; the statement (coming
+ * into focus phrase by phrase) and bio
  * together with the 2002 poster beside them; film first (the three films, from the
  * Film collection), then painting and music; the record, newest first, grouped by year;
  * the KBS News Plaza clip (2003), played on the page; contact. Every text is edited in
@@ -28,6 +29,20 @@ const pg = s.pigments;
 const pig = `--p0:${pg.ultramarine};--p1:${pg.vermilion};--p2:${pg.viridian};--p3:${pg.ochre}`;
 const stEn = a?.statement_en ?? a?.statement_ko;
 const stKo = a?.statement_ko ?? a?.statement_en;
+// the statement in three phrases of about the same length, each coming into focus in turn
+const phrases = (t: string, n = 3) => {
+  const out: string[] = [];
+  let cur = '';
+  for (const w of t.split(/\s+/).filter(Boolean)) {
+    cur = cur ? `${cur} ${w}` : w;
+    if (out.length < n - 1 && cur.length >= t.length / n) {
+      out.push(cur);
+      cur = '';
+    }
+  }
+  if (cur) out.push(cur);
+  return out;
+};
 
 const practices = a?.practices ?? [];
 const filmPractice = practices.find((p) => p.link === 'film');
@@ -57,9 +72,34 @@ for (const n of a?.notes ?? []) {
   <div class="page page--band about" style={pig}>
     <!-- statement and bio, with the 2002 poster beside them -->
     <section class="intro">
-      <div class="intro__text" data-reveal="fade">
-        {stEn && <T as="p" class="statement" en={stEn} ko={stKo} />}
-        {(a?.bio_en || a?.bio_ko) && <T block class="bio" en={a?.bio_en} ko={a?.bio_ko} />}
+      <div class="intro__text">
+        {
+          stEn && (
+            <p class="statement">
+              <span data-l={stKo !== stEn ? 'en' : undefined}>
+                {phrases(stEn).map((c, i) => (
+                  <>
+                    <span data-reveal="fade" style={`--d:${150 + i * 380}`}>{c}</span>{' '}
+                  </>
+                ))}
+              </span>
+              {stKo && stKo !== stEn && (
+                <span data-l="ko" lang="ko">
+                  {phrases(stKo).map((c, i) => (
+                    <>
+                      <span data-reveal="fade" style={`--d:${150 + i * 380}`}>{c}</span>{' '}
+                    </>
+                  ))}
+                </span>
+              )}
+            </p>
+          )
+        }
+        {(a?.bio_en || a?.bio_ko) && (
+          <div data-reveal="fade" style="--d:1100">
+            <T block class="bio" en={a?.bio_en} ko={a?.bio_ko} />
+          </div>
+        )}
       </div>
       {
         portrait && (

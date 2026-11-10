@@ -1,11 +1,12 @@
 ---
 /**
  * Painting / Conté & Pastel / Digital.
- *   1. a still watercolour shape with the room's name in ink (each room its own shape)
- *   2. a banner: the first ten works of the list in /admin, each enlarged to fill one
- *      wide frame, shown one at a time and sliding on calmly (src/scripts/slides.ts)
+ *   1. the room's name in ink over slowly flowing pigment (each room its own shape); the
+ *      pigment takes the colours of the work that is open in the banner
+ *   2. the banner: the ten latest works of the list in /admin standing side by side like
+ *      the panels of a folding screen, one open at its own proportions (src/scripts/screen.ts)
  *   3. "All works": a tidy index, every work standing on the same baseline in equal cells
- * Any work opens the full-screen viewer. Calm ground behind the art.
+ * Any work opens the full-screen viewer, where its detail cuts follow below it.
  */
 import Base from '../layouts/Base.astro';
 import Band from '../components/Band.astro';
@@ -25,9 +26,9 @@ const works = await getWorks(category);
 const latest = works.slice(0, 10);
 const seed = ART.indexOf(category) + 1;
 const SHAPE = { painting: 'stroke', 'conte-pastel': 'pool', digital: 'diagonal' } as const;
-const FOCUS: Record<string, string> = { top: '50% 12%', center: '50% 50%', bottom: '50% 88%' };
-const focusOf = (f?: string) => FOCUS[f ?? ''] ?? '50% 38%';
 const year = (w: Work) => w.meta.find((m) => /^\d{4}(\s*[–-]\s*\d{2,4})?$/.test(m));
+// The screen is never taller than 1.5× the smallest of its works, so nothing is blown up.
+const hmax = latest.length ? Math.round(Math.min(...latest.map((w) => w.h)) * 1.5) : 640;
 ---
 <Base title={{ en: nav.en, ko: nav.ko }} current={category as NavKey} page="art">
   <Band en={nav.en} ko={nav.ko} seed={seed} shape={SHAPE[category]} short>
@@ -37,60 +38,39 @@ const year = (w: Work) => w.meta.find((m) => /^\d{4}(\s*[–-]\s*\d{2,4})?$/.tes
 
   {
     latest.length > 0 && (
-      <section
-        class="feat"
-        data-slides
-        aria-roledescription="carousel"
-        aria-label={`${nav.en}, latest works`}
-        data-aria-en={`${nav.en}, latest works`}
-        data-aria-ko={`${nav.ko}, 최근 작품`}
-      >
-        <div class="feat__frame" tabindex="0">
-          <ul class="feat__track">
-            {[...latest, latest[0]].map((w, k) => {
-              const i = k % latest.length;
-              const copy = k === latest.length;
-              return (
-                <li
-                  class="feat__slide"
-                  data-title-en={w.title?.en ?? ''}
-                  data-title-ko={w.title?.ko ?? ''}
-                  data-year={year(w) ?? ''}
-                  aria-roledescription="slide"
-                  aria-hidden={k === 0 ? 'false' : 'true'}
-                >
-                  <a class="feat__link" href={w.pic.large} data-view={i} tabindex={k === 0 ? 0 : -1}>
-                    <img
-                      src={w.src}
-                      srcset={w.srcset}
-                      sizes="(max-width: 700px) 100vw, min(92vw, 1368px)"
-                      width={w.w}
-                      height={w.h}
-                      alt={copy ? '' : w.alt.en}
-                      data-alt-en={copy ? undefined : w.alt.en}
-                      data-alt-ko={copy ? undefined : w.alt.ko}
-                      style={`object-position:${focusOf(w.focus)}`}
-                      loading={k === 0 ? 'eager' : 'lazy'}
-                      decoding="async"
-                      draggable="false"
-                    />
-                  </a>
-                </li>
-              );
-            })}
-          </ul>
-          <span class="feat__bar" aria-hidden="true"><i /></span>
+      <section class="banner" data-screen aria-label={`${nav.en}, latest works`} data-aria-en={`${nav.en}, latest works`} data-aria-ko={`${nav.ko}, 최근 작품`}>
+        <div class="screen" data-reveal="fade" style={`--hmax:${hmax}px`}>
+          {latest.map((w, i) => (
+            <button
+              class:list={['pan', { 'is-open': i === 0 }]}
+              type="button"
+              aria-pressed={i === 0 ? 'true' : 'false'}
+              aria-label={w.alt.en}
+              data-aria-en={w.alt.en}
+              data-aria-ko={w.alt.ko}
+              data-title-en={w.title?.en ?? ''}
+              data-title-ko={w.title?.ko ?? ''}
+              data-meta={w.meta.slice(0, 3).join(' · ')}
+              data-pig={w.pigments.join(',')}
+              style={`--ar:${(w.w / w.h).toFixed(4)}`}
+            >
+              <img src={w.src} srcset={w.srcset} sizes={`${Math.round((62 * w.w) / w.h)}vh`} alt="" loading={i < 6 ? 'eager' : 'lazy'} decoding="async" draggable="false" />
+            </button>
+          ))}
         </div>
-        <div class="feat__foot">
-          <p class="feat__cap" aria-live="polite">
-            <span data-l="en" data-cap-en>{latest[0].title?.en ?? ''}</span>
-            <span data-l="ko" lang="ko" data-cap-ko>{latest[0].title?.ko ?? latest[0].title?.en ?? ''}</span>
-            <span class="feat__y" data-cap-year>{year(latest[0]) ?? ''}</span>
-          </p>
-          <div class="feat__ctl">
+        <div class="kbar" data-reveal="fade" style="--d:500">
+          <div class="kcap" aria-live="polite">
+            <p class="kcap__t">
+              <span data-l="en" data-cap-en>{latest[0].title?.en ?? ''}</span>
+              <span data-l="ko" lang="ko" data-cap-ko>{latest[0].title?.ko ?? latest[0].title?.en ?? ''}</span>
+            </p>
+            <p class="kcap__m" data-cap-meta>{latest[0].meta.slice(0, 3).join(' · ')}</p>
+          </div>
+          <div class="kctl">
             <button class="tbtn" type="button" data-prev><T en="Previous" ko="이전" /></button>
-            <span class="feat__count" data-count>1 / {latest.length}</span>
+            <span class="kctl__n" data-count>1 / {latest.length}</span>
             <button class="tbtn" type="button" data-next><T en="Next" ko="다음" /></button>
+            <button class="tbtn" type="button" data-open><T en="Open the work" ko="작품 열기" /></button>
           </div>
         </div>
       </section>
@@ -108,7 +88,7 @@ const year = (w: Work) => w.meta.find((m) => /^\d{4}(\s*[–-]\s*\d{2,4})?$/.tes
       {
         works.map((w, i) => (
           <li class="tile" style={`--c:${w.color}`}>
-            <a class="tile__frame" href={w.pic.large} data-view={i} data-reveal="fade" style={`--d:${(i % 6) * 70}`}>
+            <a class="tile__frame" href={w.pic.large} data-view={i} data-reveal="fade" style={`--d:${(i % 6) * 80}`}>
               <img
                 src={w.src}
                 srcset={w.srcset}
@@ -140,7 +120,7 @@ const year = (w: Work) => w.meta.find((m) => /^\d{4}(\s*[–-]\s*\d{2,4})?$/.tes
 </Base>
 
 <script>
-  import '../scripts/slides';
+  import '../scripts/screen';
   import '../scripts/reveal';
 </script>
 
@@ -163,119 +143,111 @@ const year = (w: Work) => w.meta.find((m) => /^\d{4}(\s*[–-]\s*\d{2,4})?$/.tes
     color: var(--ink-2);
   }
 
-  /* 2. The banner: one work at a time, enlarged to fill a wide frame */
-  .feat {
-    width: 100%;
-    max-width: var(--max);
-    margin: clamp(28px, 4vw, 56px) auto 0;
-    padding: 0 var(--gutter);
+  /* 2. The banner: a folding screen of the latest works, edge to edge */
+  .banner {
+    margin-top: clamp(20px, 2.6vw, 36px);
   }
-  .feat__frame {
-    position: relative;
-    overflow: hidden;
-    aspect-ratio: 2 / 1;
-    max-height: 74vh;
-    width: 100%;
-    background: color-mix(in srgb, var(--ink) 5%, var(--ground));
-    touch-action: pan-y;
-  }
-  .feat__frame:focus-visible {
-    outline-offset: 4px;
-  }
-  .feat__track {
+  .screen {
+    --h: min(clamp(380px, 62vh, 640px), var(--hmax, 640px));
+    --from: 1;
     display: flex;
-    height: 100%;
-    transition: transform 1300ms cubic-bezier(0.65, 0.04, 0.25, 1);
-  }
-  .feat__slide {
-    flex: 0 0 100%;
-    height: 100%;
+    gap: 3px;
+    width: 100%;
+    height: var(--h);
     overflow: hidden;
   }
-  .feat__link {
-    display: block;
+  .pan {
+    position: relative;
+    flex: 1 1 0px;
+    min-width: 0;
     height: 100%;
+    overflow: hidden;
+    cursor: pointer;
+    transition:
+      flex-grow 1.15s cubic-bezier(0.65, 0.04, 0.25, 1),
+      flex-basis 1.15s cubic-bezier(0.65, 0.04, 0.25, 1);
+  }
+  /* the picture keeps its place and size; the panel only uncovers more or less of it */
+  .pan img {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    height: 100%;
+    width: auto;
+    max-width: none;
+    aspect-ratio: var(--ar);
+    transform: translateX(-50%);
+    filter: brightness(0.46) saturate(0.7);
+    transition: filter 1s ease;
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+  .pan.is-open {
+    flex: 0 0 min(calc(var(--h) * var(--ar)), 62vw);
     cursor: zoom-in;
   }
-  .feat__link img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transform: scale(1.001);
-    transition: transform 9s linear;
-    -webkit-user-drag: none;
-    user-select: none;
+  .pan.is-open img {
+    filter: none;
   }
-  .feat__slide.is-on .feat__link img {
-    transform: scale(1.05);
-  }
-  /* a hairline that fills while the work is shown */
-  .feat__bar {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 2px;
-    background: color-mix(in srgb, var(--ground) 30%, transparent);
-  }
-  .feat__bar i {
-    display: block;
-    height: 100%;
-    background: var(--ground);
-    transform-origin: left;
-    animation: feat-bar 6500ms linear both;
-  }
-  .feat.is-paused .feat__bar i {
-    animation-play-state: paused;
-  }
-  @keyframes feat-bar {
-    from {
-      transform: scaleX(0);
+  @media (hover: hover) and (pointer: fine) {
+    .pan:not(.is-open):hover img {
+      filter: brightness(0.78) saturate(0.9);
     }
   }
-  .feat__foot {
+  .pan:focus-visible {
+    outline-offset: -3px;
+  }
+  .kbar {
+    width: 100%;
+    max-width: var(--max);
+    margin: 0 auto;
+    padding: 18px var(--gutter) 0;
+    min-height: 96px;
     display: flex;
-    align-items: baseline;
+    flex-wrap: wrap;
+    align-items: flex-end;
     justify-content: space-between;
-    gap: 12px 24px;
-    padding-top: 14px;
-    min-height: 54px;
+    gap: 12px 32px;
   }
-  .feat__cap {
-    display: flex;
-    gap: 12px;
-    align-items: baseline;
-    font: 400 clamp(20px, 1.8vw, 26px) / 1.2 var(--f-display);
+  .kcap {
     min-width: 0;
+    transition:
+      opacity 450ms ease,
+      filter 450ms ease;
   }
-  .feat__y {
-    font: 400 13px/1 var(--f-nav);
+  .kcap.is-swap {
+    opacity: 0;
+    filter: blur(8px);
+  }
+  .kcap__t {
+    font: 400 clamp(30px, 3.6vw, 56px) / 1.05 var(--f-display);
+    letter-spacing: -0.01em;
+    min-height: 1.05em;
+  }
+  .kcap__m {
+    margin-top: 8px;
+    min-height: 1.5em;
+    font: 400 14px/1.5 var(--f-ui);
     color: var(--ink-2);
-    font-variant-numeric: tabular-nums;
   }
-  .feat__ctl {
+  .kctl {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 14px;
-    flex-shrink: 0;
+    gap: 4px 16px;
   }
-  .feat__count {
+  .kctl__n {
     font: 400 14px/1 var(--f-nav);
     color: var(--ink-2);
     font-variant-numeric: tabular-nums;
-    min-width: 4.5ch;
+    min-width: 5ch;
     text-align: center;
   }
   @media (prefers-reduced-motion: reduce) {
-    .feat__track,
-    .feat__link img {
+    .pan,
+    .pan img,
+    .kcap {
       transition: none;
-    }
-    .feat__slide.is-on .feat__link img {
-      transform: none;
-    }
-    .feat__bar {
-      display: none;
     }
   }
 
@@ -300,9 +272,11 @@ const year = (w: Work) => w.meta.find((m) => /^\d{4}(\s*[–-]\s*\d{2,4})?$/.tes
     display: grid;
     grid-template-rows: 1fr auto;
     min-width: 0;
-    transition: opacity 320ms ease;
+    transition:
+      opacity 600ms ease,
+      filter 600ms ease;
   }
-  /* the work's own colour, glowing faintly on the paper around it */
+  /* the work's own colour, glowing faintly on the ground around it */
   .tile::before {
     content: '';
     position: absolute;
@@ -316,12 +290,10 @@ const year = (w: Work) => w.meta.find((m) => /^\d{4}(\s*[–-]\s*\d{2,4})?$/.tes
   }
   .tile__frame {
     display: block;
+    align-self: end;
     min-height: 0;
     aspect-ratio: 4 / 5;
     cursor: zoom-in;
-  }
-  .tile__frame {
-    align-self: end;
   }
   .tile__frame img {
     width: 100%;
@@ -342,10 +314,16 @@ const year = (w: Work) => w.meta.find((m) => /^\d{4}(\s*[–-]\s*\d{2,4})?$/.tes
     font: 400 15px/1.2 var(--f-display);
     text-align: center;
   }
-  /* Pointing at one work quietens the others. */
+  .tile__y {
+    font: 400 12px/1 var(--f-nav);
+    color: var(--ink-2);
+    font-variant-numeric: tabular-nums;
+  }
+  /* Pointing at one work keeps it sharp; the others go softly out of focus. */
   @media (hover: hover) and (pointer: fine) {
     .grid:has(.tile__frame:hover) .tile:not(:has(.tile__frame:hover)) {
-      opacity: 0.4;
+      opacity: 0.42;
+      filter: blur(2.5px);
     }
     .tile:has(.tile__frame:hover)::before {
       opacity: 0.75;
@@ -355,15 +333,11 @@ const year = (w: Work) => w.meta.find((m) => /^\d{4}(\s*[–-]\s*\d{2,4})?$/.tes
     opacity: 0.75;
   }
   @media (max-width: 700px) {
-    .feat {
-      padding: 0;
+    .screen {
+      --h: min(clamp(320px, 52vh, 460px), var(--hmax, 460px));
     }
-    .feat__frame {
-      aspect-ratio: 4 / 5;
-      max-height: 70vh;
-    }
-    .feat__foot {
-      padding: 12px 16px 0;
+    .pan:nth-child(n + 6) {
+      display: none;
     }
     .grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));

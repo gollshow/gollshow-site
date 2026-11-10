@@ -84,6 +84,15 @@ const art = (name: string, label: string) => ({
             },
             { name: 'hidden', label: '숨기기', widget: 'boolean', default: false, required: false, hint: '켜면 사이트에서 보이지 않습니다 (지워지지 않아요).' },
             {
+              name: 'details',
+              label: '디테일컷 (여러 장, 선택)',
+              widget: 'image',
+              multiple: true,
+              required: false,
+              ...folder(name),
+              hint: '작품을 크게 볼 때 아래로 이어지는 부분 확대 사진. 여러 장을 한꺼번에 올리고 끌어서 순서를 바꿀 수 있어요. 비워 두면, 원본이 큰 작품(긴 변 2400px 이상)은 사이트가 자동으로 두 장을 잘라 보여 줍니다.',
+            },
+            {
               name: 'process',
               label: '과정 영상 (선택)',
               widget: 'string',

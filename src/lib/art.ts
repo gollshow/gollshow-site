@@ -1,6 +1,7 @@
 import { getEntry } from 'astro:content';
-import { pic, resolveImage, type Media, type Pic } from './media';
-import { accentOf } from './palette';
+import { pic, resolveImage, withBase, type Media, type Pic } from './media';
+import { accentOf, pigmentsOf } from './palette';
+import { bigEnough, detailId, detailRects, outSize } from './details';
 import { CATEGORY_WORD, sizeOf } from './site';
 import { embedFor } from './embed';
 
@@ -13,9 +14,13 @@ export type ViewerItem = {
   title?: { en?: string; ko?: string };
   meta: string[]; // year, material, size, note — only the filled ones
   process?: string;
+  /** detail cuts shown under the work in the viewer */
+  details?: { src: string; srcset?: string; w: number; h: number }[];
 };
 
-export type Work = ViewerItem & { pic: Pic; media: Media; color: string; display: 'S' | 'M' | 'L'; focus?: string };
+export type Work = ViewerItem & { pic: Pic; media: Media; color: string; pigments: string[]; display: 'S' | 'M' | 'L'; focus?: string };
+
+const BASE_PIGMENTS = ['#1C2B94', '#DB3821', '#0A6B5C', '#F2B833'];
 
 const key = (s: string) => s.split('?')[0].normalize('NFC').toLowerCase();
 
@@ -40,10 +45,26 @@ export async function getWorks(category: string): Promise<Work[]> {
     const p = await pic(m);
     const tEn = w.title_en ?? w.title_ko;
     const tKo = w.title_ko ?? w.title_en;
+    // Detail cuts: the ones uploaded in /admin; otherwise two automatic close-ups when the original is large.
+    const details: NonNullable<ViewerItem['details']> = [];
+    for (const ref of w.details ?? []) {
+      const dm = resolveImage(ref);
+      if (!dm) {
+        console.warn(`[art] ${category}: detail not found, skipped: ${ref}`);
+        continue;
+      }
+      const dp = await pic(dm);
+      details.push({ src: dp.src, srcset: dp.srcset, w: dp.w, h: dp.h });
+    }
+    if (!details.length && bigEnough(m)) {
+      (await detailRects(m)).forEach((r, n) => details.push({ src: withBase(`/detail/${detailId(category, m, n)}.webp`)!, ...outSize(r) }));
+    }
     out.push({
       pic: p,
       media: m,
       color: await accentOf(m),
+      pigments: await pigmentsOf(m, BASE_PIGMENTS),
+      details: details.length ? details : undefined,
       display: w.display,
       focus: w.focus,
       src: p.src,
@@ -65,7 +86,7 @@ export async function getWorks(category: string): Promise<Work[]> {
 
 /** Strip the heavy bits before the list goes into the page as JSON for the viewer. */
 export const viewerData = (items: ViewerItem[]): ViewerItem[] =>
-  items.map(({ src, srcset, w, h, alt, title, meta, process }) => ({ src, srcset, w, h, alt, title, meta, process }));
+  items.map(({ src, srcset, w, h, alt, title, meta, process, details }) => ({ src, srcset, w, h, alt, title, meta, process, details }));
 
 /** Film stills (or any list of image paths) as viewer items. */
 export async function stillsToItems(paths: string[], title: { en?: string; ko?: string }): Promise<(ViewerItem & { pic: Pic })[]> {

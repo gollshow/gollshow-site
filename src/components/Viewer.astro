@@ -1,9 +1,11 @@
 ---
 /**
  * Full-screen viewer on the same ground. Opened by any link with [data-view="<index>"]
- * inside the page; the items come from the JSON written here. ←/→, swipe, Esc, a
- * close button, focus kept inside (modal dialog), a counter "12 / 63", and a
- * "Process" button when the work has a process video.
+ * inside the page (or a "view-open" event); the items come from the JSON written here.
+ * The first screen holds the whole work, coming into focus, with its caption, ←/→,
+ * swipe, Esc, a close button, a counter "12 / 63" and a "Process" button when the work
+ * has a process video. When the work has detail cuts they follow below: scroll down.
+ * Focus is kept inside (modal dialog).
  */
 import T from './T.astro';
 import { UI } from '../lib/site';
@@ -18,25 +20,29 @@ const { items, label } = Astro.props;
 <dialog class="viewer" aria-label={label.en} data-aria-en={label.en} data-aria-ko={label.ko}>
   <script type="application/json" class="viewer__data" set:html={JSON.stringify(items).replace(/</g, '\\u003c')} />
   <button class="tbtn viewer__close" type="button" data-close autofocus><T t={UI.close} /></button>
-  <div class="viewer__stage">
-    <figure class="viewer__fig">
-      <img class="viewer__img" alt="" decoding="async" />
-    </figure>
-    <div class="viewer__video" hidden></div>
-    <button class="viewer__zone viewer__zone--prev" type="button" tabindex="-1" aria-hidden="true" data-prev></button>
-    <button class="viewer__zone viewer__zone--next" type="button" tabindex="-1" aria-hidden="true" data-next></button>
-  </div>
-  <div class="viewer__bar">
-    <div class="viewer__cap" aria-live="polite"></div>
-    <div class="viewer__ctl">
-      <button class="tbtn viewer__process" type="button" data-process hidden>
-        <span class="viewer__process-a"><T t={UI.process} /></span><span class="viewer__process-b" hidden><T t={UI.work} /></span>
-      </button>
-      <button class="tbtn" type="button" data-prev><T t={UI.prev} /></button>
-      <button class="tbtn" type="button" data-next><T t={UI.next} /></button>
-      <span class="viewer__count" aria-hidden="true"></span>
+  <div class="viewer__first">
+    <div class="viewer__stage">
+      <figure class="viewer__fig">
+        <img class="viewer__img" alt="" decoding="async" />
+      </figure>
+      <div class="viewer__video" hidden></div>
+      <button class="viewer__zone viewer__zone--prev" type="button" tabindex="-1" aria-hidden="true" data-prev></button>
+      <button class="viewer__zone viewer__zone--next" type="button" tabindex="-1" aria-hidden="true" data-next></button>
+    </div>
+    <div class="viewer__bar">
+      <div class="viewer__cap" aria-live="polite"></div>
+      <button class="viewer__more" type="button" hidden></button>
+      <div class="viewer__ctl">
+        <button class="tbtn viewer__process" type="button" data-process hidden>
+          <span class="viewer__process-a"><T t={UI.process} /></span><span class="viewer__process-b" hidden><T t={UI.work} /></span>
+        </button>
+        <button class="tbtn" type="button" data-prev><T t={UI.prev} /></button>
+        <button class="tbtn" type="button" data-next><T t={UI.next} /></button>
+        <span class="viewer__count" aria-hidden="true"></span>
+      </div>
     </div>
   </div>
+  <div class="viewer__details" hidden></div>
 </dialog>
 
 <script>
@@ -56,11 +62,12 @@ const { items, label } = Astro.props;
     border: 0;
     background: var(--ground);
     color: var(--ink);
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
   .viewer[open] {
-    display: grid;
-    grid-template-rows: var(--top-h) 1fr auto;
+    display: block;
     animation: viewer-in 220ms ease both;
   }
   .viewer::backdrop {
@@ -75,10 +82,17 @@ const { items, label } = Astro.props;
     overflow: hidden;
   }
   .viewer__close {
-    grid-row: 1;
-    justify-self: end;
-    align-self: center;
-    margin-right: 24px;
+    position: fixed;
+    z-index: 3;
+    top: calc((var(--top-h) - 40px) / 2);
+    right: 24px;
+  }
+  /* the first screen: the whole work */
+  .viewer__first {
+    height: 100vh;
+    height: 100svh;
+    display: grid;
+    grid-template-rows: var(--top-h) 1fr auto;
   }
   .viewer__stage {
     grid-row: 2;
@@ -102,28 +116,18 @@ const { items, label } = Astro.props;
     user-select: none;
     -webkit-user-drag: none;
   }
-  /* The image appears with a calm fade. */
+  /* the image comes into focus */
   .viewer__fig.is-wait {
     opacity: 0;
   }
   .viewer__fig.is-bleed {
-    animation: v-in 560ms ease both;
+    animation: v-in 900ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
   }
   @keyframes v-in {
     from {
       opacity: 0;
-      transform: scale(0.988);
-    }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .viewer[open] {
-      animation: none;
-    }
-    .viewer__fig {
-      transition: opacity 260ms ease;
-    }
-    .viewer__fig.is-bleed {
-      animation: none;
+      filter: blur(18px);
+      transform: scale(0.985);
     }
   }
   .viewer__video :global(iframe) {
@@ -149,6 +153,7 @@ const { items, label } = Astro.props;
   }
   .viewer__bar {
     grid-row: 3;
+    position: relative;
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
@@ -168,6 +173,28 @@ const { items, label } = Astro.props;
   .viewer__cap :global(.viewer__meta) {
     color: var(--ink-2);
   }
+  /* "2 details below": a quiet pointer to what follows */
+  .viewer__more {
+    position: absolute;
+    left: 50%;
+    bottom: 14px;
+    transform: translateX(-50%);
+    display: grid;
+    justify-items: center;
+    gap: 8px;
+    font: 400 13px/1 var(--f-nav);
+    color: var(--ink-2);
+    white-space: nowrap;
+  }
+  .viewer__more::after {
+    content: '';
+    width: 1px;
+    height: 26px;
+    background: color-mix(in srgb, var(--ink) 45%, transparent);
+  }
+  .viewer__more:hover {
+    color: var(--ink);
+  }
   .viewer__ctl {
     display: flex;
     align-items: center;
@@ -184,14 +211,64 @@ const { items, label } = Astro.props;
   .viewer__process {
     margin-right: 10px;
   }
+  /* the detail cuts, one under another */
+  .viewer__details {
+    display: grid;
+    justify-items: center;
+    gap: clamp(40px, 6vw, 96px);
+    padding: clamp(24px, 4vw, 64px) var(--gutter) clamp(80px, 10vw, 160px);
+  }
+  .viewer__details :global(.viewer__det) {
+    margin: 0;
+    width: min(100%, 1100px);
+    transition:
+      opacity 1.3s ease,
+      filter 1.6s cubic-bezier(0.2, 0.7, 0.2, 1),
+      transform 1.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  .viewer__details :global(.viewer__det:not(.is-in)) {
+    opacity: 0;
+    filter: blur(16px);
+    transform: scale(1.015);
+  }
+  .viewer__details :global(.viewer__det img) {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .viewer[open],
+    .viewer__fig.is-bleed {
+      animation: none;
+    }
+    .viewer__fig {
+      transition: opacity 260ms ease;
+    }
+    .viewer__details :global(.viewer__det) {
+      transition: none;
+    }
+  }
   @media (max-width: 640px) {
     .viewer__close {
-      margin-right: 12px;
+      right: 12px;
     }
     .viewer__bar {
       flex-direction: column;
       align-items: stretch;
       padding: 10px 16px calc(14px + env(safe-area-inset-bottom));
+    }
+    .viewer__more {
+      position: static;
+      transform: none;
+      justify-self: start;
+      justify-items: start;
+      grid-auto-flow: column;
+      align-items: center;
+      padding: 4px 0;
+    }
+    .viewer__more::after {
+      width: 26px;
+      height: 1px;
     }
     .viewer__ctl {
       justify-content: space-between;

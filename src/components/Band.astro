@@ -1,8 +1,9 @@
 ---
 /**
- * The head of every inner page: a still watercolour shape in the site's four pigments
- * (each page its own shape and seed, src/scripts/band.ts), with the page's name in ink.
- * Both fade in calmly. The slot holds a short line under it.
+ * The head of every inner page: a watercolour shape in the site's four pigments (each
+ * page its own shape and seed, flowing very slowly; src/scripts/band.ts), with the page's
+ * name in ink coming into focus. A click on the pigment lets one drop fall. The slot
+ * holds a short line under it.
  */
 import T from './T.astro';
 import { getSettings } from '../lib/site';
@@ -108,13 +109,14 @@ const pig = Astro.props.pigments?.length === 4 ? Astro.props.pigments : [p.ultra
   }
   @media (prefers-reduced-motion: no-preference) {
     .band__word {
-      animation: band-word 1200ms cubic-bezier(0.2, 0.7, 0.2, 1) 200ms both;
+      animation: band-word 1800ms cubic-bezier(0.2, 0.7, 0.2, 1) 150ms both;
     }
   }
   @keyframes band-word {
     from {
       opacity: 0;
-      transform: translateY(12px);
+      filter: blur(20px);
+      letter-spacing: 0.03em;
     }
   }
   @media (prefers-reduced-motion: reduce) {

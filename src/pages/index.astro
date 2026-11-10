@@ -2,8 +2,10 @@
 /**
  * Home: the pigment flow (no artwork on this first screen, the owner's rule). Scrolling
  * down dissolves the wordmark back into the pigment, which sinks into the ground, and the
- * rooms rise over it: Film first, then the art, music and about. Pointing at a room turns
- * its name to one of the four pigments; on a phone each room carries a small image.
+ * rooms come into focus over it, one after another: Film first, then the art, music and
+ * about. Pointing at a room keeps it sharp while the others soften, turns its name to a
+ * pigment colour and floods the ground with that room's colours. A click or tap anywhere
+ * lets one drop fall into the pigment.
  */
 import Base from '../layouts/Base.astro';
 import T from '../components/T.astro';
@@ -47,6 +49,15 @@ const rooms = await Promise.all(
     return { ...n, img, meta };
   }),
 );
+// the colours the ground takes while a room is pointed at
+const ROOM_PAL: Record<string, string[]> = {
+  film: ['#8E1218', '#2E7F86', '#4A0D16', '#E9B27A'],
+  painting: ['#2AA7D6', '#F2B833', '#3E8C3A', '#E0457B'],
+  'conte-pastel': ['#7B3F2A', '#A8324A', '#3F5B7A', '#D9B58A'],
+  digital: ['#E0218A', '#22B14C', '#F2671E', '#2B6BE0'],
+  music: ['#1C2B94', '#5B3FA8', '#0A6B5C', '#6EC4B7'],
+  about: ['#DB3821', '#1C2B94', '#F2B833', '#0A6B5C'],
+};
 ---
 <Base home page="home">
   <section
@@ -78,7 +89,7 @@ const rooms = await Promise.all(
     <ul class="rooms__list">
       {
         rooms.map((r, i) => (
-          <li class="room" data-reveal="fade" style={`--d:${i * 90};--pc:var(--p${[1, 3, 2, 0][i % 4]})`}>
+          <li class="room" data-pal={(ROOM_PAL[r.key] ?? pig).join(',')} style={`--pc:var(--p${[1, 3, 2, 0][i % 4]})`}>
             <a class="room__a" href={withBase(r.path)}>
               <span class="room__name">
                 <span data-l="en">{r.en}</span>
@@ -113,7 +124,7 @@ const rooms = await Promise.all(
 <script>
   import '../scripts/hero';
   import '../scripts/sound';
-  import '../scripts/reveal';
+  import '../scripts/rooms';
 </script>
 
 <style>
@@ -273,16 +284,68 @@ const rooms = await Promise.all(
     align-items: end;
     column-gap: 24px;
     padding: clamp(14px, 1.8vw, 26px) 0 clamp(16px, 2vw, 28px);
-    border-top: 1px solid var(--line);
-    transition: opacity 400ms ease;
+  }
+  /* the rule above each room draws in from the left */
+  .room {
+    position: relative;
+  }
+  .room::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 1px;
+    background: var(--line);
+    transform-origin: left;
+    transition: transform 1.1s cubic-bezier(0.2, 0.7, 0.2, 1);
   }
   .room__name {
     grid-area: name;
     font: 400 clamp(52px, 8.4vw, 136px) / 0.9 var(--f-display);
     letter-spacing: -0.016em;
+    justify-self: start;
     transition:
+      opacity 1.5s ease,
+      filter 1.9s cubic-bezier(0.2, 0.7, 0.2, 1),
+      letter-spacing 2.1s cubic-bezier(0.2, 0.7, 0.2, 1),
       color 600ms ease,
       transform 900ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  .room.is-settled .room__name {
+    transition:
+      opacity 700ms ease,
+      filter 700ms ease,
+      color 600ms ease,
+      transform 900ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  .room__alt,
+  .room__meta,
+  .room__img {
+    transition:
+      opacity 1.2s ease 0.9s,
+      color 600ms ease;
+  }
+  /* before a room has come into focus (only when scripts run; without them everything is simply there) */
+  :global(.js) .room:not(.is-go)::before {
+    transform: scaleX(0);
+  }
+  :global(.js) .room:not(.is-go) .room__name {
+    opacity: 0;
+    filter: blur(22px);
+    letter-spacing: 0.05em;
+  }
+  :global(.js) .room:not(.is-go) .room__alt,
+  :global(.js) .room:not(.is-go) .room__meta,
+  :global(.js) .room:not(.is-go) .room__img {
+    opacity: 0;
+  }
+  /* pointing at one room keeps it sharp and lets the others go softly out of focus */
+  @media (hover: hover) and (pointer: fine) {
+    .rooms__list:has(.room__a:hover) .room.is-settled:not(:has(.room__a:hover)) .room__name {
+      filter: blur(3px);
+      opacity: 0.42;
+    }
   }
   :global(html[data-lang='ko']) .room__name {
     font-size: clamp(42px, 6.6vw, 106px);
@@ -307,9 +370,6 @@ const rooms = await Promise.all(
   .room__img {
     display: none;
   }
-  .room__meta {
-    transition: color 600ms ease;
-  }
   /* pointing at a room: its name takes the room's pigment, lifted a little so it reads on the ground */
   .room__a:hover .room__name,
   .room__a:focus-visible .room__name {
@@ -321,8 +381,15 @@ const rooms = await Promise.all(
     color: var(--ink);
   }
   @media (prefers-reduced-motion: reduce) {
-    .room__name {
+    .room__name,
+    .room.is-settled .room__name {
       transition: color 600ms ease;
+    }
+    .room::before,
+    .room__alt,
+    .room__meta,
+    .room__img {
+      transition: none;
     }
     .room__a:hover .room__name,
     .room__a:focus-visible .room__name {
